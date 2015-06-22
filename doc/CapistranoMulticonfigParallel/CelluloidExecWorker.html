@@ -1,0 +1,2893 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+  Class: CapistranoMulticonfigParallel::CelluloidExecWorker
+  
+    &mdash; Documentation by YARD 0.8.7.6
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css" charset="utf-8" />
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  hasFrames = window.top.frames.main ? true : false;
+  relpath = '../';
+  framesUrl = "../frames.html#!CapistranoMulticonfigParallel/CelluloidExecWorker.html";
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="header">
+      <div id="menu">
+  
+    <a href="../_index.html">Index (C)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../CapistranoMulticonfigParallel.html" title="CapistranoMulticonfigParallel (module)">CapistranoMulticonfigParallel</a></span></span>
+     &raquo; 
+    <span class="title">CelluloidExecWorker</span>
+  
+
+  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+</div>
+
+      <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="../class_list.html">
+      Class List
+    </a>
+  
+    <a class="full_list_link" id="method_list_link"
+        href="../method_list.html">
+      Method List
+    </a>
+  
+    <a class="full_list_link" id="file_list_link"
+        href="../file_list.html">
+      File List
+    </a>
+  
+</div>
+      <div class="clear"></div>
+    </div>
+
+    <iframe id="search_frame"></iframe>
+
+    <div id="content"><h1>Class: CapistranoMulticonfigParallel::CelluloidExecWorker
+  
+  
+  
+</h1>
+
+<dl class="box">
+  
+    <dt class="r1">Inherits:</dt>
+    <dd class="r1">
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">CapistranoMulticonfigParallel::CelluloidExecWorker</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+      </dd>
+    
+  
+  
+    
+  
+    
+      <dt class="r2">Includes:</dt>
+      <dd class="r2">Celluloid, Celluloid::Logger, Celluloid::Notifications</dd>
+      
+    
+  
+  
+  
+    <dt class="r1 last">Defined in:</dt>
+    <dd class="r1 last">lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb</dd>
+  
+</dl>
+<div class="clear"></div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    
+<p>rubocop:disable ClassLength</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+
+
+
+  <h2>Instance Attribute Summary <small>(<a href="#" class="summary_toggle">collapse</a>)</small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#action_name-instance_method" title="#action_name (instance method)">- (Object) <strong>action_name</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute action_name.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#app_name-instance_method" title="#app_name (instance method)">- (Object) <strong>app_name</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute app_name.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#client-instance_method" title="#client (instance method)">- (Object) <strong>client</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute client.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#crashed-instance_method" title="#crashed (instance method)">- (Object) <strong>crashed</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute crashed.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#current_task_number-instance_method" title="#current_task_number (instance method)">- (Object) <strong>current_task_number</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute current_task_number.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#env_name-instance_method" title="#env_name (instance method)">- (Object) <strong>env_name</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute env_name.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#env_options-instance_method" title="#env_options (instance method)">- (Object) <strong>env_options</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute env_options.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#job-instance_method" title="#job (instance method)">- (Object) <strong>job</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute job.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#job_id-instance_method" title="#job_id (instance method)">- (Object) <strong>job_id</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute job_id.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#last_manager_condition-instance_method" title="#last_manager_condition (instance method)">- (Object) <strong>last_manager_condition</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute last_manager_condition.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#machine-instance_method" title="#machine (instance method)">- (Object) <strong>machine</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute machine.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#manager-instance_method" title="#manager (instance method)">- (Object) <strong>manager</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute manager.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#manager_condition-instance_method" title="#manager_condition (instance method)">- (Object) <strong>manager_condition</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute manager_condition.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#publisher_channel-instance_method" title="#publisher_channel (instance method)">- (Object) <strong>publisher_channel</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute publisher_channel.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#rake_tasks-instance_method" title="#rake_tasks (instance method)">- (Object) <strong>rake_tasks</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute rake_tasks.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#subscription_channel-instance_method" title="#subscription_channel (instance method)">- (Object) <strong>subscription_channel</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute subscription_channel.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#successfull_subscription-instance_method" title="#successfull_subscription (instance method)">- (Object) <strong>successfull_subscription</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute successfull_subscription.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#task_argv-instance_method" title="#task_argv (instance method)">- (Object) <strong>task_argv</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute task_argv.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#task_confirmations-instance_method" title="#task_confirmations (instance method)">- (Object) <strong>task_confirmations</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'>
+<p>Returns the value of attribute task_confirmations.</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small>(<a href="#" class="summary_toggle">collapse</a>)</small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#construct_blocks_for_conditions-instance_method" title="#construct_blocks_for_conditions (instance method)">- (Object) <strong>construct_blocks_for_conditions</strong>(job_confirmation_conditions, job_termination_condition) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#crashed%3F-instance_method" title="#crashed? (instance method)">- (Boolean) <strong>crashed?</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#debug_enabled%3F-instance_method" title="#debug_enabled? (instance method)">- (Boolean) <strong>debug_enabled?</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#execute_after_succesfull_subscription-instance_method" title="#execute_after_succesfull_subscription (instance method)">- (Object) <strong>execute_after_succesfull_subscription</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#execute_deploy-instance_method" title="#execute_deploy (instance method)">- (Object) <strong>execute_deploy</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#handle_subscription-instance_method" title="#handle_subscription (instance method)">- (Object) <strong>handle_subscription</strong>(message) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#message_is_about_a_task%3F-instance_method" title="#message_is_about_a_task? (instance method)">- (Boolean) <strong>message_is_about_a_task?</strong>(message) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#need_confirmation_for_tasks%3F-instance_method" title="#need_confirmation_for_tasks? (instance method)">- (Boolean) <strong>need_confirmation_for_tasks?</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#on_close-instance_method" title="#on_close (instance method)">- (Object) <strong>on_close</strong>(code, reason) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#on_message-instance_method" title="#on_message (instance method)">- (Object) <strong>on_message</strong>(message) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#process_job-instance_method" title="#process_job (instance method)">- (Object) <strong>process_job</strong>(job) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#publish_rake_event-instance_method" title="#publish_rake_event (instance method)">- (Object) <strong>publish_rake_event</strong>(data) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#rake_actor_id-instance_method" title="#rake_actor_id (instance method)">- (Object) <strong>rake_actor_id</strong>(data) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#save_tasks_to_be_executed-instance_method" title="#save_tasks_to_be_executed (instance method)">- (Object) <strong>save_tasks_to_be_executed</strong>(message) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#send_msg-instance_method" title="#send_msg (instance method)">- (Object) <strong>send_msg</strong>(channel, message = nil) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#setup_command_line-instance_method" title="#setup_command_line (instance method)">- (Object) <strong>setup_command_line</strong>(*options) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#setup_task_arguments-instance_method" title="#setup_task_arguments (instance method)">- (Object) <strong>setup_task_arguments</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#setup_worker_condition-instance_method" title="#setup_worker_condition (instance method)">- (Object) <strong>setup_worker_condition</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#start_task-instance_method" title="#start_task (instance method)">- (Object) <strong>start_task</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#task_approval-instance_method" title="#task_approval (instance method)">- (Object) <strong>task_approval</strong>(message) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#update_machine_state-instance_method" title="#update_machine_state (instance method)">- (Object) <strong>update_machine_state</strong>(name) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#work-instance_method" title="#work (instance method)">- (Object) <strong>work</strong>(job, manager) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  
+  
+  
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id="action_name=-instance_method"></span>
+      <div class="method_details first">
+  <h3 class="signature first" id="action_name-instance_method">
+  
+    - (<tt>Object</tt>) <strong>action_name</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute action_name</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_action_name'>action_name</span>
+  <span class='ivar'>@action_name</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="app_name=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="app_name-instance_method">
+  
+    - (<tt>Object</tt>) <strong>app_name</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute app_name</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_app_name'>app_name</span>
+  <span class='ivar'>@app_name</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="client=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="client-instance_method">
+  
+    - (<tt>Object</tt>) <strong>client</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute client</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_client'>client</span>
+  <span class='ivar'>@client</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="crashed=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="crashed-instance_method">
+  
+    - (<tt>Object</tt>) <strong>crashed</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute crashed</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_crashed'>crashed</span>
+  <span class='ivar'>@crashed</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="current_task_number=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="current_task_number-instance_method">
+  
+    - (<tt>Object</tt>) <strong>current_task_number</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute current_task_number</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_current_task_number'>current_task_number</span>
+  <span class='ivar'>@current_task_number</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="env_name=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="env_name-instance_method">
+  
+    - (<tt>Object</tt>) <strong>env_name</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute env_name</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_env_name'>env_name</span>
+  <span class='ivar'>@env_name</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="env_options=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="env_options-instance_method">
+  
+    - (<tt>Object</tt>) <strong>env_options</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute env_options</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_env_options'>env_options</span>
+  <span class='ivar'>@env_options</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="job=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="job-instance_method">
+  
+    - (<tt>Object</tt>) <strong>job</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute job</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_job'>job</span>
+  <span class='ivar'>@job</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="job_id=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="job_id-instance_method">
+  
+    - (<tt>Object</tt>) <strong>job_id</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute job_id</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_job_id'>job_id</span>
+  <span class='ivar'>@job_id</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="last_manager_condition=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="last_manager_condition-instance_method">
+  
+    - (<tt>Object</tt>) <strong>last_manager_condition</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute last_manager_condition</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_last_manager_condition'>last_manager_condition</span>
+  <span class='ivar'>@last_manager_condition</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="machine=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="machine-instance_method">
+  
+    - (<tt>Object</tt>) <strong>machine</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute machine</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_machine'>machine</span>
+  <span class='ivar'>@machine</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="manager=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="manager-instance_method">
+  
+    - (<tt>Object</tt>) <strong>manager</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute manager</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_manager'>manager</span>
+  <span class='ivar'>@manager</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="manager_condition=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="manager_condition-instance_method">
+  
+    - (<tt>Object</tt>) <strong>manager_condition</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute manager_condition</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_manager_condition'>manager_condition</span>
+  <span class='ivar'>@manager_condition</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="publisher_channel=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="publisher_channel-instance_method">
+  
+    - (<tt>Object</tt>) <strong>publisher_channel</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute publisher_channel</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_publisher_channel'>publisher_channel</span>
+  <span class='ivar'>@publisher_channel</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="rake_tasks=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="rake_tasks-instance_method">
+  
+    - (<tt>Object</tt>) <strong>rake_tasks</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute rake_tasks</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_rake_tasks'>rake_tasks</span>
+  <span class='ivar'>@rake_tasks</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="subscription_channel=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="subscription_channel-instance_method">
+  
+    - (<tt>Object</tt>) <strong>subscription_channel</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute subscription_channel</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_subscription_channel'>subscription_channel</span>
+  <span class='ivar'>@subscription_channel</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="successfull_subscription=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="successfull_subscription-instance_method">
+  
+    - (<tt>Object</tt>) <strong>successfull_subscription</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute successfull_subscription</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_successfull_subscription'>successfull_subscription</span>
+  <span class='ivar'>@successfull_subscription</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="task_argv=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="task_argv-instance_method">
+  
+    - (<tt>Object</tt>) <strong>task_argv</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute task_argv</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_task_argv'>task_argv</span>
+  <span class='ivar'>@task_argv</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="task_confirmations=-instance_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="task_confirmations-instance_method">
+  
+    - (<tt>Object</tt>) <strong>task_confirmations</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+<p>Returns the value of attribute task_confirmations</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+10
+11
+12</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 10</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_task_confirmations'>task_confirmations</span>
+  <span class='ivar'>@task_confirmations</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="construct_blocks_for_conditions-instance_method">
+  
+    - (<tt>Object</tt>) <strong>construct_blocks_for_conditions</strong>(job_confirmation_conditions, job_termination_condition) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 171</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_construct_blocks_for_conditions'>construct_blocks_for_conditions</span><span class='lparen'>(</span><span class='id identifier rubyid_job_confirmation_conditions'>job_confirmation_conditions</span><span class='comma'>,</span> <span class='id identifier rubyid_job_termination_condition'>job_termination_condition</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_hash_conditions'>hash_conditions</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='const'>CapistranoMulticonfigParallel</span><span class='period'>.</span><span class='id identifier rubyid_configuration'>configuration</span><span class='period'>.</span><span class='id identifier rubyid_task_confirmations'>task_confirmations</span><span class='period'>.</span><span class='id identifier rubyid_each_with_index'>each_with_index</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_task'>task</span><span class='comma'>,</span> <span class='id identifier rubyid_index'>index</span><span class='op'>|</span>
+    <span class='id identifier rubyid_blk'>blk</span> <span class='op'>=</span> <span class='id identifier rubyid_lambda'>lambda</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_sum'>sum</span><span class='op'>|</span>
+      <span class='id identifier rubyid_need_confirmation_for_tasks?'>need_confirmation_for_tasks?</span> <span class='op'>?</span> <span class='id identifier rubyid_job_confirmation_conditions'>job_confirmation_conditions</span><span class='lbracket'>[</span><span class='id identifier rubyid_index'>index</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_signal'>signal</span><span class='lparen'>(</span><span class='id identifier rubyid_sum'>sum</span><span class='rparen'>)</span> <span class='op'>:</span> <span class='id identifier rubyid_job_confirmation_conditions'>job_confirmation_conditions</span><span class='lbracket'>[</span><span class='id identifier rubyid_index'>index</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_sum'>sum</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+    <span class='id identifier rubyid_hash_conditions'>hash_conditions</span><span class='lbracket'>[</span><span class='id identifier rubyid_task'>task</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_blk'>blk</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_blk_termination'>blk_termination</span> <span class='op'>=</span> <span class='id identifier rubyid_lambda'>lambda</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_sum'>sum</span><span class='op'>|</span>
+    <span class='id identifier rubyid_job_termination_condition'>job_termination_condition</span><span class='period'>.</span><span class='id identifier rubyid_signal'>signal</span><span class='lparen'>(</span><span class='id identifier rubyid_sum'>sum</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+  <span class='ivar'>@manager_condition</span> <span class='op'>=</span> <span class='id identifier rubyid_hash_conditions'>hash_conditions</span>
+  <span class='ivar'>@last_manager_condition</span> <span class='op'>=</span> <span class='id identifier rubyid_blk_termination'>blk_termination</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="crashed?-instance_method">
+  
+    - (<tt>Boolean</tt>) <strong>crashed?</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+186
+187
+188</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 186</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_crashed?'>crashed?</span>
+  <span class='ivar'>@crashed</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span> <span class='op'>&amp;&amp;</span> <span class='lparen'>(</span><span class='ivar'>@crashed</span> <span class='op'>==</span> <span class='kw'>true</span> <span class='op'>||</span> <span class='ivar'>@crashed</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>true</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="debug_enabled?-instance_method">
+  
+    - (<tt>Boolean</tt>) <strong>debug_enabled?</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+27
+28
+29</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 27</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_debug_enabled?'>debug_enabled?</span>
+  <span class='ivar'>@manager</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_debug_enabled?'>debug_enabled?</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="execute_after_succesfull_subscription-instance_method">
+  
+    - (<tt>Object</tt>) <strong>execute_after_succesfull_subscription</strong> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 57</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_execute_after_succesfull_subscription'>execute_after_succesfull_subscription</span>
+  <span class='id identifier rubyid_setup_task_arguments'>setup_task_arguments</span>
+  <span class='kw'>if</span> <span class='lparen'>(</span><span class='ivar'>@action_name</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>deploy</span><span class='tstring_end'>&#39;</span></span> <span class='op'>||</span> <span class='ivar'>@action_name</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>deploy:rollback</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='const'>CapistranoMulticonfigParallel</span><span class='period'>.</span><span class='id identifier rubyid_show_task_progress?'>show_task_progress?</span>
+    <span class='ivar'>@task_argv</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>--dry-run</span><span class='tstring_end'>&#39;</span></span>
+    <span class='ivar'>@child_process</span> <span class='op'>=</span> <span class='const'>CapistranoMulticonfigParallel</span><span class='op'>::</span><span class='const'>Exec</span><span class='op'>::</span><span class='const'>ChildProcess</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span>
+    <span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>worker </span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> executes: bundle exec multi_cap </span><span class='embexpr_beg'>#{</span><span class='ivar'>@task_argv</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'> </span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_debug_enabled?'>debug_enabled?</span>
+    <span class='ivar'>@child_process</span><span class='period'>.</span><span class='id identifier rubyid_async'>async</span><span class='period'>.</span><span class='id identifier rubyid_work'>work</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>bundle exec multi_cap </span><span class='embexpr_beg'>#{</span><span class='ivar'>@task_argv</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'> </span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>actor:</span> <span class='const'>Actor</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span><span class='comma'>,</span> <span class='label'>silent:</span> <span class='id identifier rubyid_debug_enabled?'>debug_enabled?</span><span class='comma'>,</span> <span class='label'>dry_run:</span> <span class='kw'>true</span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_async'>async</span><span class='period'>.</span><span class='id identifier rubyid_execute_deploy'>execute_deploy</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="execute_deploy-instance_method">
+  
+    - (<tt>Object</tt>) <strong>execute_deploy</strong> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+73
+74
+75
+76
+77
+78
+79</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 73</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_execute_deploy'>execute_deploy</span>
+  <span class='ivar'>@child_process</span> <span class='op'>=</span> <span class='const'>CapistranoMulticonfigParallel</span><span class='op'>::</span><span class='const'>Exec</span><span class='op'>::</span><span class='const'>ChildProcess</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span>
+  <span class='const'>Actor</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span><span class='period'>.</span><span class='id identifier rubyid_link'>link</span> <span class='ivar'>@child_process</span>
+  <span class='id identifier rubyid_setup_task_arguments'>setup_task_arguments</span>
+  <span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>worker </span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> executes: bundle exec multi_cap </span><span class='embexpr_beg'>#{</span><span class='ivar'>@task_argv</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'> </span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_debug_enabled?'>debug_enabled?</span>
+  <span class='ivar'>@child_process</span><span class='period'>.</span><span class='id identifier rubyid_async'>async</span><span class='period'>.</span><span class='id identifier rubyid_work'>work</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>bundle exec multi_cap </span><span class='embexpr_beg'>#{</span><span class='ivar'>@task_argv</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'> </span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>actor:</span> <span class='const'>Actor</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span><span class='comma'>,</span> <span class='label'>silent:</span> <span class='kw'>true</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="handle_subscription-instance_method">
+  
+    - (<tt>Object</tt>) <strong>handle_subscription</strong>(message) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 85</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_handle_subscription'>handle_subscription</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_message_is_about_a_task?'>message_is_about_a_task?</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_save_tasks_to_be_executed'>save_tasks_to_be_executed</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_update_machine_state'>update_machine_state</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>task</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_message'>message</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>action</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>invoke</span><span class='tstring_end'>&#39;</span></span>
+    <span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>worker </span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> state is </span><span class='embexpr_beg'>#{</span><span class='ivar'>@machine</span><span class='period'>.</span><span class='id identifier rubyid_state'>state</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_debug_enabled?'>debug_enabled?</span>
+    <span class='id identifier rubyid_task_approval'>task_approval</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>worker </span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> could not handle  </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_message'>message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_debug_enabled?'>debug_enabled?</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="message_is_about_a_task?-instance_method">
+  
+    - (<tt>Boolean</tt>) <strong>message_is_about_a_task?</strong>(message) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+96
+97
+98</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 96</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_message_is_about_a_task?'>message_is_about_a_task?</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_message'>message</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_message'>message</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Hash</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_message'>message</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>action</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_message'>message</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>job_id</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_message'>message</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>task</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="need_confirmation_for_tasks?-instance_method">
+  
+    - (<tt>Boolean</tt>) <strong>need_confirmation_for_tasks?</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+153
+154
+155</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 153</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_need_confirmation_for_tasks?'>need_confirmation_for_tasks?</span>
+  <span class='lparen'>(</span><span class='ivar'>@action_name</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>deploy</span><span class='tstring_end'>&#39;</span></span> <span class='op'>||</span> <span class='ivar'>@action_name</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>deploy:rollback</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='const'>CapistranoMulticonfigParallel</span><span class='period'>.</span><span class='id identifier rubyid_configuration'>configuration</span><span class='period'>.</span><span class='id identifier rubyid_task_confirmation_active'>task_confirmation_active</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="on_close-instance_method">
+  
+    - (<tt>Object</tt>) <strong>on_close</strong>(code, reason) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+81
+82
+83</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 81</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_on_close'>on_close</span><span class='lparen'>(</span><span class='id identifier rubyid_code'>code</span><span class='comma'>,</span> <span class='id identifier rubyid_reason'>reason</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>worker </span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> websocket connection closed: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_code'>code</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>, </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_reason'>reason</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_debug_enabled?'>debug_enabled?</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="on_message-instance_method">
+  
+    - (<tt>Object</tt>) <strong>on_message</strong>(message) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+47
+48
+49
+50
+51
+52
+53
+54
+55</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 47</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_on_message'>on_message</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>worker </span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> received:  </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_message'>message</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_debug_enabled?'>debug_enabled?</span>
+  <span class='kw'>if</span> <span class='ivar'>@client</span><span class='period'>.</span><span class='id identifier rubyid_succesfull_subscription?'>succesfull_subscription?</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
+    <span class='ivar'>@successfull_subscription</span> <span class='op'>=</span> <span class='kw'>true</span>
+    <span class='id identifier rubyid_execute_after_succesfull_subscription'>execute_after_succesfull_subscription</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_handle_subscription'>handle_subscription</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="process_job-instance_method">
+  
+    - (<tt>Object</tt>) <strong>process_job</strong>(job) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+144
+145
+146
+147
+148
+149
+150
+151</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 144</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_process_job'>process_job</span><span class='lparen'>(</span><span class='id identifier rubyid_job'>job</span><span class='rparen'>)</span>
+  <span class='ivar'>@job_id</span> <span class='op'>=</span> <span class='id identifier rubyid_job'>job</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>id</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span>
+  <span class='ivar'>@app_name</span> <span class='op'>=</span> <span class='id identifier rubyid_job'>job</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>app</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span>
+  <span class='ivar'>@env_name</span> <span class='op'>=</span> <span class='id identifier rubyid_job'>job</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>env</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span>
+  <span class='ivar'>@action_name</span> <span class='op'>=</span> <span class='id identifier rubyid_job'>job</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>action</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span>
+  <span class='ivar'>@env_options</span> <span class='op'>=</span> <span class='id identifier rubyid_job'>job</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>env_options</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span>
+  <span class='ivar'>@task_arguments</span> <span class='op'>=</span> <span class='id identifier rubyid_job'>job</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>task_arguments</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="publish_rake_event-instance_method">
+  
+    - (<tt>Object</tt>) <strong>publish_rake_event</strong>(data) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+39
+40
+41</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 39</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_publish_rake_event'>publish_rake_event</span><span class='lparen'>(</span><span class='id identifier rubyid_data'>data</span><span class='rparen'>)</span>
+  <span class='ivar'>@client</span><span class='period'>.</span><span class='id identifier rubyid_publish'>publish</span><span class='lparen'>(</span><span class='id identifier rubyid_rake_actor_id'>rake_actor_id</span><span class='lparen'>(</span><span class='id identifier rubyid_data'>data</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='id identifier rubyid_data'>data</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="rake_actor_id-instance_method">
+  
+    - (<tt>Object</tt>) <strong>rake_actor_id</strong>(data) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+43
+44
+45</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 43</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_rake_actor_id'>rake_actor_id</span><span class='lparen'>(</span><span class='id identifier rubyid_data'>data</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>action</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_data'>data</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>action</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>count</span><span class='tstring_end'>&#39;</span></span> <span class='op'>?</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>rake_worker_</span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_content'>_count</span><span class='tstring_end'>&quot;</span></span> <span class='op'>:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>rake_worker_</span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="save_tasks_to_be_executed-instance_method">
+  
+    - (<tt>Object</tt>) <strong>save_tasks_to_be_executed</strong>(message) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+108
+109
+110
+111
+112</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 108</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_save_tasks_to_be_executed'>save_tasks_to_be_executed</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>unless</span> <span class='id identifier rubyid_message'>message</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>action</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>count</span><span class='tstring_end'>&#39;</span></span>
+  <span class='ivar'>@rake_tasks</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span> <span class='kw'>if</span> <span class='ivar'>@rake_tasks</span><span class='period'>.</span><span class='id identifier rubyid_blank?'>blank?</span>
+  <span class='ivar'>@rake_tasks</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_message'>message</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>task</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="send_msg-instance_method">
+  
+    - (<tt>Object</tt>) <strong>send_msg</strong>(channel, message = nil) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+140
+141
+142</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 140</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_send_msg'>send_msg</span><span class='lparen'>(</span><span class='id identifier rubyid_channel'>channel</span><span class='comma'>,</span> <span class='id identifier rubyid_message'>message</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_publish'>publish</span> <span class='id identifier rubyid_channel'>channel</span><span class='comma'>,</span> <span class='id identifier rubyid_message'>message</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_message'>message</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Hash</span><span class='rparen'>)</span> <span class='op'>?</span> <span class='lbrace'>{</span> <span class='label'>job_id:</span> <span class='ivar'>@job_id</span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span> <span class='op'>:</span> <span class='lbrace'>{</span> <span class='label'>job_id:</span> <span class='ivar'>@job_id</span><span class='comma'>,</span> <span class='label'>time:</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span> <span class='rbrace'>}</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="setup_command_line-instance_method">
+  
+    - (<tt>Object</tt>) <strong>setup_command_line</strong>(*options) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+120
+121
+122
+123
+124
+125
+126</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 120</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_setup_command_line'>setup_command_line</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span>
+  <span class='ivar'>@task_argv</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_option'>option</span><span class='op'>|</span>
+    <span class='ivar'>@task_argv</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_option'>option</span>
+  <span class='kw'>end</span>
+  <span class='ivar'>@task_argv</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="setup_task_arguments-instance_method">
+  
+    - (<tt>Object</tt>) <strong>setup_task_arguments</strong> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 128</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_setup_task_arguments'>setup_task_arguments</span>
+  <span class='comment'>#   stage = &quot;#{@app_name}:#{@env_name} #{@action_name}&quot;
+</span>  <span class='id identifier rubyid_stage'>stage</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='ivar'>@app_name</span><span class='embexpr_end'>}</span><span class='tstring_content'>:</span><span class='embexpr_beg'>#{</span><span class='ivar'>@env_name</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_array_options'>array_options</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_stage'>stage</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_array_options'>array_options</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='ivar'>@action_name</span><span class='embexpr_end'>}</span><span class='tstring_content'>[</span><span class='embexpr_beg'>#{</span><span class='ivar'>@task_arguments</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>,</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_content'>]</span><span class='tstring_end'>&quot;</span></span>
+  <span class='ivar'>@env_options</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_key'>key</span><span class='comma'>,</span> <span class='id identifier rubyid_value'>value</span><span class='op'>|</span>
+    <span class='id identifier rubyid_array_options'>array_options</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_key'>key</span><span class='embexpr_end'>}</span><span class='tstring_content'>=</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_value'>value</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>if</span> <span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_array_options'>array_options</span> <span class='op'>&lt;&lt;</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>--trace</span><span class='tstring_end'>&#39;</span></span> <span class='kw'>if</span> <span class='id identifier rubyid_debug_enabled?'>debug_enabled?</span>
+  <span class='id identifier rubyid_setup_command_line'>setup_command_line</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_array_options'>array_options</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="setup_worker_condition-instance_method">
+  
+    - (<tt>Object</tt>) <strong>setup_worker_condition</strong> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 157</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_setup_worker_condition'>setup_worker_condition</span>
+  <span class='id identifier rubyid_job_termination_condition'>job_termination_condition</span> <span class='op'>=</span> <span class='const'>Celluloid</span><span class='op'>::</span><span class='const'>Condition</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span>
+  <span class='id identifier rubyid_job_confirmation_conditions'>job_confirmation_conditions</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='const'>CapistranoMulticonfigParallel</span><span class='period'>.</span><span class='id identifier rubyid_configuration'>configuration</span><span class='period'>.</span><span class='id identifier rubyid_task_confirmations'>task_confirmations</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid__task'>_task</span><span class='op'>|</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid_need_confirmation_for_tasks?'>need_confirmation_for_tasks?</span>
+      <span class='id identifier rubyid_job_confirmation_conditions'>job_confirmation_conditions</span> <span class='op'>&lt;&lt;</span> <span class='const'>Celluloid</span><span class='op'>::</span><span class='const'>Condition</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid_job_confirmation_conditions'>job_confirmation_conditions</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_proc'>proc</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_sum'>sum</span><span class='op'>|</span> <span class='id identifier rubyid_sum'>sum</span> <span class='rbrace'>}</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+  <span class='ivar'>@manager</span><span class='period'>.</span><span class='id identifier rubyid_job_to_condition'>job_to_condition</span><span class='lbracket'>[</span><span class='ivar'>@job_id</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='lbrace'>{</span> <span class='label'>first_condition:</span> <span class='id identifier rubyid_job_confirmation_conditions'>job_confirmation_conditions</span><span class='comma'>,</span> <span class='label'>last_condition:</span> <span class='id identifier rubyid_job_termination_condition'>job_termination_condition</span> <span class='rbrace'>}</span>
+  <span class='id identifier rubyid_construct_blocks_for_conditions'>construct_blocks_for_conditions</span><span class='lparen'>(</span><span class='id identifier rubyid_job_confirmation_conditions'>job_confirmation_conditions</span><span class='comma'>,</span> <span class='id identifier rubyid_job_termination_condition'>job_termination_condition</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="start_task-instance_method">
+  
+    - (<tt>Object</tt>) <strong>start_task</strong> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+31
+32
+33
+34
+35
+36
+37</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 31</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_start_task'>start_task</span>
+  <span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>exec worker </span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> starts task with </span><span class='embexpr_beg'>#{</span><span class='ivar'>@job</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='ivar'>@task_confirmations</span> <span class='op'>=</span> <span class='const'>CapistranoMulticonfigParallel</span><span class='period'>.</span><span class='id identifier rubyid_configuration'>configuration</span><span class='period'>.</span><span class='id identifier rubyid_task_confirmations'>task_confirmations</span>
+  <span class='ivar'>@client</span> <span class='op'>=</span> <span class='const'>CelluloidPubsub</span><span class='op'>::</span><span class='const'>Client</span><span class='period'>.</span><span class='id identifier rubyid_connect'>connect</span><span class='lparen'>(</span><span class='label'>actor:</span> <span class='const'>Actor</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_ws'>ws</span><span class='op'>|</span>
+    <span class='id identifier rubyid_ws'>ws</span><span class='period'>.</span><span class='id identifier rubyid_subscribe'>subscribe</span><span class='lparen'>(</span><span class='ivar'>@subscription_channel</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="task_approval-instance_method">
+  
+    - (<tt>Object</tt>) <strong>task_approval</strong>(message) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+100
+101
+102
+103
+104
+105
+106</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 100</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_task_approval'>task_approval</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='ivar'>@task_confirmations</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>task</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_message'>message</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>action</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>invoke</span><span class='tstring_end'>&#39;</span></span>
+    <span class='ivar'>@manager_condition</span><span class='lbracket'>[</span><span class='id identifier rubyid_message'>message</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>task</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>task</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_publish_rake_event'>publish_rake_event</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>approved</span><span class='tstring_end'>&#39;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>yes</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="update_machine_state-instance_method">
+  
+    - (<tt>Object</tt>) <strong>update_machine_state</strong>(name) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+114
+115
+116
+117
+118</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 114</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_update_machine_state'>update_machine_state</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>worker </span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> triest to transition from </span><span class='embexpr_beg'>#{</span><span class='ivar'>@machine</span><span class='period'>.</span><span class='id identifier rubyid_state'>state</span><span class='embexpr_end'>}</span><span class='tstring_content'> to  </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_debug_enabled?'>debug_enabled?</span>
+  <span class='ivar'>@machine</span><span class='period'>.</span><span class='id identifier rubyid_transitions'>transitions</span><span class='period'>.</span><span class='id identifier rubyid_on'>on</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='comma'>,</span> <span class='ivar'>@machine</span><span class='period'>.</span><span class='id identifier rubyid_state'>state</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='rparen'>)</span>
+  <span class='ivar'>@machine</span><span class='period'>.</span><span class='id identifier rubyid_go_to_transition'>go_to_transition</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="work-instance_method">
+  
+    - (<tt>Object</tt>) <strong>work</strong>(job, manager) 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/capistrano_multiconfig_parallel/celluloid/celluloid_exec_worker.rb', line 15</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_work'>work</span><span class='lparen'>(</span><span class='id identifier rubyid_job'>job</span><span class='comma'>,</span> <span class='id identifier rubyid_manager'>manager</span><span class='rparen'>)</span>
+  <span class='ivar'>@job</span> <span class='op'>=</span> <span class='id identifier rubyid_job'>job</span>
+  <span class='ivar'>@manager</span> <span class='op'>=</span> <span class='id identifier rubyid_manager'>manager</span>
+
+  <span class='id identifier rubyid_process_job'>process_job</span><span class='lparen'>(</span><span class='id identifier rubyid_job'>job</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_job'>job</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span>
+  <span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>worker </span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> received </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_job'>job</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='ivar'>@subscription_channel</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>worker_</span><span class='embexpr_beg'>#{</span><span class='ivar'>@job_id</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='ivar'>@machine</span> <span class='op'>=</span> <span class='const'>CapistranoMulticonfigParallel</span><span class='op'>::</span><span class='const'>StateMachine</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='id identifier rubyid_job'>job</span><span class='comma'>,</span> <span class='const'>Actor</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_setup_worker_condition'>setup_worker_condition</span>
+  <span class='id identifier rubyid_manager'>manager</span><span class='period'>.</span><span class='id identifier rubyid_register_worker_for_job'>register_worker_for_job</span><span class='lparen'>(</span><span class='id identifier rubyid_job'>job</span><span class='comma'>,</span> <span class='const'>Actor</span><span class='period'>.</span><span class='id identifier rubyid_current'>current</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+    <div id="footer">
+  Generated on Wed Apr  8 15:55:02 2015 by
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.8.7.6 (ruby-2.0.0).
+</div>
+
+  </body>
+</html>
