@@ -29,8 +29,8 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'capistrano','~> 3.0','>= 3.0'
   s.add_runtime_dependency 'activesupport',  '~> 4.0','>= 4.0'
   s.add_runtime_dependency 'configurations', '~> 2.0', '2.0.0'
-
-  
+  s.add_runtime_dependency 'inquirer', '>= 0', '>= 0'
+    
   s.add_development_dependency 'rspec-rails', '~> 2.0', '>= 2.0'
   s.add_development_dependency 'guard', '~> 2.6', '>= 2.6.1'
   s.add_development_dependency 'guard-rspec', '~> 4.2', '>= 4.2.9'

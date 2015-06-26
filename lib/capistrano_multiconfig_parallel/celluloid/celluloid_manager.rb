@@ -120,7 +120,7 @@ module CapistranoMulticonfigParallel
 
     def confirm_task_approval(results, task)
       return unless results.present?
-      set :apps_symlink_confirmation, ask_confirm("Do you want  to continue the deployment and execute #{task}?", 'Y')
+      set :apps_symlink_confirmation, CapistranoMulticonfigParallel.ask_confirm("Do you want  to continue the deployment and execute #{task}?", 'Y/N')
       until fetch(:apps_symlink_confirmation).present?
         sleep(0.1) # keep current thread alive
       end

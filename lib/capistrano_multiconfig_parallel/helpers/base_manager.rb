@@ -168,10 +168,10 @@ module CapistranoMulticonfigParallel
     def get_applications_branch_from_stdin(app, app_message)
       app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
       app_name = app_name.present? ? app_name :  "current application"
-      message = "Branch name for  #{app_name} for #{app_message} :"
+      message = "Please enter Branch name for  #{app_name} for #{app_message}"
       branch = ''
       if @argv['BRANCH'].blank? || (@argv['BRANCH'].present? && !custom_command?)
-        set :app_branch_name, ask(message, nil)
+        set :app_branch_name, CapistranoMulticonfigParallel.ask_confirm(message, nil)
         branch = parse_inputted_value
       else
         branch = @argv['BRANCH']
@@ -182,8 +182,8 @@ module CapistranoMulticonfigParallel
     def get_app_additional_env_options(app, app_message)
       app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
       app_name = app_name.present? ? app_name :  "current application"
-      message = "Please write additional ENV options for #{app_name} for #{app_message} :"
-      set :app_additional_env_options, ask_confirm(message, nil)
+      message = "Please write additional ENV options for #{app_name} for #{app_message}"
+      set :app_additional_env_options, CapistranoMulticonfigParallel.ask_confirm(message, nil)
       fetch_app_additional_env_options
     end
 

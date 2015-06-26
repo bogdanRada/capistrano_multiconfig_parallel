@@ -2,8 +2,9 @@ require 'rubygems'
 require 'bundler'
 require 'bundler/setup'
 require 'configurations'
+require 'inquirer'
+require_relative './version'
 require_relative './configuration'
-
 # base module that has the statis methods that this gem is using
 module CapistranoMulticonfigParallel
   include CapistranoMulticonfigParallel::Configuration
@@ -27,6 +28,10 @@ module CapistranoMulticonfigParallel
 
     def root
       File.expand_path(File.dirname(__dir__))
+    end
+    
+    def ask_confirm(message, default)
+     Ask.input message, default: default
     end
 
     def verify_app_dependencies(stages)
