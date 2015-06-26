@@ -1,4 +1,4 @@
-require 'configliere'
+require_relative'./initializers/conf'
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module Configuration
