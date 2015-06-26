@@ -47,11 +47,11 @@ module CapistranoMulticonfigParallel
       def capistrano_options
         command_line_params.map do |param|
           [ 
-            "--#{param[:name]}", 
+            "--#{param[:name]}[=CAP_VALUE]", 
             "--#{param[:name]}",
             param[:description],
-            lambda do |_value|
-             
+            lambda do |value|
+          
             end
           ]
         end
