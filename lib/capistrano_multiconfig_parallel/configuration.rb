@@ -36,7 +36,7 @@ module CapistranoMulticonfigParallel
           {:name => "multi_secvential", :type => :boolean, :description => "[MULTI_CAP]Sets the debug enabled for celluloid actors", :default => false},
           {:name => "task_confirmations", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => ['deploy:symlink:release']},
           {:name => "task_confirmation_active", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false},
-          {:name => "track_dependencies", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false},
+          {:name => "track_dependencies", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => true},
           {:name => "websocket_server.enable_debug", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false},
           {:name => "development_stages", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default =>  ['development', 'webdev']},
           {:name => "application_dependencies", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default =>  []},
@@ -96,7 +96,7 @@ module CapistranoMulticonfigParallel
         [:task_confirmations, :development_stages].each do |prop|
           c.send("#{prop.to_s}=",  c[prop])  if  verify_array_of_strings(c,prop)
         end
-        c.application_dependencies = c[:application_dependencies] if c[:track_dependencies]  &&   verify_application_dependencies(c[:application_dependencies])
+        c.application_dependencies = c[:application_dependencies] if c[:track_dependencies].to_s == "true"  &&   verify_application_dependencies(c[:application_dependencies])
         if c[:multi_debug]
           CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true
           Celluloid.task_class = Celluloid::TaskThread

@@ -10,8 +10,6 @@ module CapistranoMulticonfigParallel
       if $stdout.isatty
         $stdout.sync = true
       end
-      CapistranoMulticonfigParallel.configuration_valid?
-      CapistranoMulticonfigParallel.verify_app_dependencies(stages) if CapistranoMulticonfigParallel.configuration.track_dependencies
       CapistranoMulticonfigParallel::Application.new.run
     rescue Interrupt
       `stty icanon echo`

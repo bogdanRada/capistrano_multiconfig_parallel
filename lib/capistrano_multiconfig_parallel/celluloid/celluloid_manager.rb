@@ -46,7 +46,7 @@ module CapistranoMulticonfigParallel
     end
     
     def self.websocket_config
-      config = CapistranoMulticonfigParallel.configuration.websocket_server
+      config = CapistranoMulticonfigParallel.configuration[:websocket_server]
       config.present? && config.is_a?(Hash) ? config.stringify_keys : {}
     end
     
