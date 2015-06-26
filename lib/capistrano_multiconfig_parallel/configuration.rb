@@ -97,7 +97,6 @@ module CapistranoMulticonfigParallel
           c.send("#{prop.to_s}=",  c[prop])  if  verify_array_of_strings(c,prop)
         end
         c.application_dependencies = c[:application_dependencies] if c[:track_dependencies]  &&   verify_application_dependencies(c[:application_dependencies])
-        raise c.inspect
         if c[:multi_debug]
           CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true
           Celluloid.task_class = Celluloid::TaskThread
