@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'bundler'
 require 'bundler/setup'
-require 'configurations'
 require 'inquirer'
 require_relative './version'
 require_relative './configuration'
@@ -31,9 +30,9 @@ module CapistranoMulticonfigParallel
     end
     
     def ask_confirm(message, default)
-     Ask.input message, default: default
+      Ask.input message, default: default
     end
-
+    
     def verify_app_dependencies(stages)
       applications = stages.map { |stage| stage.split(':').reverse[1] }
       wrong = CapistranoMulticonfigParallel.configuration.application_dependencies.find do |hash|
@@ -69,29 +68,29 @@ module CapistranoMulticonfigParallel
       err_backtrace = message.respond_to?(:backtrace) ? message.backtrace.join("\n\n") : ''
       if err_backtrace.present?
         logger.debug(class: message.class,
-                     message: error_message,
-                     backtrace: err_backtrace)
-      else
-        logger.debug(message)
+            message: error_message,
+            backtrace: err_backtrace)
+        else
+          logger.debug(message)
+        end
       end
-    end
 
-    def detect_root
-      if ENV['MULTI_CAP_ROOT']
-        Pathname.new(ENV['MULTI_CAP_ROOT'])
-      elsif defined?(::Rails)
-        ::Rails.root
-      else
-        try_detect_capfile
+      def detect_root
+        if ENV['MULTI_CAP_ROOT']
+          Pathname.new(ENV['MULTI_CAP_ROOT'])
+        elsif defined?(::Rails)
+          ::Rails.root
+        else
+          try_detect_capfile
+        end
       end
-    end
 
-    def try_detect_capfile
-      root = Pathname.new(FileUtils.pwd)
-      root = root.parent unless root.directory?
-      root = root.parent until File.exist?(root.join('Capfile')) || root.root?
-      raise "Can't detect Rails application root" if root.root?
-      root
+      def try_detect_capfile
+        root = Pathname.new(FileUtils.pwd)
+        root = root.parent unless root.directory?
+        root = root.parent until File.exist?(root.join('Capfile')) || root.root?
+        raise "Can't detect Rails application root" if root.root?
+        root
+      end
     end
   end
-end
