@@ -13,12 +13,11 @@ module CapistranoMulticonfigParallel
         command_line_params.each do |param|
           @config.define param[:name], :type => param[:type], :description => param[:description], :default => param[:default]
         end
-        
+        @config.merge(Settings.use(:commandline).resolve!)
         @config.read config_file if File.file?(config_file)
+        
         @config.use :config_block
         @config.finally do |c|
-          c = c[:multi_cap].present? ?  c[:multi_cap] : c
-         c = c.merge(Settings.use(:commandline).resolve!)
           check_configuration(c)
         end
         @config.resolve!
@@ -59,9 +58,8 @@ module CapistranoMulticonfigParallel
       end
       
       def verify_array_of_strings(c, prop)
-        param = command_line_params.detect{|p| p[:name].to_s == prop.to_s}
-        if param.present? && param[:required] 
           value = c[prop]
+          if value.present?
           value.reject(&:blank?)
           if value.find { |row| !row.is_a?(String) }
             raise ArgumentError, 'the array must contain only task names'
@@ -82,8 +80,7 @@ module CapistranoMulticonfigParallel
       end
   
     def check_boolean(c, prop)
-        param = command_line_params.detect{|p| p[:name].to_s == prop.to_s}
-        if param.present? && param[:required] &&  ![true, false, 'true', 'false'].include?(c[prop])
+        if c[prop].present?&&  ![true, false, 'true', 'false'].include?(c[prop])
           raise ArgumentError, "the property `#{prop}` must be boolean"
         end
       end
@@ -100,6 +97,7 @@ module CapistranoMulticonfigParallel
           c.send("#{prop.to_s}=",  c[prop])  if  verify_array_of_strings(c,prop)
         end
         c.application_dependencies = c[:application_dependencies] if c[:track_dependencies]  &&   verify_application_dependencies(c[:application_dependencies])
+        raise c.inspect
         if c[:multi_debug]
           CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true
           Celluloid.task_class = Celluloid::TaskThread
