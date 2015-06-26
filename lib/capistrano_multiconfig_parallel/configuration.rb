@@ -31,21 +31,21 @@ module CapistranoMulticonfigParallel
   
       def command_line_params
         [ 
-          {:name => "multi_debug", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false , :show_capistrano => true },
-          {:name => "multi_progress", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false,  :show_capistrano => true},
-          {:name => "multi_secvential", :type => :boolean, :description => "[MULTI_CAP]Sets the debug enabled for celluloid actors", :default => false,  :show_capistrano => true},
-          {:name => "task_confirmations", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => ['deploy:symlink:release'] ,  :show_capistrano => true},
-          {:name => "task_confirmation_active", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false, :show_capistrano => true},
-          {:name => "track_dependencies", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false, :show_capistrano => true},
-          {:name => "websocket_server.enable_debug", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false, :show_capistrano => true},
-          {:name => "development_stages", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default =>  ['development', 'webdev'], :show_capistrano => true},
-          {:name => "application_dependencies", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default =>  [], :show_capistrano => false},
+          {:name => "multi_debug", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false },
+          {:name => "multi_progress", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false},
+          {:name => "multi_secvential", :type => :boolean, :description => "[MULTI_CAP]Sets the debug enabled for celluloid actors", :default => false},
+          {:name => "task_confirmations", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => ['deploy:symlink:release']},
+          {:name => "task_confirmation_active", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false},
+          {:name => "track_dependencies", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false},
+          {:name => "websocket_server.enable_debug", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false},
+          {:name => "development_stages", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default =>  ['development', 'webdev']},
+          {:name => "application_dependencies", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default =>  []},
         ]
       end
       
       
       def capistrano_options
-        command_line_params.select{|p| p[:show_capistrano] == true }.map do |param|
+        command_line_params.map do |param|
           [ 
             "--#{param[:name]}", 
             "--#{param[:name]}",
