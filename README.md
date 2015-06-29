@@ -33,7 +33,8 @@ Requirements
 10. [right_popen >= 1.1.3] [right_popen]
 11. [capistrano-multiconfig >= 3.0.8] [capistrano-multiconfig]
 12. [capistrano >= 3.0] [capistrano]
-13. [configurations >= 2.0.0] [configurations]
+13. [configliere >= 0.4] [configliere]
+14.  [inquirer >= 0.2] [inquirer]
 
 [ruby]: http://www.ruby-lang.org
 [activesupport]:https://rubygems.org/gems/activesupport
@@ -47,7 +48,8 @@ Requirements
 [right_popen]: https://github.com/rightscale/right_popen
 [capistrano-multiconfig]: https://github.com/railsware/capistrano-multiconfig
 [capistrano]: https://github.com/capistrano/capistrano/
-[configurations]: https://github.com/beatrichartz/configurations
+[configliere]: https://github.com/infochimps-platform/configliere
+[inquirer]: https://github.com/arlimus/inquirer.rb
 
 Compatibility
 --------
@@ -76,6 +78,38 @@ Add the following to your Capfile:
 
 Please read  [Release Details][release-details] if you are upgrading. We break backward compatibility between large ticks but you can expect it to be specified at release notes.
 [release-details]: https://github.com/bogdanRada/capistrano_multiconfig_parallel/releases
+
+Default Configuration:
+--------
+
+```ruby
+CapistranoMulticonfigParallel.configure do |c|
+   c.task_confirmations = ['deploy:symlink:release']
+        c.task_confirmation_active = false
+        c.track_dependencies = false
+        c.websocket_server = { enable_debug: false }
+        c.development_stages = ['development', 'webdev']
+end
+```
+
+```yaml
+{% include default.yml %}
+```
+
+ Available command line  options when executing a command
+--------
+
+--multi-debug
+   If option is present , will enable debugging of workers
+
+--multi-progress
+  If option is present will first execute before any process , same task but with option "--dry-run" in order to show progress of how many tasks are in total for that task and what is the progress of executing
+ This will slow down the workers , because they will execute twice the same task.
+
+--multi-secvential
+  If parallel executing does not work for you, you can use this option so that each process is executed normally and ouputted to the screen.
+  However this means that all other tasks will have to wait for each other to finish before starting 
+
 
 Usage Instructions
 --------
@@ -160,32 +194,7 @@ If that options has value "true" , it will ask the user before deploying a appli
 The dependencies are being kept in the option "application_dependencies"
 This is an array of hashes. Each hash has only the keys "app" ( app name), "priority" and "dependencies" ( an array of app names that this app is dependent to)
 
- Default Configuration:
---------
-
-```ruby
-CapistranoMulticonfigParallel.configure do |c|
-   c.task_confirmations = ['deploy:symlink:release']
-        c.task_confirmation_active = false
-        c.track_dependencies = false
-        c.websocket_server = { enable_debug: false }
-        c.development_stages = ['development', 'webdev']
-end
-```
-
- Available command line  options when executing a command
---------
-
---multi-debug
-   If option is present , will enable debugging of workers
-
---multi-progress
-  If option is present will first execute before any process , same task but with option "--dry-run" in order to show progress of how many tasks are in total for that task and what is the progress of executing
- This will slow down the workers , because they will execute twice the same task.
-
---multi-secvential
-  If parallel executing does not work for you, you can use this option so that each process is executed normally and ouputted to the screen.
-  However this means that all other tasks will have to wait for each other to finish before starting 
+ 
 
  Testing
 --------
