@@ -50,10 +50,11 @@ module CapistranoMulticonfigParallel
     end
 
     def websokect_log_file
-      File.join(log_directory, 'multi_cap_webscoket.log')
+      File.join(log_directory, 'multi_cap_websocket.log')
     end
 
     def enable_logging
+       CapistranoMulticonfigParallel.configuration_valid?
       return unless CapistranoMulticonfigParallel::CelluloidManager.debug_enabled
       FileUtils.mkdir_p(log_directory)
       log_file = File.open(main_log_file, 'w')

@@ -8,6 +8,7 @@ module CapistranoMulticonfigParallel
       attr_accessor  :configuration
      
       def configuration
+        begin
         @config ||= Configliere::Param.new
         @config.use :commandline
         command_line_params.each do |param|
@@ -21,9 +22,18 @@ module CapistranoMulticonfigParallel
           check_configuration(c)
         end
         @config.resolve!
+        rescue => ex
+          puts ex.inspect
+          puts ex.backtrace if ex.respond_to?(:backtrace)
+        end
       end
       
   
+      def default_config
+        @default_config ||= Configliere::Param.new
+        @default_config.read  File.join(CapistranoMulticonfigParallel.root.to_s, 'capistrano_multiconfig_parallel', 'initializers', 'default.yml')
+        @default_config.resolve!
+      end
         
       def config_file
         File.join(CapistranoMulticonfigParallel.detect_root.to_s, 'config', 'multi_cap.yml')
@@ -31,15 +41,15 @@ module CapistranoMulticonfigParallel
   
       def command_line_params
         [ 
-          {:name => "multi_debug", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false },
-          {:name => "multi_progress", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false},
-          {:name => "multi_secvential", :type => :boolean, :description => "[MULTI_CAP]Sets the debug enabled for celluloid actors", :default => false},
-          {:name => "task_confirmations", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => ['deploy:symlink:release']},
-          {:name => "task_confirmation_active", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false},
-          {:name => "track_dependencies", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => true},
-          {:name => "websocket_server.enable_debug", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => false},
-          {:name => "development_stages", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default =>  ['development', 'webdev']},
-          {:name => "application_dependencies", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default =>  []},
+          {:name => "multi_debug", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:multi_debug] },
+          {:name => "multi_progress", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:multi_progress]},
+          {:name => "multi_secvential", :type => :boolean, :description => "[MULTI_CAP]Sets the debug enabled for celluloid actors", :default => default_config[:multi_secvential]},
+          {:name => "task_confirmations", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:task_confirmations]},
+          {:name => "task_confirmation_active", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:task_confirmation_active]},
+          {:name => "track_dependencies", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:track_dependencies]},
+          {:name => "websocket_server.enable_debug", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:websocket_server][:enable_debug]},
+          {:name => "development_stages", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:development_stages]},
+          {:name => "application_dependencies", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default =>  default_config[:application_dependencies]},
         ]
       end
       

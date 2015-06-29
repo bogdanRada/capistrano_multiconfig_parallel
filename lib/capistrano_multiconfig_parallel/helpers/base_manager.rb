@@ -40,7 +40,6 @@ module CapistranoMulticonfigParallel
       @name, @args = @cap_app.parse_task_string(@top_level_tasks.second)
       @argv = @cap_app.handle_options.delete_if { |arg| arg == @stage || arg == @name || arg == @top_level_tasks.first }
       @argv = multi_fetch_argv(@argv)
-      CapistranoMulticonfigParallel.enable_logging
       block.call if block_given?
       run
     end
