@@ -82,18 +82,27 @@ Please read  [Release Details][release-details] if you are upgrading. We break b
 Default Configuration:
 --------
 
-```ruby
-CapistranoMulticonfigParallel.configure do |c|
-   c.task_confirmations = ['deploy:symlink:release']
-        c.task_confirmation_active = false
-        c.track_dependencies = false
-        c.websocket_server = { enable_debug: false }
-        c.development_stages = ['development', 'webdev']
-end
+```yaml
+---
+multi_debug: true
+multi_progres: false
+multi_secvential: false
+websocket_server:
+  enable_debug: false
+  
+development_stages: 
+  - development
+  - webdev
+  
+task_confirmation_active: false  
+task_confirmations: 
+  - deploy:symlink:release
+
+track_dependencies: false
+application_dependencies: []
+---
 ```
-```
-{{ lib/capistrano_multiconfig_parallel/initializers/default.yml }}
-```
+
  Available command line  options when executing a command
 --------
 
