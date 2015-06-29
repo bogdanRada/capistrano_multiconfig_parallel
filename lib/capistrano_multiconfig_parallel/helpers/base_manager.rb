@@ -13,6 +13,8 @@ module CapistranoMulticonfigParallel
       @top_level_tasks = top_level_tasks
       @stages = stages
       @jobs = []
+      CapistranoMulticonfigParallel.configuration_valid?
+      CapistranoMulticonfigParallel.verify_app_dependencies(@stages) if CapistranoMulticonfigParallel.configuration.track_dependencies
     end
 
     def can_start?
@@ -38,7 +40,6 @@ module CapistranoMulticonfigParallel
       @name, @args = @cap_app.parse_task_string(@top_level_tasks.second)
       @argv = @cap_app.handle_options.delete_if { |arg| arg == @stage || arg == @name || arg == @top_level_tasks.first }
       @argv = multi_fetch_argv(@argv)
-      CapistranoMulticonfigParallel.enable_logging
       block.call if block_given?
       run
     end
@@ -58,31 +59,30 @@ module CapistranoMulticonfigParallel
         run_async_jobs(&block)
       end
     end
-    
+
     def fetch_multi_stages
       stages = @argv['STAGES'].blank? ? '' : @argv['STAGES']
       stages = parse_inputted_value(value: stages).split(',').compact if stages.present?
       stages
     end
-  
-    
+
     def deploy_app(options = {})
       options = options.stringify_keys
-      app = options['app'].is_a?(Hash) ?  options['app'] : {'app' =>  options['app'] }
+      app = options['app'].is_a?(Hash) ? options['app'] : { 'app' => options['app'] }
       branch = @branch_backup.present? ? @branch_backup : @argv['BRANCH'].to_s
       call_task_deploy_app({
-          branch: branch,
-          app: app ,
-          action: options['action']
-        }.reverse_merge(options))
+        branch: branch,
+        app: app,
+        action: options['action']
+      }.reverse_merge(options))
     end
 
-    private
-  
+  private
+
     def call_task_deploy_app(options = {})
       options = options.stringify_keys
       main_box_name = @argv['BOX'].blank? ? '' : @argv['BOX']
-      stage = options.fetch('stage', @default_stage )
+      stage = options.fetch('stage', @default_stage)
       if CapistranoMulticonfigParallel.configuration.development_stages.include?(stage) && main_box_name.present? && /^[a-z0-9,]+/.match(main_box_name)
         execute_on_multiple_boxes(main_box_name, options)
       else
@@ -167,8 +167,12 @@ module CapistranoMulticonfigParallel
 
     def get_applications_branch_from_stdin(app, app_message)
       app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
-      app_name = app_name.present? ? app_name :  "current application"
+      app_name = app_name.present? ? app_name : 'current application'
       message = "Please enter Branch name for  #{app_name} for #{app_message}"
+      get_branch_name_from_stdin(message)
+    end
+
+    def get_branch_name_from_stdin(message)
       branch = ''
       if @argv['BRANCH'].blank? || (@argv['BRANCH'].present? && !custom_command?)
         set :app_branch_name, CapistranoMulticonfigParallel.ask_confirm(message, nil)
@@ -178,10 +182,10 @@ module CapistranoMulticonfigParallel
       end
       branch
     end
-    
+
     def get_app_additional_env_options(app, app_message)
       app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
-      app_name = app_name.present? ? app_name :  "current application"
+      app_name = app_name.present? ? app_name : 'current application'
       message = "Please write additional ENV options for #{app_name} for #{app_message}"
       set :app_additional_env_options, CapistranoMulticonfigParallel.ask_confirm(message, nil)
       fetch_app_additional_env_options

@@ -26,23 +26,21 @@ module CapistranoMulticonfigParallel
     end
 
     def stage_deploy(options)
-       return unless custom_command?
+      return unless custom_command?
       stages = fetch_multi_stages
-      return if  stages.blank?
+      return if stages.blank?
       collect_jobs(options) do |new_options|
         stages.each do |stage|
           deploy_app(new_options.merge('stage' => stage, 'action' => 'deploy'))
         end
       end
     end
-    
-    
+
     def deploy_single_app(options)
       return if custom_command?
       collect_jobs(options) do |new_options|
-        deploy_app(new_options) 
+        deploy_app(new_options)
       end
     end
-    
   end
 end
