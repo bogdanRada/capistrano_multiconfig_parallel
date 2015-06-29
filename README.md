@@ -93,7 +93,7 @@ end
 ```
 
 ```yaml
-{% include default.yml %}
+{% raw %}{{ include default.yml }}{% endraw %}
 ```
 
  Available command line  options when executing a command
