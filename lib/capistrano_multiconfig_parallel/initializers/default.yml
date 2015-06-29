@@ -1,0 +1,16 @@
+multi_debug: true
+multi_progres: false
+multi_secvential: false
+websocket_server:
+  enable_debug: false
+  
+development_stages: 
+  - development
+  - webdev
+  
+task_confirmation_active: false  
+task_confirmations: 
+  - deploy:symlink:release
+
+track_dependencies: false
+application_dependencies: []

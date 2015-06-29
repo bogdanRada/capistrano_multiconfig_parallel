@@ -44,12 +44,12 @@ module CapistranoMulticonfigParallel
     def self.debug_websocket?
       websocket_config['enable_debug'].to_s == 'true'
     end
-    
+
     def self.websocket_config
-      config = CapistranoMulticonfigParallel.configuration.websocket_server
+      config = CapistranoMulticonfigParallel.configuration[:websocket_server]
       config.present? && config.is_a?(Hash) ? config.stringify_keys : {}
     end
-    
+
     def generate_job_id(job)
       primary_key = @jobs.size + 1
       job['id'] = primary_key

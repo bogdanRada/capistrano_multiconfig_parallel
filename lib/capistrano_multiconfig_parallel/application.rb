@@ -6,35 +6,7 @@ module CapistranoMulticonfigParallel
     end
 
     def sort_options(options)
-      super.push(multi_debug, multi_progress, multi_secvential)
-    end
-
-    def multi_debug
-      ['--multi-debug', '-D',
-       'Sets the debug enabled for celluloid actors',
-       lambda do |_value|
-         CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true
-         Celluloid.task_class = Celluloid::TaskThread
-       end
-      ]
-    end
-
-    def multi_progress
-      ['--multi-progress', '--multi-progress',
-       'Sets the debug enabled for celluloid actors',
-       lambda do |_value|
-         CapistranoMulticonfigParallel.show_task_progress = true
-       end
-      ]
-    end
-
-    def multi_secvential
-      ['--multi-secvential', '--multi-secvential',
-       'Sets the debug enabled for celluloid actors',
-       lambda do |_value|
-         CapistranoMulticonfigParallel.execute_in_sequence = true
-       end
-      ]
+      super.concat(CapistranoMulticonfigParallel.capistrano_options)
     end
 
     def top_level

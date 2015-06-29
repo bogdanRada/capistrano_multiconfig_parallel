@@ -20,7 +20,6 @@ require 'capistrano/all'
 require 'fileutils'
 require 'logger'
 require 'pp'
-require 'configurations'
 # fix error with not files that can not be found
 Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 

@@ -10,8 +10,8 @@ module CapistranoMulticonfigParallel
     end
 
     def application_dependencies
-     deps =  CapistranoMulticonfigParallel.configuration.track_dependencies ? CapistranoMulticonfigParallel.configuration.application_dependencies : []
-     deps.present? && deps.is_a?(Array) ? deps.map(&:stringify_keys) : []
+      deps = CapistranoMulticonfigParallel.configuration.track_dependencies ? CapistranoMulticonfigParallel.configuration.application_dependencies : []
+      deps.present? && deps.is_a?(Array) ? deps.map(&:stringify_keys) : []
     end
 
     def all_websites_return_applications_selected

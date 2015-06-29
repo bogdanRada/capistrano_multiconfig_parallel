@@ -1,7 +1,6 @@
 require 'rubygems'
 require 'bundler'
 require 'bundler/setup'
-require 'configurations'
 require 'inquirer'
 require_relative './version'
 require_relative './configuration'
@@ -29,9 +28,9 @@ module CapistranoMulticonfigParallel
     def root
       File.expand_path(File.dirname(__dir__))
     end
-    
+
     def ask_confirm(message, default)
-     Ask.input message, default: default
+      Ask.input message, default: default
     end
 
     def verify_app_dependencies(stages)
@@ -51,10 +50,11 @@ module CapistranoMulticonfigParallel
     end
 
     def websokect_log_file
-      File.join(log_directory, 'multi_cap_webscoket.log')
+      File.join(log_directory, 'multi_cap_websocket.log')
     end
 
     def enable_logging
+      CapistranoMulticonfigParallel.configuration_valid?
       return unless CapistranoMulticonfigParallel::CelluloidManager.debug_enabled
       FileUtils.mkdir_p(log_directory)
       log_file = File.open(main_log_file, 'w')
@@ -68,9 +68,11 @@ module CapistranoMulticonfigParallel
       error_message = message.respond_to?(:message) ? message.message : message.inspect
       err_backtrace = message.respond_to?(:backtrace) ? message.backtrace.join("\n\n") : ''
       if err_backtrace.present?
-        logger.debug(class: message.class,
-                     message: error_message,
-                     backtrace: err_backtrace)
+        logger.debug(
+          class_name: message.class,
+          message: error_message,
+          backtrace: err_backtrace
+        )
       else
         logger.debug(message)
       end
