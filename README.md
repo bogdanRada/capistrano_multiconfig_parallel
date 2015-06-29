@@ -6,6 +6,11 @@ capistrano_multiconfig_parallel
 [![Gem Downloads](https://ruby-gem-downloads-badge.herokuapp.com/capistrano_multiconfig_parallel?type=total&style=dynamic)](https://github.com/bogdanRada/capistrano_multiconfig_parallel)
 [![Maintenance Status](http://stillmaintained.com/bogdanRada/capistrano_multiconfig_parallel.png)](https://github.com/bogdanRada/capistrano_multiconfig_parallel)
 
+DEMO
+--------
+
+[![capistrano multiconfig parallel ](img/parallel_demo.png)](#features)
+
 Description
 --------
 CapistranoMulticonfigParallel is a simple ruby implementation that allows you to run multiple tasks in parallel for multiple applications and uses websockets for inter-process communication and has a interactive menu
@@ -106,35 +111,56 @@ application_dependencies: []
  Available command line  options when executing a command
 --------
 
---multi-debug
-   If option is present , will enable debugging of workers
+* --multi-debug
+  * if option is present and has value TRUE , will enable debugging of workers
 
---multi-progress
-  If option is present will first execute before any process , same task but with option "--dry-run" in order to show progress of how many tasks are in total for that task and what is the progress of executing
+* --multi-progress
+  * If option is present and has value TRUE  will first execute before any process , same task but with option "--dry-run" in order to show progress of how many tasks are in total for that task and what is the progress of executing
  This will slow down the workers , because they will execute twice the same task.
 
---multi-secvential
-  If parallel executing does not work for you, you can use this option so that each process is executed normally and ouputted to the screen.
+* --multi-secvential
+  * If parallel executing does not work for you, you can use this option so that each process is executed normally and ouputted to the screen.
   However this means that all other tasks will have to wait for each other to finish before starting 
 
+* --websocket_server.enable_debug 
+  * if option is present and has value TRUE, will enable debugging of websocket communication between the workers
+
+* --development_stages
+  * if option is present and has value an ARRAY of STRINGS, each of them will be used as a development stage
+
+* --task_confirmation_active
+  * if option is present and has value TRUE, will enable user confirmation dialogs before executing each task from option  **--task_confirmations**
+
+* --task_confirmations:
+  * if option is present and has value an ARRAY of Strings, and --task_confirmation_active is TRUE , then will require a confirmation from user before executing the task. 
+    This will syncronize all workers to wait before executing that task, then a confirmation will be displayed, and when user will confirm , all workers will resume their operation.
+
+* --track_dependencies
+  * This should be useed only for Caphub-like applications , in order to deploy dependencies of an application in parallel.
+     This is used only in combination with option **--application_dependencies** which is described 
+     at section **[2.) Multiple applications](#multiple_apps)**
 
 Usage Instructions
---------
+========
 
-[![capistrano multiconfig parallel ](img/parallel_demo.png)](#features)
+In order to override default configurations, you can either specify them at runtime using command-line , or you can 
+create a file in location **config/multi_cap.yml** . This settings will be overriden by command line arguments( if any)
 
-1. Single Apps ( normal Rails or rack applications) 
+## 1) Single Apps ( normal Rails or rack applications) 
     
 CapistranoMulticonfigParallel recognizes only "development" and "webdev" as stages for development
-if you use other stages for development, you need to configure it like this. This will override the default configuration.
-You will need to require this file in your Capfile also.
+if you use other stages for development, you need to configure it like this
 
-```ruby
-CapistranoMulticonfigParallel.configure do |c|
-c.development_stages = ["development", "some_other_stage"]
-end
+```yaml
+---
+development_stages:
+  - development
+  - webdev
+  - something_custom
+----
 ```
-### Deploying the application  to multiple sandboxes ( works only with development environments)
+
+### 1.1) Deploying the application  to multiple sandboxes ( works only with development environments)
 
 ```shell
 # <box_name>     - the name of a sandbox
@@ -151,7 +177,7 @@ The branch environment variable is then passed to the capistrano task
 
 Also the script will ask if there are any other environment variables that user might want to pass to each of the sandboxes separately.
 
-### Deploying the application  to multiple stages  ( Using the customized command "deploy_stages")
+### 1.2) Deploying the application  to multiple stages  ( Using the customized command "deploy_stages")
   
 
 ```shell
@@ -167,32 +193,31 @@ Also the script will ask if there are any other environment variables that user 
 
 
 
-2. Multiple Apps ( like [Caphub][caphub]  ) 
+## 2.)  Multiple Apps ( like [Caphub][caphub]  ) 
 
 
 Configuration for this types of application is more complicated
 
-```ruby
-CapistranoMulticonfigParallel.configure do |c|
-c.development_stages = ['development', 'webdev']  
-c.task_confirmation_active = true
- c.task_confirmations = ['deploy:symlink:release'] 
- c.track_dependencies = true
-  c.application_dependencies = [
-    { app: 'blog', priority: 1, dependencies: [] },
-    { app: 'blog2', priority: 2, dependencies: ['blog'] },
-    { app: 'blog3', priority: 3, dependencies: ['blog', 'blog2'] },
-  ]
-end
+```yaml
+---
+track_dependencies: true
+application_dependencies:
+    - app: foo'
+      priority: 1
+      dependencies: []
+    - app: bar
+      priority: 1
+      dependencies: 
+        - foo
+    - app: foo2
+      priority: 1
+      dependencies: 
+        - foo
+        - bar
+---
 ```
 
 The "development_stages" options is used so that the gem can know if sandboxes are allowed for those environments.
-
-The "task_confirmation_active" option can have only two values:
-    - false  - all threads are executing normally without needing confirmation from user
-   - true - means threads need confirmation from user ( Can we used to synchronize all processes to wait before executing a task) 
-             For this we use the option "task_confirmations" which is a array with string. 
-              Each string is  the name of the task that needs confirmation.
 
 
 If you want to deploy an application with dependencies you can use   the option "track_dependencies".
@@ -201,6 +226,13 @@ If that options has value "true" , it will ask the user before deploying a appli
 The dependencies are being kept in the option "application_dependencies"
 This is an array of hashes. Each hash has only the keys "app" ( app name), "priority" and "dependencies" ( an array of app names that this app is dependent to)
 
+In this example, if we execute this command:
+
+```ruby
+bundle exec multi_cap foo2:development deploy 
+```
+
+Will ask user if he wants to deploy the apps "foo" and "bar" , since they appear in the dependencies list for the application "foo2"
  
 
  Testing

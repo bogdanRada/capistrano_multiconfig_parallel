@@ -9,19 +9,19 @@ module CapistranoMulticonfigParallel
      
       def configuration
         begin
-        @config ||= Configliere::Param.new
-        @config.use :commandline
-        command_line_params.each do |param|
-          @config.define param[:name], :type => param[:type], :description => param[:description], :default => param[:default]
-        end
-        @config.merge(Settings.use(:commandline).resolve!)
-        @config.read config_file if File.file?(config_file)
+          @config ||= Configliere::Param.new
+          @config.use :commandline
+          command_line_params.each do |param|
+            @config.define param[:name], :type => param[:type], :description => param[:description], :default => param[:default]
+          end
+          @config.merge(Settings.use(:commandline).resolve!)
+          @config.read config_file if File.file?(config_file)
         
-        @config.use :config_block
-        @config.finally do |c|
-          check_configuration(c)
-        end
-        @config.resolve!
+          @config.use :config_block
+          @config.finally do |c|
+            check_configuration(c)
+          end
+          @config.resolve!
         rescue => ex
           puts ex.inspect
           puts ex.backtrace if ex.respond_to?(:backtrace)
@@ -41,15 +41,66 @@ module CapistranoMulticonfigParallel
   
       def command_line_params
         [ 
-          {:name => "multi_debug", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:multi_debug] },
-          {:name => "multi_progress", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:multi_progress]},
-          {:name => "multi_secvential", :type => :boolean, :description => "[MULTI_CAP]Sets the debug enabled for celluloid actors", :default => default_config[:multi_secvential]},
-          {:name => "task_confirmations", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:task_confirmations]},
-          {:name => "task_confirmation_active", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:task_confirmation_active]},
-          {:name => "track_dependencies", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:track_dependencies]},
-          {:name => "websocket_server.enable_debug", :type => :boolean, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:websocket_server][:enable_debug]},
-          {:name => "development_stages", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default => default_config[:development_stages]},
-          {:name => "application_dependencies", :type => Array, :description => "[MULTI_CAP] Sets the debug enabled for celluloid actors", :default =>  default_config[:application_dependencies]},
+          {
+            :name => "multi_debug", 
+            :type => :boolean, 
+            :description => "[MULTI_CAP] if option is present and has value TRUE , will enable debugging of workers", 
+            :default => default_config[:multi_debug] 
+          },
+          {
+            :name => "multi_progress", 
+            :type => :boolean, 
+            :description => "[MULTI_CAP] if option is present and has value TRUE  will first execute before any process , 
+            same task but with option '--dry-run'  in order to show progress of how many tasks are in total for that task and what is the progress of executing
+           This will slow down the workers , because they will execute twice the same task.", 
+            :default => default_config[:multi_progress]
+          },
+          {
+            :name => "multi_secvential", 
+            :type => :boolean, 
+            :description => "[MULTI_CAP] If parallel executing does not work for you, you can use this option so that each process is executed normally and ouputted to the screen.
+  However this means that all other tasks will have to wait for each other to finish before starting ", 
+            :default => default_config[:multi_secvential]
+          },
+          {
+            :name => "websocket_server.enable_debug", 
+            :type => :boolean,
+            :description => "[MULTI_CAP]  if option is present and has value TRUE, will enable debugging of websocket communication between the workers", 
+            :default => default_config[:websocket_server][:enable_debug]
+          },
+          {
+            :name => "development_stages",
+            :type => Array, 
+            :description => "[MULTI_CAP] if option is present and has value an ARRAY of STRINGS, each of them will be used as a development stage", 
+            :default => default_config[:development_stages]
+          },
+          {
+            :name => "task_confirmations",
+            :type => Array, 
+            :description => "[MULTI_CAP] if option is present and has value TRUE, will enable user confirmation dialogs before executing each task from option  **--task_confirmations**",
+            :default => default_config[:task_confirmations]
+          },
+          {
+            :name => "task_confirmation_active", 
+            :type => :boolean, 
+            :description => "[MULTI_CAP] if option is present and has value an ARRAY of Strings, and --task_confirmation_active is TRUE , then will require a confirmation from user before executing the task. 
+    This will syncronize all workers to wait before executing that task, then a confirmation will be displayed, and when user will confirm , all workers will resume their operation", 
+            :default => default_config[:task_confirmation_active]
+          },
+          {
+            :name => "track_dependencies",
+            :type => :boolean,
+            :description => "[MULTI_CAP] This should be useed only for Caphub-like applications , in order to deploy dependencies of an application in parallel.
+     This is used only in combination with option **--application_dependencies** which is described 
+     at section **[2.) Multiple applications](#multiple_apps)**", 
+            :default => default_config[:track_dependencies]
+          },
+          {
+            :name => "application_dependencies",
+            :type => Array,
+            :description => "[MULTI_CAP] This is an array of hashes. Each hash has only the keys 'app' ( app name), 'priority' and 'dependencies' ( an array of app names that this app is dependent to) ",
+            :default =>  default_config[:application_dependencies]
+          },
         ]
       end
       
@@ -68,8 +119,8 @@ module CapistranoMulticonfigParallel
       end
       
       def verify_array_of_strings(c, prop)
-          value = c[prop]
-          if value.present?
+        value = c[prop]
+        if value.present?
           value.reject(&:blank?)
           if value.find { |row| !row.is_a?(String) }
             raise ArgumentError, 'the array must contain only task names'
@@ -89,7 +140,7 @@ module CapistranoMulticonfigParallel
         raise ArgumentError, "invalid configuration for #{wrong.inspect}" if wrong.present?
       end
   
-    def check_boolean(c, prop)
+      def check_boolean(c, prop)
         if c[prop].present?&&  ![true, false, 'true', 'false'].include?(c[prop])
           raise ArgumentError, "the property `#{prop}` must be boolean"
         end
