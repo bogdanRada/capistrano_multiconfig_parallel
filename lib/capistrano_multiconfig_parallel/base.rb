@@ -28,11 +28,11 @@ module CapistranoMulticonfigParallel
     def root
       File.expand_path(File.dirname(__dir__))
     end
-    
+
     def ask_confirm(message, default)
       Ask.input message, default: default
     end
-    
+
     def verify_app_dependencies(stages)
       applications = stages.map { |stage| stage.split(':').reverse[1] }
       wrong = CapistranoMulticonfigParallel.configuration.application_dependencies.find do |hash|
@@ -54,7 +54,7 @@ module CapistranoMulticonfigParallel
     end
 
     def enable_logging
-       CapistranoMulticonfigParallel.configuration_valid?
+      CapistranoMulticonfigParallel.configuration_valid?
       return unless CapistranoMulticonfigParallel::CelluloidManager.debug_enabled
       FileUtils.mkdir_p(log_directory)
       log_file = File.open(main_log_file, 'w')
@@ -68,30 +68,32 @@ module CapistranoMulticonfigParallel
       error_message = message.respond_to?(:message) ? message.message : message.inspect
       err_backtrace = message.respond_to?(:backtrace) ? message.backtrace.join("\n\n") : ''
       if err_backtrace.present?
-        logger.debug(class: message.class,
-            message: error_message,
-            backtrace: err_backtrace)
-        else
-          logger.debug(message)
-        end
-      end
-
-      def detect_root
-        if ENV['MULTI_CAP_ROOT']
-          Pathname.new(ENV['MULTI_CAP_ROOT'])
-        elsif defined?(::Rails)
-          ::Rails.root
-        else
-          try_detect_capfile
-        end
-      end
-
-      def try_detect_capfile
-        root = Pathname.new(FileUtils.pwd)
-        root = root.parent unless root.directory?
-        root = root.parent until File.exist?(root.join('Capfile')) || root.root?
-        raise "Can't detect Rails application root" if root.root?
-        root
+        logger.debug(
+          class_name: message.class,
+          message: error_message,
+          backtrace: err_backtrace
+        )
+      else
+        logger.debug(message)
       end
     end
+
+    def detect_root
+      if ENV['MULTI_CAP_ROOT']
+        Pathname.new(ENV['MULTI_CAP_ROOT'])
+      elsif defined?(::Rails)
+        ::Rails.root
+      else
+        try_detect_capfile
+      end
+    end
+
+    def try_detect_capfile
+      root = Pathname.new(FileUtils.pwd)
+      root = root.parent unless root.directory?
+      root = root.parent until File.exist?(root.join('Capfile')) || root.root?
+      raise "Can't detect Rails application root" if root.root?
+      root
+    end
   end
+end

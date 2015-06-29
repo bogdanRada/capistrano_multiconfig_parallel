@@ -1,8 +1,7 @@
 require 'configliere'
 require 'configliere/commandline'
 Configliere::Commandline.class_eval do
-
-  def resolve!(print_help_and_exit=true)
+  def resolve!(print_help_and_exit = true)
     process_argv!
     if print_help_and_exit && self[:multi_help]
       dump_help
@@ -11,5 +10,4 @@ Configliere::Commandline.class_eval do
     super()
     self
   end
-
 end
