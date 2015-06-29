@@ -91,9 +91,9 @@ CapistranoMulticonfigParallel.configure do |c|
         c.development_stages = ['development', 'webdev']
 end
 ```
-
-[[include path=lib/capistrano_multiconfig_parallel/initializers/default.yml]]
-
+```
+{{ lib/capistrano_multiconfig_parallel/initializers/default.yml }}
+```
  Available command line  options when executing a command
 --------
 
