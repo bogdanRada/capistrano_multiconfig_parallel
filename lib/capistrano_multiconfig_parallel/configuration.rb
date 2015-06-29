@@ -13,9 +13,10 @@ module CapistranoMulticonfigParallel
         command_line_params.each do |param|
           @config.define param[:name], type: param[:type], description: param[:description], default: param[:default]
         end
-        @config.merge(Settings.use(:commandline).resolve!)
+        
         @config.read config_file if File.file?(config_file)
-
+        @config.merge(Settings.use(:commandline).resolve!)
+         
         @config.use :config_block
         @config.finally do |c|
           check_configuration(c)
