@@ -83,7 +83,7 @@ module CapistranoMulticonfigParallel
     def print_frameworks_used(app_names, applications_to_deploy, action)
       app_names.each { |app| puts "#{app}" }
       set :apps_deploy_confirmation, CapistranoMulticonfigParallel.ask_confirm("Are you sure you want to #{action} these apps?", 'Y/N')
-      if fetch(:apps_deploy_confirmation).blank? || (fetch(:apps_deploy_confirmation).present? && fetch(:apps_deploy_confirmation).downcase == 'n')
+      if fetch(:apps_deploy_confirmation).blank? || (fetch(:apps_deploy_confirmation).present? && fetch(:apps_deploy_confirmation).downcase != 'y')
         return []
       elsif fetch(:apps_deploy_confirmation).present? && fetch(:apps_deploy_confirmation).downcase == 'y'
         return applications_to_deploy
