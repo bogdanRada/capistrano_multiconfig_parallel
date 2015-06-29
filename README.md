@@ -92,9 +92,7 @@ CapistranoMulticonfigParallel.configure do |c|
 end
 ```
 
-```yaml
-{% raw %}{{ default.yml }}{% endraw %}
-```
+[[include path=lib/capistrano_multiconfig_parallel/initializers/default.yml]]
 
  Available command line  options when executing a command
 --------
