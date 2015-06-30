@@ -105,12 +105,18 @@ module CapistranoMulticonfigParallel
       @job_manager.condition.signal(results2) if results2.size == @jobs.size
     end
 
+    def need_confirmations?
+      CapistranoMulticonfigParallel.configuration.task_confirmation_active.to_s.downcase == 'true'
+    end
+    
     def wait_task_confirmations
-      return unless CapistranoMulticonfigParallel.configuration.task_confirmation_active
+      return unless need_confirmations?
       CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, index|
         results = []
         @jobs.pmap do |job_id, _job|
-          results << @job_to_condition[job_id][:first_condition][index].wait
+          current_job = @job_to_condition[job_id][:first_condition][index]
+          result = current_job.respond_to?(:wait) ? current_job.wait : current_job
+          results << result
         end
         if results.size == @jobs.size
           confirm_task_approval(results, task)
@@ -120,17 +126,19 @@ module CapistranoMulticonfigParallel
 
     def confirm_task_approval(results, task)
       return unless results.present?
-      set :apps_symlink_confirmation, CapistranoMulticonfigParallel.ask_confirm("Do you want  to continue the deployment and execute #{task}?", 'Y/N')
-      until fetch(:apps_symlink_confirmation).present?
-        sleep(0.1) # keep current thread alive
+      if results.detect {|x| !x.is_a?(Proc)}
+        set :apps_symlink_confirmation, CapistranoMulticonfigParallel.ask_confirm("Do you want  to continue the deployment and execute #{task}?", 'Y/N')
+        until fetch(:apps_symlink_confirmation).present?
+          sleep(0.1) # keep current thread alive
+        end
       end
       return if fetch(:apps_symlink_confirmation).blank? || fetch(:apps_symlink_confirmation).downcase != 'y'
       @jobs.pmap do |job_id, job|
         worker = get_worker_for_job(job_id)
         worker.publish_rake_event('approved' => 'yes',
-                                  'action' => 'invoke',
-                                  'job_id' => job['id'],
-                                  'task' => task
+          'action' => 'invoke',
+          'job_id' => job['id'],
+          'task' => task
         )
       end
     end

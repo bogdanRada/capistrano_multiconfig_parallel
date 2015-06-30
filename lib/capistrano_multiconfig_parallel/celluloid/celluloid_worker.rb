@@ -182,7 +182,7 @@ module CapistranoMulticonfigParallel
     end
 
     def need_confirmation_for_tasks?
-      executes_deploy? && CapistranoMulticonfigParallel.configuration.task_confirmation_active
+      executes_deploy? == true  && @manager.need_confirmations?
     end
 
     def executes_deploy?
