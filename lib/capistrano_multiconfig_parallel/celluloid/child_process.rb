@@ -6,14 +6,6 @@ module CapistranoMulticonfigParallel
 
     attr_accessor :actor, :pid, :exit_status, :process, :filename,:worker_log
 
-    def finalize
-      EM.stop
-      @timer.cancel
-      super
-      true
-    end
-
-    alias_method :terminate, :finalize
 
     def work(cmd, options = {})
       @options = options

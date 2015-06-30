@@ -95,7 +95,7 @@ module CapistranoMulticonfigParallel
         worker.async.start_task
       end
       block_given? ? block.call : wait_task_confirmations
-      until  @job_to_worker.all?{|job_id, worker| worker.alive? && worker.status =='finished'}
+      until  @job_to_worker.all?{|job_id, worker| worker.alive? && worker.worker_state =='finished'}
         sleep(0.1) # keep current thread alive
       end
       mark_completed_remaining_tasks

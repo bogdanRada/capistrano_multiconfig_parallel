@@ -23,13 +23,13 @@ module CapistranoMulticonfigParallel
     class TaskFailed < StandardError; end
 
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv, :execute_deploy, :executed_dry_run,
-                  :rake_tasks, :current_task_number, # tracking tasks
-                  :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-                  :job_termination_condition, :status
+      :rake_tasks, :current_task_number, # tracking tasks
+    :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
+    :job_termination_condition, :worker_state
 
     def work(job, manager)
       @job = job
-      @status = 'started'
+      @worker_state = 'started'
       @manager = manager
       @job_confirmation_conditions = []
       process_job(job) if job.present?
@@ -189,13 +189,21 @@ module CapistranoMulticonfigParallel
     def notify_finished(exit_status)
       return unless @execute_deploy
       if exit_status.exitstatus != 0
-        debug("worker #{job_id} tries to terminate")
+        debug("worker #{job_id} tries to terminate") if debug_enabled?
         terminate
       else
         update_machine_state('FINISHED')
-        debug("worker #{job_id} notifies manager has finished")
-       @status = "finished"
+        debug("worker #{job_id} notifies manager has finished") if debug_enabled?
+        @worker_state = "finished"
+        if debug_enabled?
+          debug("worker #{job_id}has state #{@worker_state}") 
+          @manager.job_to_worker.each{|job_id, worker| 
+            debug("worker #{worker.job_id}has state #{worker.worker_state}") if   worker.alive? 
+          }
+        end
       end
     end
+    
+    
   end
 end
