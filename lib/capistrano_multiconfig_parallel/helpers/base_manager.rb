@@ -13,6 +13,7 @@ module CapistranoMulticonfigParallel
       @top_level_tasks = top_level_tasks
       @stages = stages
       @jobs = []
+      CapistranoMulticonfigParallel.enable_logging
       CapistranoMulticonfigParallel.configuration_valid?
       CapistranoMulticonfigParallel.verify_app_dependencies(@stages) if CapistranoMulticonfigParallel.configuration.track_dependencies
     end

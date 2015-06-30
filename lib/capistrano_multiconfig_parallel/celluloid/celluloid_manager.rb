@@ -90,23 +90,44 @@ module CapistranoMulticonfigParallel
     end
 
     def process_jobs(&block)
-      @job_to_worker.pmap do |_job_id, worker|
+      @job_to_worker.pmap do |job_id, worker|
+        setup_worker_conditions(job_id)
         worker.async.start_task
       end
-      if block_given?
-        block.call
-      else
-        wait_task_confirmations
+      block_given? ? block.call : wait_task_confirmations
+      until  @job_to_worker.all?{|job_id, worker| worker.alive? && worker.status =='finished'}
+        sleep(0.1) # keep current thread alive
       end
-      results2 = []
-      @job_to_condition.pmap do |_job_id, hash|
-        results2 << hash[:last_condition].wait
+      mark_completed_remaining_tasks
+      @job_manager.condition.signal("completed") 
+    end
+    
+    def setup_worker_conditions(job_id)
+      hash_conditions = {}
+      if need_confirmations?
+        CapistranoMulticonfigParallel.configuration.task_confirmations.each do |task|
+          hash_conditions[task] = { condition:  Celluloid::Condition.new, status: 'unconfirmed' }
+        end
       end
-      @job_manager.condition.signal(results2) if results2.size == @jobs.size
+      @job_to_condition[job_id] = hash_conditions
     end
 
     def need_confirmations?
       CapistranoMulticonfigParallel.configuration.task_confirmation_active.to_s.downcase == 'true'
+    end
+    
+    def mark_completed_remaining_tasks
+      return unless need_confirmations?
+      CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, index|
+        @jobs.pmap do |job_id, _job|
+          fake_result = proc{ |sum| sum }
+          task_confirmation = @job_to_condition[job_id][task]
+          if task_confirmation[:status] != 'confirmed'
+            task_confirmation[:status] = 'confirmed'
+            task_confirmation[:condition].signal(fake_result)
+          end
+        end
+      end
     end
     
     def wait_task_confirmations
@@ -114,8 +135,7 @@ module CapistranoMulticonfigParallel
       CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, index|
         results = []
         @jobs.pmap do |job_id, _job|
-          current_job = @job_to_condition[job_id][:first_condition][index]
-          result = current_job.respond_to?(:wait) ? current_job.wait : current_job
+          result = @job_to_condition[job_id][task][:condition].wait
           results << result
         end
         if results.size == @jobs.size
@@ -124,6 +144,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
+    
     def confirm_task_approval(results, task)
       return unless results.present?
       if results.detect {|x| !x.is_a?(Proc)}
