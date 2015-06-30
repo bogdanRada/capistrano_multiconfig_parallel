@@ -56,9 +56,12 @@ module CapistranoMulticonfigParallel
     def enable_logging
       CapistranoMulticonfigParallel.configuration_valid?
       return unless CapistranoMulticonfigParallel::CelluloidManager.debug_enabled
-      FileUtils.mkdir_p(log_directory)
-      log_file = File.open(main_log_file, 'w')
-      log_file.sync = true
+      FileUtils.mkdir_p(log_directory) unless  File.directory?(log_directory)
+      FileUtils.touch(main_log_file) unless File.file?(main_log_file)
+      if  ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
+        log_file = File.open(main_log_file, 'w')
+        log_file.sync = true
+      end
       self.logger = ::Logger.new(main_log_file)
       Celluloid.logger = logger
     end
