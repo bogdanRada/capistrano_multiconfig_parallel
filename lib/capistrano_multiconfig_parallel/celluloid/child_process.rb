@@ -4,7 +4,7 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Logger
 
-    attr_accessor :actor, :pid, :exit_status, :process, :filename
+    attr_accessor :actor, :pid, :exit_status, :process, :filename,:worker_log
 
     def finalize
       EM.stop
@@ -18,9 +18,9 @@ module CapistranoMulticonfigParallel
     def work(cmd, options = {})
       @options = options
       @actor = @options.fetch(:actor, nil)
+       set_worker_log
       EM.run do
         EM.next_tick do
-          set_worker_log
           start_async_deploy(cmd, options)
         end
         @timer = EM::PeriodicTimer.new(0.1) do
@@ -38,6 +38,12 @@ module CapistranoMulticonfigParallel
       FileUtils.mkdir_p(CapistranoMulticonfigParallel.log_directory)
       @filename = File.join(CapistranoMulticonfigParallel.log_directory, "worker_#{@actor.job_id}.log")
       FileUtils.rm_rf(@filename) if @options[:dry_run] || @actor.executed_dry_run != true
+      @worker_log = ::Logger.new(@filename)
+      @worker_log.level = ::Logger::Severity::DEBUG
+      @worker_log.formatter = proc do |severity, datetime, progname, msg|
+        date_format = datetime.strftime("%Y-%m-%d %H:%M:%S")
+          "[#{date_format}] #{severity}  (#{progname}): #{msg}\n"
+      end
     end
 
     def check_exit_status
@@ -97,8 +103,8 @@ module CapistranoMulticonfigParallel
       @process ||= process
     end
 
-    def io_callback(_io, data)
-      File.open(@filename, 'a') { |f| f << data }
+    def io_callback(io, data)
+       @worker_log.debug("#{io.upcase} ---- #{data}")
     end
   end
 end
