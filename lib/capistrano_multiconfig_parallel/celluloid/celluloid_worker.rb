@@ -23,19 +23,19 @@ module CapistranoMulticonfigParallel
     class TaskFailed < StandardError; end
 
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv, :execute_deploy, :executed_dry_run,
-                  :rake_tasks, :current_task_number, # tracking tasks
-                  :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-                  :task_confirmations, :manager_condition, :last_manager_condition # for task conifirmations from manager
+      :rake_tasks, :current_task_number, # tracking tasks
+    :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
+    :job_termination_condition, :worker_state
 
     def work(job, manager)
       @job = job
+      @worker_state = 'started'
       @manager = manager
-
+      @job_confirmation_conditions = []
       process_job(job) if job.present?
       debug("worker #{@job_id} received #{job.inspect}") if debug_enabled?
       @subscription_channel = "worker_#{@job_id}"
       @machine = CapistranoMulticonfigParallel::StateMachine.new(job, Actor.current)
-      setup_worker_condition
       manager.register_worker_for_job(job, Actor.current)
     end
 
@@ -45,7 +45,6 @@ module CapistranoMulticonfigParallel
 
     def start_task
       debug("exec worker #{@job_id} starts task with #{@job.inspect}") if debug_enabled?
-      @task_confirmations = CapistranoMulticonfigParallel.configuration.task_confirmations
       @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: @manager.class.debug_websocket?) do |ws|
         ws.subscribe(@subscription_channel)
       end
@@ -124,8 +123,10 @@ module CapistranoMulticonfigParallel
     end
 
     def task_approval(message)
-      if @task_confirmations.include?(message['task']) && message['action'] == 'invoke'
-        @manager_condition[message['task']].call(message['task'])
+      if CapistranoMulticonfigParallel.configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
+        task_confirmation = @manager.job_to_condition[@job_id][message['task']]
+        task_confirmation[:status] = 'confirmed'
+        task_confirmation[:condition].signal(message['task'])
       else
         publish_rake_event(message.merge('approved' => 'yes'))
       end
@@ -181,43 +182,6 @@ module CapistranoMulticonfigParallel
       @task_arguments = job['task_arguments']
     end
 
-    def need_confirmation_for_tasks?
-      executes_deploy? == true  && @manager.need_confirmations?
-    end
-
-    def executes_deploy?
-      (@action_name == 'deploy' || @action_name == 'deploy:rollback')
-    end
-
-    def setup_worker_condition
-      job_termination_condition = Celluloid::Condition.new
-      job_confirmation_conditions = []
-      CapistranoMulticonfigParallel.configuration.task_confirmations.each do |_task|
-        if need_confirmation_for_tasks?
-          job_confirmation_conditions << Celluloid::Condition.new
-        else
-          job_confirmation_conditions << proc { |sum| sum }
-        end
-      end
-      @manager.job_to_condition[@job_id] = { first_condition: job_confirmation_conditions, last_condition: job_termination_condition }
-      construct_blocks_for_conditions(job_confirmation_conditions, job_termination_condition)
-    end
-
-    def construct_blocks_for_conditions(job_confirmation_conditions, job_termination_condition)
-      hash_conditions = {}
-      CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, index|
-        blk = lambda do |sum|
-          need_confirmation_for_tasks? ? job_confirmation_conditions[index].signal(sum) : job_confirmation_conditions[index].call(sum)
-        end
-        hash_conditions[task] = blk
-      end
-      blk_termination = lambda do |sum|
-        job_termination_condition.signal(sum)
-      end
-      @manager_condition = hash_conditions
-      @last_manager_condition = blk_termination
-    end
-
     def crashed?
       @action_name == 'deploy:rollback'
     end
@@ -225,13 +189,21 @@ module CapistranoMulticonfigParallel
     def notify_finished(exit_status)
       return unless @execute_deploy
       if exit_status.exitstatus != 0
-        debug("worker #{job_id} tries to terminate")
+        debug("worker #{job_id} tries to terminate") if debug_enabled?
         terminate
       else
         update_machine_state('FINISHED')
-        debug("worker #{job_id} notifies manager has finished")
-        @last_manager_condition.call('yes')
+        debug("worker #{job_id} notifies manager has finished") if debug_enabled?
+        @worker_state = "finished"
+        if debug_enabled?
+          debug("worker #{job_id}has state #{@worker_state}") 
+          @manager.job_to_worker.each{|job_id, worker| 
+            debug("worker #{worker.job_id}has state #{worker.worker_state}") if   worker.alive? 
+          }
+        end
       end
     end
+    
+    
   end
 end

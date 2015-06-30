@@ -10,7 +10,6 @@ module CapistranoMulticonfigParallel
       if $stdout.isatty
         $stdout.sync = true
       end
-      CapistranoMulticonfigParallel.enable_logging
       CapistranoMulticonfigParallel::Application.new.run
     rescue Interrupt
       `stty icanon echo`
