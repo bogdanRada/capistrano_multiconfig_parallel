@@ -10,6 +10,7 @@ module CapistranoMulticonfigParallel
       if $stdout.isatty
         $stdout.sync = true
       end
+      $capistrano_multiconfig_parallel = ARGV.dup
       CapistranoMulticonfigParallel::Application.new.run
     rescue Interrupt
       `stty icanon echo`

@@ -53,7 +53,7 @@ module CapistranoMulticonfigParallel
 
     def add_job_to_table(table, job_id)
       worker = @manager.get_worker_for_job(job_id)
-      return unless worker.present?
+      return unless worker.alive?
       worker_optons = ''
       worker.env_options.each do |key, value|
         worker_optons << "#{key}=#{value}\n"

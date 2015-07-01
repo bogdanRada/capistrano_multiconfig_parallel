@@ -44,6 +44,7 @@ module CapistranoMulticonfigParallel
     end
 
     def start_task
+      @manager.setup_worker_conditions(Actor.current)
       debug("exec worker #{@job_id} starts task with #{@job.inspect}") if debug_enabled?
       @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: @manager.class.debug_websocket?) do |ws|
         ws.subscribe(@subscription_channel)
@@ -101,6 +102,7 @@ module CapistranoMulticonfigParallel
       setup_task_arguments
       debug("worker #{@job_id} executes: bundle exec multi_cap #{@task_argv.join(' ')}") if debug_enabled?
       @child_process.async.work("bundle exec multi_cap #{@task_argv.join(' ')}", actor: Actor.current, silent: true)
+      @manager.wait_task_confirmations_worker(Actor.current) unless @manager.syncronized_confirmation?
     end
 
     def on_close(code, reason)
@@ -194,6 +196,7 @@ module CapistranoMulticonfigParallel
       else
         update_machine_state('FINISHED')
         debug("worker #{job_id} notifies manager has finished") if debug_enabled?
+        @manager.mark_completed_remaining_tasks(Actor.current)
         @worker_state = "finished"
         if debug_enabled?
           debug("worker #{job_id}has state #{@worker_state}") 

@@ -83,72 +83,92 @@ module CapistranoMulticonfigParallel
         @worker_to_job[worker.mailbox.address] = job
         debug("worker #{worker.job_id} registed into manager") if self.class.debug_enabled?
         Actor.current.link worker
+        worker.async.start_task unless syncronized_confirmation?
         if @job_manager.jobs.size == @job_to_worker.size
           @registration_complete = true
         end
       end
     end
 
-    def process_jobs(&block)
-      @job_to_worker.pmap do |job_id, worker|
-        setup_worker_conditions(job_id)
-        worker.async.start_task
+    def process_jobs
+      if syncronized_confirmation?
+        @job_to_worker.pmap do |job_id, worker|
+          worker.async.start_task
+        end
+        wait_task_confirmations 
       end
-      block_given? ? block.call : wait_task_confirmations
-      until  @job_to_worker.all?{|job_id, worker| worker.alive? && worker.worker_state =='finished'}
+      condition = @job_to_worker.all?{|job_id, worker| worker.alive? && worker.worker_state =='finished'}
+      until condition == true
         sleep(0.1) # keep current thread alive
       end
-      mark_completed_remaining_tasks
-      @job_manager.condition.signal("completed") 
+      debug("all jobs have completed #{condition}") if self.class.debug_enabled?
+      @job_manager.condition.signal("completed") if condition
     end
     
-    def setup_worker_conditions(job_id)
+    def syncronized_confirmation?
+       CapistranoMulticonfigParallel.configuration.syncronize_confirmation.to_s.downcase == 'true' && !@job_manager.executes_deploy_stages?
+    end
+    
+    def setup_worker_conditions(worker)
       hash_conditions = {}
       if need_confirmations?
         CapistranoMulticonfigParallel.configuration.task_confirmations.each do |task|
           hash_conditions[task] = { condition:  Celluloid::Condition.new, status: 'unconfirmed' }
         end
       end
-      @job_to_condition[job_id] = hash_conditions
+      @job_to_condition[worker.job_id] = hash_conditions
     end
 
     def need_confirmations?
       CapistranoMulticonfigParallel.configuration.task_confirmation_active.to_s.downcase == 'true'
     end
     
-    def mark_completed_remaining_tasks
+    def mark_completed_remaining_tasks(worker)
       return unless need_confirmations?
       CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, index|
-        @jobs.pmap do |job_id, _job|
-          fake_result = proc{ |sum| sum }
-          task_confirmation = @job_to_condition[job_id][task]
-          if task_confirmation[:status] != 'confirmed'
-            task_confirmation[:status] = 'confirmed'
-            task_confirmation[:condition].signal(fake_result)
-          end
+        fake_result = proc{ |sum| sum }
+        task_confirmation = @job_to_condition[worker.job_id][task]
+        if task_confirmation[:status] != 'confirmed'
+          task_confirmation[:status] = 'confirmed'
+          task_confirmation[:condition].signal(fake_result)
         end
       end
     end
     
-    def wait_task_confirmations
-      return unless need_confirmations?
+     def wait_task_confirmations_worker(worker)
+      return if  !need_confirmations? || syncronized_confirmation?
       CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, index|
-        results = []
-        @jobs.pmap do |job_id, _job|
-          result = @job_to_condition[job_id][task][:condition].wait
-          results << result
-        end
-        if results.size == @jobs.size
-          confirm_task_approval(results, task)
-        end
+        result =  wait_condition_for_task(worker.job_id, task)
+        confirm_task_approval(result, task, worker) if result.present?
       end
     end
+    
+     def wait_condition_for_task(job_id, task)
+       @job_to_condition[job_id][task][:condition].wait
+     end
+    
+     def wait_task_confirmations
+       return unless need_confirmations?
+       CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, index|
+         results = []
+         @jobs.pmap do |job_id, _job|
+           result = wait_condition_for_task(job_id, task)
+           results << result
+         end
+         if results.size == @jobs.size
+           confirm_task_approval(results, task)
+         end
+       end
+     end
 
     
-    def confirm_task_approval(results, task)
-      return unless results.present?
-      if results.detect {|x| !x.is_a?(Proc)}
-        set :apps_symlink_confirmation, CapistranoMulticonfigParallel.ask_confirm("Do you want  to continue the deployment and execute #{task}?", 'Y/N')
+    def confirm_task_approval(result, task, worker = nil)
+      return unless result.present?
+      unless result.is_a?(Proc)
+        message = "Do you want  to continue the deployment and execute #{task.upcase}"
+        message += " for JOB #{worker.job_id}" if worker.present?
+        message +='?'
+        set :apps_symlink_confirmation, CapistranoMulticonfigParallel.ask_confirm(message, 'Y/N')
         until fetch(:apps_symlink_confirmation).present?
           sleep(0.1) # keep current thread alive
         end

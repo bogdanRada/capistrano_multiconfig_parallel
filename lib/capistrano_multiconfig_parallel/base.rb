@@ -63,7 +63,6 @@ module CapistranoMulticonfigParallel
         log_file.sync = true
       end
       self.logger = ::Logger.new(main_log_file)
-      Celluloid.logger = logger
     end
 
     def log_message(message)

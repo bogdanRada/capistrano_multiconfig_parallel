@@ -15,7 +15,7 @@ module CapistranoMulticonfigParallel
       @jobs = []
       CapistranoMulticonfigParallel.enable_logging
       CapistranoMulticonfigParallel.configuration_valid?
-      CapistranoMulticonfigParallel.verify_app_dependencies(@stages) if CapistranoMulticonfigParallel.configuration.track_dependencies
+      CapistranoMulticonfigParallel.verify_app_dependencies(@stages) if   CapistranoMulticonfigParallel.configuration.present? && CapistranoMulticonfigParallel.configuration.track_dependencies.to_s.downcase == 'true'
     end
 
     def can_start?
@@ -30,12 +30,22 @@ module CapistranoMulticonfigParallel
       key = multi_apps? ? CapistranoMulticonfigParallel::MULTI_KEY : CapistranoMulticonfigParallel::SINGLE_KEY
       CapistranoMulticonfigParallel::CUSTOM_COMMANDS[key]
     end
+    
+    def executes_deploy_stages?
+       @name == custom_commands[:stages]
+    end
 
     def multi_apps?
       @cap_app.multi_apps?
     end
 
     def start(&block)
+      @condition = Celluloid::Condition.new
+      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
+      if CapistranoMulticonfigParallel::CelluloidManager.debug_enabled == true
+        Celluloid.logger =CapistranoMulticonfigParallel.logger
+        Celluloid.task_class = Celluloid::TaskThread
+      end
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
       @name, @args = @cap_app.parse_task_string(@top_level_tasks.second)
@@ -52,12 +62,12 @@ module CapistranoMulticonfigParallel
       raise [e, e.backtrace].inspect
     end
 
-    def process_jobs(&block)
+    def process_jobs
       return unless @jobs.present?
       if CapistranoMulticonfigParallel.execute_in_sequence
         @jobs.each { |job| CapistranoMulticonfigParallel::StandardDeploy.execute_standard_deploy(job) }
       else
-        run_async_jobs(&block)
+        run_async_jobs
       end
     end
 
@@ -91,10 +101,8 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def run_async_jobs(&block)
+    def run_async_jobs
       return unless @jobs.present?
-      @condition = Celluloid::Condition.new
-      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
       @jobs.pmap do |job|
         @manager.async.delegate(job)
       end
@@ -102,7 +110,7 @@ module CapistranoMulticonfigParallel
         sleep(0.1) # keep current thread alive
       end
       return unless @manager.registration_complete
-      @manager.process_jobs(&block)
+      @manager.async.process_jobs
       wait_jobs_termination
     end
 
