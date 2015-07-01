@@ -23,9 +23,9 @@ module CapistranoMulticonfigParallel
     class TaskFailed < StandardError; end
 
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv, :execute_deploy, :executed_dry_run,
-      :rake_tasks, :current_task_number, # tracking tasks
-    :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-    :job_termination_condition, :worker_state
+                  :rake_tasks, :current_task_number, # tracking tasks
+                  :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
+                  :job_termination_condition, :worker_state
 
     def work(job, manager)
       @job = job
@@ -92,6 +92,14 @@ module CapistranoMulticonfigParallel
     def execute_deploy
       @execute_deploy = true
       debug("invocation chain #{@job_id} is : #{@rake_tasks.inspect}") if debug_enabled? && CapistranoMulticonfigParallel.show_task_progress
+      check_child_proces
+      setup_task_arguments
+      debug("worker #{@job_id} executes: bundle exec multi_cap #{@task_argv.join(' ')}") if debug_enabled?
+      @child_process.async.work("bundle exec multi_cap #{@task_argv.join(' ')}", actor: Actor.current, silent: true)
+      @manager.wait_task_confirmations_worker(Actor.current) unless @manager.syncronized_confirmation?
+    end
+
+    def check_child_proces
       if !defined?(@child_process) || @child_process.nil?
         @child_process = CapistranoMulticonfigParallel::ChildProcess.new
         Actor.current.link @child_process
@@ -99,10 +107,6 @@ module CapistranoMulticonfigParallel
         @client.unsubscribe("rake_worker_#{@job_id}_count")
         @child_process.exit_status = nil
       end
-      setup_task_arguments
-      debug("worker #{@job_id} executes: bundle exec multi_cap #{@task_argv.join(' ')}") if debug_enabled?
-      @child_process.async.work("bundle exec multi_cap #{@task_argv.join(' ')}", actor: Actor.current, silent: true)
-      @manager.wait_task_confirmations_worker(Actor.current) unless @manager.syncronized_confirmation?
     end
 
     def on_close(code, reason)
@@ -188,6 +192,14 @@ module CapistranoMulticonfigParallel
       @action_name == 'deploy:rollback'
     end
 
+    def finish_worker
+      @manager.mark_completed_remaining_tasks(Actor.current)
+      @worker_state = 'finished'
+      @manager.job_to_worker.each do|_job_id, worker|
+        debug("worker #{worker.job_id}has state #{worker.worker_state}") if worker.alive? && ebug_enabled?
+      end
+    end
+
     def notify_finished(exit_status)
       return unless @execute_deploy
       if exit_status.exitstatus != 0
@@ -196,17 +208,8 @@ module CapistranoMulticonfigParallel
       else
         update_machine_state('FINISHED')
         debug("worker #{job_id} notifies manager has finished") if debug_enabled?
-        @manager.mark_completed_remaining_tasks(Actor.current)
-        @worker_state = "finished"
-        if debug_enabled?
-          debug("worker #{job_id}has state #{@worker_state}") 
-          @manager.job_to_worker.each{|job_id, worker| 
-            debug("worker #{worker.job_id}has state #{worker.worker_state}") if   worker.alive? 
-          }
-        end
+        finish_worker
       end
     end
-    
-    
   end
 end

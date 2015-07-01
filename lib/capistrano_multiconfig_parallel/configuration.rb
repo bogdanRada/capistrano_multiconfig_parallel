@@ -13,12 +13,12 @@ module CapistranoMulticonfigParallel
         command_line_params.each do |param|
           @config.define param[:name], type: param[:type], description: param[:description], default: param[:default]
         end
-        
+
         ARGV.clear
-        $capistrano_multiconfig_parallel.each{|a| ARGV << a }
+        CapistranoMulticonfigParallel.original_args.each { |a| ARGV << a }
         @config.read config_file if File.file?(config_file)
         @config.merge(Settings.use(:commandline).resolve!)
-   
+
         @config.use :config_block
         @config.finally do |c|
           check_configuration(c)
@@ -47,9 +47,9 @@ module CapistranoMulticonfigParallel
           {
             name: 'multi_progress',
             type: :boolean,
-            description: "if option is present and has value TRUE  will first execute before any process 
+            description: "if option is present and has value TRUE  will first execute before any process
                                 \t same task but with option '--dry-run'  in order to show progress of how many tasks
-                                \t are in total for that task and what is the progress of executing 
+                                \t are in total for that task and what is the progress of executing
                                 \t This will slow down the workers , because they will execute twice the same task.",
             default: default_config[:multi_progress]
           },
@@ -101,7 +101,7 @@ module CapistranoMulticonfigParallel
           {
             name: 'track_dependencies',
             type: :boolean,
-            description: "This should be useed only for Caphub-like applications , 
+            description: "This should be useed only for Caphub-like applications ,
                                 \t in order to deploy dependencies of an application in parallel.
                                 \t This is used only in combination with option **--application_dependencies** which is described
                                 \t at section **[2.) Multiple applications](#multiple_apps)**",
@@ -110,7 +110,7 @@ module CapistranoMulticonfigParallel
           {
             name: 'application_dependencies',
             type: Array,
-            description: "This is an array of hashes. Each hash has only the keys 
+            description: "This is an array of hashes. Each hash has only the keys
                                 \t 'app' ( app name), 'priority' and 'dependencies'
                                 \t ( an array of app names that this app is dependent to) ",
             default: default_config[:application_dependencies]
@@ -130,20 +130,6 @@ module CapistranoMulticonfigParallel
         end
       end
 
-      def truncate(string, truncate_at, options = {})
-    return string.dup unless string.length > truncate_at
-
-    omission = options[:omission] || '...'
-    length_with_room_for_omission = truncate_at - omission.length
-    stop =        if options[:separator]
-        string.rindex(options[:separator], length_with_room_for_omission) || length_with_room_for_omission
-      else
-        length_with_room_for_omission
-      end
-
-    "#{string[0, stop]}#{omission}"
-  end
-      
       def verify_array_of_strings(c, prop)
         value = c[prop]
         return unless value.present?
@@ -164,7 +150,7 @@ module CapistranoMulticonfigParallel
       end
 
       def check_boolean(c, prop)
-     #   return unless c[prop].present?
+        #   return unless c[prop].present?
         raise ArgumentError, "the property `#{prop}` must be boolean" unless [true, false, 'true', 'false'].include?(c[prop].to_s.downcase)
       end
 
@@ -184,12 +170,10 @@ module CapistranoMulticonfigParallel
       end
 
       def check_additional_config(c)
-        if c[:multi_debug].to_s.downcase == 'true'
-          CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true
-        end
+        CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true if c[:multi_debug].to_s.downcase == 'true'
         CapistranoMulticonfigParallel.show_task_progress = true if c[:multi_progress].to_s.downcase == 'true'
         CapistranoMulticonfigParallel.execute_in_sequence = true if c[:multi_secvential].to_s.downcase == 'true'
       end
     end
-  end
+end
 end

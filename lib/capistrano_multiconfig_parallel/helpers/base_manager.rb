@@ -28,7 +28,7 @@ module CapistranoMulticonfigParallel
       key = multi_apps? ? CapistranoMulticonfigParallel::MULTI_KEY : CapistranoMulticonfigParallel::SINGLE_KEY
       CapistranoMulticonfigParallel::CUSTOM_COMMANDS[key]
     end
-    
+
     def executes_deploy_stages?
       @name == custom_commands[:stages]
     end
@@ -37,7 +37,12 @@ module CapistranoMulticonfigParallel
       @cap_app.multi_apps?
     end
 
+    def configuration
+      CapistranoMulticonfigParallel.configuration
+    end
+    
     def start(&block)
+       CapistranoMulticonfigParallel.configuration_valid?
       check_before_starting
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
@@ -49,12 +54,10 @@ module CapistranoMulticonfigParallel
     end
 
     def check_before_starting
-      CapistranoMulticonfigParallel.configuration_valid?
-      CapistranoMulticonfigParallel.verify_app_dependencies(@stages) if   CapistranoMulticonfigParallel.configuration.present? && CapistranoMulticonfigParallel.configuration.track_dependencies.to_s.downcase == 'true'
       @condition = Celluloid::Condition.new
       @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
       if CapistranoMulticonfigParallel::CelluloidManager.debug_enabled == true
-        Celluloid.logger =CapistranoMulticonfigParallel.logger
+        Celluloid.logger = CapistranoMulticonfigParallel.logger
         Celluloid.task_class = Celluloid::TaskThread
       end
     end
@@ -86,13 +89,13 @@ module CapistranoMulticonfigParallel
       app = options['app'].is_a?(Hash) ? options['app'] : { 'app' => options['app'] }
       branch = @branch_backup.present? ? @branch_backup : @argv['BRANCH'].to_s
       call_task_deploy_app({
-          branch: branch,
-          app: app,
-          action: options['action']
-        }.reverse_merge(options))
+        branch: branch,
+        app: app,
+        action: options['action']
+      }.reverse_merge(options))
     end
 
-    private
+  private
 
     def call_task_deploy_app(options = {})
       options = options.stringify_keys
@@ -136,8 +139,8 @@ module CapistranoMulticonfigParallel
       env_opts = get_app_additional_env_options(app, message)
 
       options['env_options'] = options['env_options'].reverse_merge(env_opts.except('BOX'))
-      
-      env_options = branch_name.present? ?  { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
+
+      env_options = branch_name.present? ? { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
 
       job = {
         app: app,
@@ -175,8 +178,6 @@ module CapistranoMulticonfigParallel
         return ''
       end
     end
-
-    
 
     def get_app_additional_env_options(app, app_message)
       app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app

@@ -11,6 +11,19 @@ module CapistranoMulticonfigParallel
       @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(Actor.current)
     end
 
+    def check_before_starting
+      verify_app_dependencies(@stages) if configuration.present? && configuration.track_dependencies.to_s.downcase == 'true'
+      super
+    end
+
+    def verify_app_dependencies(stages)
+      applications = stages.map { |stage| stage.split(':').reverse[1] }
+      wrong = configuration.application_dependencies.find do |hash|
+        !applications.include?(hash[:app]) || (hash[:dependencies].present? && hash[:dependencies].find { |val| !applications.include?(val) })
+      end
+      raise ArgumentError, "invalid configuration for #{wrong.inspect}" if wrong.present?
+    end
+    
     def run
       options = {}
       if custom_command?
@@ -54,7 +67,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-  private
+    private
 
     def multi_collect_and_run_jobs(options = {}, &block)
       collect_jobs(options) do |new_options|

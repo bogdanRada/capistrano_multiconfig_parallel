@@ -10,7 +10,4 @@ Configliere::Commandline.class_eval do
     super()
     self
   end
-  
-  
-  
 end
