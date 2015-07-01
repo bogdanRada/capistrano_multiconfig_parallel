@@ -64,7 +64,7 @@ module CapistranoMulticonfigParallel
              { value: "#{worker.app_name}\n#{worker.env_name}" },
              { value: worker.action_name },
              { value: worker_optons },
-             { value: state }
+             { value: "#{state}" }
             ]
       if CapistranoMulticonfigParallel.show_task_progress
         row << { value: worker.rake_tasks.size }

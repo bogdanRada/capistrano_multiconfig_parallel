@@ -12,7 +12,7 @@ Rake::Task.class_eval do
     end
   end
 
-  def run_the_actor(job_id, &block)
+  def run_the_actor(job_id)
     rake_actor_id = ENV['count_rake'].present? ? "rake_worker_#{job_id}_count" : "rake_worker_#{job_id}"
     if Celluloid::Actor[rake_actor_id].blank?
       CapistranoMulticonfigParallel::RakeWorker.supervise_as rake_actor_id
@@ -23,6 +23,6 @@ Rake::Task.class_eval do
     until Celluloid::Actor[rake_actor_id].task_approved
       sleep(0.1) # keep current thread alive
     end
-    block.call if Celluloid::Actor[rake_actor_id].task_approved
+    yield if Celluloid::Actor[rake_actor_id].task_approved
   end
 end
