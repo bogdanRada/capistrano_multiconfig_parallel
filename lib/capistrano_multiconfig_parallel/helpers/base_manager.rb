@@ -121,13 +121,11 @@ module CapistranoMulticonfigParallel
       app = app.fetch('app', '')
       box = options['env_options']['BOX']
       message = box.present? ? "BOX #{box}:" : "stage #{options['stage']}:"
-      branch_name = get_applications_branch_from_stdin(app, message) if branch_name.blank?
       env_opts = get_app_additional_env_options(app, message)
 
-      options['env_options'] = options['env_options'].reverse_merge(env_opts)
-      env_options = {
-        'BRANCH' => branch_name
-      }.merge(options['env_options'])
+      options['env_options'] = options['env_options'].reverse_merge(env_opts.except('BOX'))
+      
+      env_options = branch_name.present? ?  { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
 
       job = {
         app: app,
@@ -166,23 +164,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def get_applications_branch_from_stdin(app, app_message)
-      app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
-      app_name = app_name.present? ? app_name : 'current application'
-      message = "Please enter Branch name for  #{app_name} for #{app_message}"
-      get_branch_name_from_stdin(message)
-    end
-
-    def get_branch_name_from_stdin(message)
-      branch = ''
-      if @argv['BRANCH'].blank? || (@argv['BRANCH'].present? && !custom_command?)
-        set :app_branch_name, CapistranoMulticonfigParallel.ask_confirm(message, nil)
-        branch = parse_inputted_value
-      else
-        branch = @argv['BRANCH']
-      end
-      branch
-    end
+    
 
     def get_app_additional_env_options(app, app_message)
       app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
@@ -198,6 +180,7 @@ module CapistranoMulticonfigParallel
       env_options = parse_inputted_value(key: :app_additional_env_options)
       env_options = env_options.split(' ')
       options = multi_fetch_argv(env_options)
+      options.stringify_keys!
       options
     end
 
