@@ -197,6 +197,21 @@ module CapistranoMulticonfigParallel
       end
     end
 
+    def process_job(job)
+      env_options = {}
+      job['env_options'].each do |key, value|
+        env_options[key] = value if value.present?
+      end
+      {
+        'job_id' => job['id'],
+        'app_name' => job['app'],
+        'env_name' =>  job['env'],
+        'action_name' =>  job['action'],
+        'env_options' => env_options,
+        'task_arguments' => job['task_arguments'],
+      }
+    end
+    
     # lookup status of job by asking actor running it
     def get_job_status(job)
       status = nil
