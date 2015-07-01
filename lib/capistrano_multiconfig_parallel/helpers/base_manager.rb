@@ -14,8 +14,6 @@ module CapistranoMulticonfigParallel
       @stages = stages
       @jobs = []
       CapistranoMulticonfigParallel.enable_logging
-      CapistranoMulticonfigParallel.configuration_valid?
-      CapistranoMulticonfigParallel.verify_app_dependencies(@stages) if   CapistranoMulticonfigParallel.configuration.present? && CapistranoMulticonfigParallel.configuration.track_dependencies.to_s.downcase == 'true'
     end
 
     def can_start?
@@ -32,7 +30,7 @@ module CapistranoMulticonfigParallel
     end
     
     def executes_deploy_stages?
-       @name == custom_commands[:stages]
+      @name == custom_commands[:stages]
     end
 
     def multi_apps?
@@ -40,12 +38,7 @@ module CapistranoMulticonfigParallel
     end
 
     def start(&block)
-      @condition = Celluloid::Condition.new
-      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
-      if CapistranoMulticonfigParallel::CelluloidManager.debug_enabled == true
-        Celluloid.logger =CapistranoMulticonfigParallel.logger
-        Celluloid.task_class = Celluloid::TaskThread
-      end
+      check_before_starting
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
       @name, @args = @cap_app.parse_task_string(@top_level_tasks.second)
@@ -55,6 +48,17 @@ module CapistranoMulticonfigParallel
       run
     end
 
+    def check_before_starting
+      CapistranoMulticonfigParallel.configuration_valid?
+      CapistranoMulticonfigParallel.verify_app_dependencies(@stages) if   CapistranoMulticonfigParallel.configuration.present? && CapistranoMulticonfigParallel.configuration.track_dependencies.to_s.downcase == 'true'
+      @condition = Celluloid::Condition.new
+      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
+      if CapistranoMulticonfigParallel::CelluloidManager.debug_enabled == true
+        Celluloid.logger =CapistranoMulticonfigParallel.logger
+        Celluloid.task_class = Celluloid::TaskThread
+      end
+    end
+    
     def collect_jobs(options = {}, &block)
       options = prepare_options(options)
       block.call(options) if block_given?
@@ -82,13 +86,13 @@ module CapistranoMulticonfigParallel
       app = options['app'].is_a?(Hash) ? options['app'] : { 'app' => options['app'] }
       branch = @branch_backup.present? ? @branch_backup : @argv['BRANCH'].to_s
       call_task_deploy_app({
-        branch: branch,
-        app: app,
-        action: options['action']
-      }.reverse_merge(options))
+          branch: branch,
+          app: app,
+          action: options['action']
+        }.reverse_merge(options))
     end
 
-  private
+    private
 
     def call_task_deploy_app(options = {})
       options = options.stringify_keys
