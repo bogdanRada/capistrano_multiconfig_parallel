@@ -13,18 +13,17 @@ module CapistranoMulticonfigParallel
         command_line_params.each do |param|
           @config.define param[:name], type: param[:type], description: param[:description], default: param[:default]
         end
-        
+
+        ARGV.clear
+        CapistranoMulticonfigParallel.original_args.each { |a| ARGV << a }
         @config.read config_file if File.file?(config_file)
         @config.merge(Settings.use(:commandline).resolve!)
-         
+
         @config.use :config_block
         @config.finally do |c|
           check_configuration(c)
         end
         @config.resolve!
-      rescue => ex
-        puts ex.inspect
-        puts ex.backtrace if ex.respond_to?(:backtrace)
       end
 
       def default_config
@@ -42,65 +41,78 @@ module CapistranoMulticonfigParallel
           {
             name: 'multi_debug',
             type: :boolean,
-            description: '[MULTI_CAP] if option is present and has value TRUE , will enable debugging of workers',
+            description: 'if option is present and has value TRUE , will enable debugging of workers',
             default: default_config[:multi_debug]
           },
           {
             name: 'multi_progress',
             type: :boolean,
-            description: "[MULTI_CAP] if option is present and has value TRUE  will first execute before any process ,
-            same task but with option '--dry-run'  in order to show progress of how many tasks are in total for that task and what is the progress of executing
-           This will slow down the workers , because they will execute twice the same task.",
+            description: "if option is present and has value TRUE  will first execute before any process
+                                \t same task but with option '--dry-run'  in order to show progress of how many tasks
+                                \t are in total for that task and what is the progress of executing
+                                \t This will slow down the workers , because they will execute twice the same task.",
             default: default_config[:multi_progress]
           },
           {
             name: 'multi_secvential',
             type: :boolean,
-            description: "[MULTI_CAP] If parallel executing does not work for you, you can use this option so that each process is executed normally and ouputted to the screen.
-  However this means that all other tasks will have to wait for each other to finish before starting ",
+            description: "If parallel executing does not work for you, you can use this option so that
+                                \t each process is executed normally and ouputted to the screen.
+                                \t However this means that all other tasks will have to wait for each other to finish before starting ",
             default: default_config[:multi_secvential]
           },
           {
             name: 'websocket_server.enable_debug',
             type: :boolean,
-            description: '[MULTI_CAP]  if option is present and has value TRUE, will enable debugging of websocket communication between the workers',
+            description: "if option is present and has value TRUE
+                                \t will enable debugging of websocket communication between the workers",
             default: default_config[:websocket_server][:enable_debug]
           },
           {
             name: 'development_stages',
             type: Array,
-            description: '[MULTI_CAP] if option is present and has value an ARRAY of STRINGS, each of them will be used as a development stage',
+            description: "if option is present and has value an ARRAY of STRINGS,
+                                \t each of them will be used as a development stage",
             default: default_config[:development_stages]
           },
           {
             name: 'task_confirmations',
             type: Array,
-            description: '[MULTI_CAP] if option is present and has value TRUE, will enable user confirmation dialogs
-                                before executing each task from option  **--task_confirmations**',
+            description: "if option is present and has value TRUE, will enable user confirmation dialogs
+                                 \t before executing each task from option  **--task_confirmations**",
             default: default_config[:task_confirmations]
           },
           {
             name: 'task_confirmation_active',
             type: :boolean,
-            description: "[MULTI_CAP] if option is present and has value an ARRAY of Strings, and --task_confirmation_active is TRUE ,
-                                 then will require a confirmation from user before executing the task.
-                                  This will syncronize all workers to wait before executing that task, then a confirmation will be displayed,
-                                  and when user will confirm , all workers will resume their operation",
+            description: "if option is present and has value an ARRAY of Strings, and --task_confirmation_active is TRUE ,
+                                \t then will require a confirmation from user before executing the task.
+                                \t This will syncronize all workers to wait before executing that task, then a confirmation will be displayed,
+                                \t and when user will confirm , all workers will resume their operation",
             default: default_config[:task_confirmation_active]
+          },
+          {
+            name: 'syncronize_confirmation',
+            type: :boolean,
+            description: "if option is present and has value TRUE, all workers will be synchronized to wait for same task
+                                \t from the ***task_confirmations** Array before they execute it ",
+            default: default_config[:syncronize_confirmation]
           },
           {
             name: 'track_dependencies',
             type: :boolean,
-            description: "[MULTI_CAP] This should be useed only for Caphub-like applications , in order to deploy dependencies of an application in parallel.
-                                This is used only in combination with option **--application_dependencies** which is described
-                                 at section **[2.) Multiple applications](#multiple_apps)**",
+            description: "This should be useed only for Caphub-like applications ,
+                                \t in order to deploy dependencies of an application in parallel.
+                                \t This is used only in combination with option **--application_dependencies** which is described
+                                \t at section **[2.) Multiple applications](#multiple_apps)**",
             default: default_config[:track_dependencies]
           },
           {
             name: 'application_dependencies',
             type: Array,
-            description: "[MULTI_CAP] This is an array of hashes. Each hash has only the keys 'app' ( app name), 'priority' and 'dependencies'
-                                ( an array of app names that this app is dependent to) ",
+            description: "This is an array of hashes. Each hash has only the keys
+                                \t 'app' ( app name), 'priority' and 'dependencies'
+                                \t ( an array of app names that this app is dependent to) ",
             default: default_config[:application_dependencies]
           }
         ]
@@ -111,7 +123,7 @@ module CapistranoMulticonfigParallel
           [
             "--#{param[:name]}[=CAP_VALUE]",
             "--#{param[:name]}",
-            param[:description],
+            "[MULTI_CAP] #{param[:description]}",
             lambda do |_value|
             end
           ]
@@ -138,7 +150,7 @@ module CapistranoMulticonfigParallel
       end
 
       def check_boolean(c, prop)
-        return unless c[prop].present?
+        #   return unless c[prop].present?
         raise ArgumentError, "the property `#{prop}` must be boolean" unless [true, false, 'true', 'false'].include?(c[prop].to_s.downcase)
       end
 
@@ -158,13 +170,10 @@ module CapistranoMulticonfigParallel
       end
 
       def check_additional_config(c)
-        if c[:multi_debug].to_s.downcase == 'true'
-          CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true
-          Celluloid.task_class = Celluloid::TaskThread
-        end
+        CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true if c[:multi_debug].to_s.downcase == 'true'
         CapistranoMulticonfigParallel.show_task_progress = true if c[:multi_progress].to_s.downcase == 'true'
         CapistranoMulticonfigParallel.execute_in_sequence = true if c[:multi_secvential].to_s.downcase == 'true'
       end
     end
-  end
+end
 end

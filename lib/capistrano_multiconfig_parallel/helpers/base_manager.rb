@@ -14,8 +14,6 @@ module CapistranoMulticonfigParallel
       @stages = stages
       @jobs = []
       CapistranoMulticonfigParallel.enable_logging
-      CapistranoMulticonfigParallel.configuration_valid?
-      CapistranoMulticonfigParallel.verify_app_dependencies(@stages) if CapistranoMulticonfigParallel.configuration.track_dependencies
     end
 
     def can_start?
@@ -31,11 +29,21 @@ module CapistranoMulticonfigParallel
       CapistranoMulticonfigParallel::CUSTOM_COMMANDS[key]
     end
 
+    def executes_deploy_stages?
+      @name == custom_commands[:stages]
+    end
+
     def multi_apps?
       @cap_app.multi_apps?
     end
 
+    def configuration
+      CapistranoMulticonfigParallel.configuration
+    end
+    
     def start(&block)
+       CapistranoMulticonfigParallel.configuration_valid?
+      check_before_starting
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
       @name, @args = @cap_app.parse_task_string(@top_level_tasks.second)
@@ -45,6 +53,15 @@ module CapistranoMulticonfigParallel
       run
     end
 
+    def check_before_starting
+      @condition = Celluloid::Condition.new
+      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
+      if CapistranoMulticonfigParallel::CelluloidManager.debug_enabled == true
+        Celluloid.logger = CapistranoMulticonfigParallel.logger
+        Celluloid.task_class = Celluloid::TaskThread
+      end
+    end
+    
     def collect_jobs(options = {}, &block)
       options = prepare_options(options)
       block.call(options) if block_given?
@@ -52,12 +69,12 @@ module CapistranoMulticonfigParallel
       raise [e, e.backtrace].inspect
     end
 
-    def process_jobs(&block)
+    def process_jobs
       return unless @jobs.present?
       if CapistranoMulticonfigParallel.execute_in_sequence
         @jobs.each { |job| CapistranoMulticonfigParallel::StandardDeploy.execute_standard_deploy(job) }
       else
-        run_async_jobs(&block)
+        run_async_jobs
       end
     end
 
@@ -91,10 +108,8 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def run_async_jobs(&block)
+    def run_async_jobs
       return unless @jobs.present?
-      @condition = Celluloid::Condition.new
-      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
       @jobs.pmap do |job|
         @manager.async.delegate(job)
       end
@@ -102,7 +117,7 @@ module CapistranoMulticonfigParallel
         sleep(0.1) # keep current thread alive
       end
       return unless @manager.registration_complete
-      @manager.process_jobs(&block)
+      @manager.async.process_jobs
       wait_jobs_termination
     end
 
@@ -124,8 +139,8 @@ module CapistranoMulticonfigParallel
       env_opts = get_app_additional_env_options(app, message)
 
       options['env_options'] = options['env_options'].reverse_merge(env_opts.except('BOX'))
-      
-      env_options = branch_name.present? ?  { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
+
+      env_options = branch_name.present? ? { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
 
       job = {
         app: app,
@@ -163,8 +178,6 @@ module CapistranoMulticonfigParallel
         return ''
       end
     end
-
-    
 
     def get_app_additional_env_options(app, app_message)
       app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app

@@ -4,13 +4,12 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Logger
 
-    attr_accessor :actor, :pid, :exit_status, :process, :filename,:worker_log
-
+    attr_accessor :actor, :pid, :exit_status, :process, :filename, :worker_log
 
     def work(cmd, options = {})
       @options = options
       @actor = @options.fetch(:actor, nil)
-       set_worker_log
+      set_worker_log
       EM.run do
         EM.next_tick do
           start_async_deploy(cmd, options)
@@ -33,8 +32,8 @@ module CapistranoMulticonfigParallel
       @worker_log = ::Logger.new(@filename)
       @worker_log.level = ::Logger::Severity::DEBUG
       @worker_log.formatter = proc do |severity, datetime, progname, msg|
-        date_format = datetime.strftime("%Y-%m-%d %H:%M:%S")
-          "[#{date_format}] #{severity}  (#{progname}): #{msg}\n"
+        date_format = datetime.strftime('%Y-%m-%d %H:%M:%S')
+        "[#{date_format}] #{severity}  (#{progname}): #{msg}\n"
       end
     end
 
@@ -96,7 +95,7 @@ module CapistranoMulticonfigParallel
     end
 
     def io_callback(io, data)
-       @worker_log.debug("#{io.upcase} ---- #{data}")
+      @worker_log.debug("#{io.upcase} ---- #{data}")
     end
   end
 end
