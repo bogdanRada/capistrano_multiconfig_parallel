@@ -44,6 +44,7 @@ module CapistranoMulticonfigParallel
     end
 
     def start_task
+      @manager.setup_worker_conditions(Actor.current)
       debug("exec worker #{@job_id} starts task with #{@job.inspect}") if debug_enabled?
       @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: @manager.class.debug_websocket?) do |ws|
         ws.subscribe(@subscription_channel)
@@ -77,8 +78,8 @@ module CapistranoMulticonfigParallel
         @task_argv << 'count_rake=true'
         @child_process = CapistranoMulticonfigParallel::ChildProcess.new
         Actor.current.link @child_process
-        debug("worker #{@job_id} executes: bundle exec multi_cap #{@task_argv.join(' ')}") if debug_enabled?
-        @child_process.async.work("bundle exec multi_cap #{@task_argv.join(' ')}", actor: Actor.current, dry_run: true)
+        debug("worker #{@job_id} executes: #{generate_command}") if debug_enabled?
+        @child_process.async.work(generate_command, actor: Actor.current, silent: true, dry_run: true)
       else
         async.execute_deploy
       end
@@ -88,9 +89,23 @@ module CapistranoMulticonfigParallel
       @rake_tasks ||= []
     end
 
+    def generate_command
+      <<-CMD
+            bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env { %x[cd #{CapistranoMulticonfigParallel.detect_root.to_s} && bundle install && RAILS_ENV=#{@env_name} bundle exec multi_cap #{@task_argv.join(' ')} ] } "
+      CMD
+    end
+    
     def execute_deploy
       @execute_deploy = true
       debug("invocation chain #{@job_id} is : #{@rake_tasks.inspect}") if debug_enabled? && CapistranoMulticonfigParallel.show_task_progress
+      check_child_proces
+      setup_task_arguments
+      debug("worker #{@job_id} executes: #{generate_command}") if debug_enabled?
+      @child_process.async.work(generate_command, actor: Actor.current, silent: true)
+      @manager.wait_task_confirmations_worker(Actor.current) unless @manager.syncronized_confirmation?
+    end
+
+    def check_child_proces
       if !defined?(@child_process) || @child_process.nil?
         @child_process = CapistranoMulticonfigParallel::ChildProcess.new
         Actor.current.link @child_process
@@ -98,9 +113,6 @@ module CapistranoMulticonfigParallel
         @client.unsubscribe("rake_worker_#{@job_id}_count")
         @child_process.exit_status = nil
       end
-      setup_task_arguments
-      debug("worker #{@job_id} executes: bundle exec multi_cap #{@task_argv.join(' ')}") if debug_enabled?
-      @child_process.async.work("bundle exec multi_cap #{@task_argv.join(' ')}", actor: Actor.current, silent: true)
     end
 
     def on_close(code, reason)
@@ -171,19 +183,25 @@ module CapistranoMulticonfigParallel
     end
 
     def process_job(job)
-      @job_id = job['id']
-      @app_name = job['app']
-      @env_name = job['env']
-      @action_name = job['action']
-      @env_options = {}
-      job['env_options'].each do |key, value|
-        @env_options[key] = value if value.present?
-      end
-      @task_arguments = job['task_arguments']
+      processed_job = @manager.process_job(job)
+      @job_id = processed_job['job_id']
+      @app_name = processed_job['app_name']
+      @env_name = processed_job['env_name']
+      @action_name = processed_job['action_name']
+      @env_options = processed_job['env_options']
+      @task_arguments = processed_job['task_arguments']
+    end
+   
+    def crashed?
+      @action_name == 'deploy:rollback' || @action_name == 'deploy:failed'
     end
 
-    def crashed?
-      @action_name == 'deploy:rollback'
+    def finish_worker
+      @manager.mark_completed_remaining_tasks(Actor.current)
+      @worker_state = 'finished'
+      @manager.job_to_worker.each do|_job_id, worker|
+        debug("worker #{worker.job_id}has state #{worker.worker_state}") if worker.alive? && ebug_enabled?
+      end
     end
 
     def notify_finished(exit_status)
@@ -194,16 +212,8 @@ module CapistranoMulticonfigParallel
       else
         update_machine_state('FINISHED')
         debug("worker #{job_id} notifies manager has finished") if debug_enabled?
-        @worker_state = "finished"
-        if debug_enabled?
-          debug("worker #{job_id}has state #{@worker_state}") 
-          @manager.job_to_worker.each{|job_id, worker| 
-            debug("worker #{worker.job_id}has state #{worker.worker_state}") if   worker.alive? 
-          }
-        end
+        finish_worker
       end
     end
-    
-    
   end
 end

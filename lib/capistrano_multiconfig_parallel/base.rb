@@ -23,7 +23,7 @@ module CapistranoMulticonfigParallel
   }
 
   class << self
-    attr_accessor :show_task_progress, :interactive_menu, :execute_in_sequence, :logger, :show_task_progress_tree
+    attr_accessor :show_task_progress, :execute_in_sequence, :logger, :original_args
 
     def root
       File.expand_path(File.dirname(__dir__))
@@ -31,14 +31,6 @@ module CapistranoMulticonfigParallel
 
     def ask_confirm(message, default)
       Ask.input message, default: default
-    end
-
-    def verify_app_dependencies(stages)
-      applications = stages.map { |stage| stage.split(':').reverse[1] }
-      wrong = CapistranoMulticonfigParallel.configuration.application_dependencies.find do |hash|
-        !applications.include?(hash[:app]) || (hash[:dependencies].present? && hash[:dependencies].find { |val| !applications.include?(val) })
-      end
-      raise ArgumentError, "invalid configuration for #{wrong.inspect}" if wrong.present?
     end
 
     def log_directory
@@ -56,14 +48,13 @@ module CapistranoMulticonfigParallel
     def enable_logging
       CapistranoMulticonfigParallel.configuration_valid?
       return unless CapistranoMulticonfigParallel::CelluloidManager.debug_enabled
-      FileUtils.mkdir_p(log_directory) unless  File.directory?(log_directory)
+      FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
       FileUtils.touch(main_log_file) unless File.file?(main_log_file)
-      if  ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
+      if ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
         log_file = File.open(main_log_file, 'w')
         log_file.sync = true
       end
       self.logger = ::Logger.new(main_log_file)
-      Celluloid.logger = logger
     end
 
     def log_message(message)
@@ -90,11 +81,11 @@ module CapistranoMulticonfigParallel
         try_detect_capfile
       end
     end
-    
+
     def try_detect_capfile
       root = Pathname.new(FileUtils.pwd)
       root = root.parent unless root.directory?
-      root = root.parent until root.children.find{|f| f.file? &&  f.basename.to_s.downcase == "capfile"}.present? || root.root?
+      root = root.parent until root.children.find { |f| f.file? && f.basename.to_s.downcase == 'capfile' }.present? || root.root?
       raise "Can't detect Rails application root" if root.root?
       root
     end

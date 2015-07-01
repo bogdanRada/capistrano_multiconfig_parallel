@@ -98,7 +98,8 @@ websocket_server:
 development_stages: 
   - development
   - webdev
-  
+
+syncronize_confirmation: true  
 task_confirmation_active: false  
 task_confirmations: 
   - deploy:symlink:release
@@ -127,6 +128,9 @@ application_dependencies: []
 
 * --development_stages
   * if option is present and has value an ARRAY of STRINGS, each of them will be used as a development stage
+
+* --syncronize_confirmation
+  * if option is present and has value TRUE, all workers will be synchronized to wait for same task from the ***task_confirmations** Array before they execute it 
 
 * --task_confirmation_active
   * if option is present and has value TRUE, will enable user confirmation dialogs before executing each task from option  **--task_confirmations**
