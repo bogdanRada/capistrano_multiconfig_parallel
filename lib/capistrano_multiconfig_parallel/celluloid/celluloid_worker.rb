@@ -89,28 +89,6 @@ module CapistranoMulticonfigParallel
       @rake_tasks ||= []
     end
       
-    def last_staging_tag
-      last_tag_matching('staging-*')
-    end
-    
-    def last_tag_matching(pattern)
-        # search for most recent (chronologically) tag matching the passed pattern, then get the name of that tag.
-        last_tag = `#{cd_working_directory} && git describe --exact-match  --tags --match='#{pattern}' $(git log --tags='#{pattern}*' -n1 --pretty='%h')`.chomp
-        debug("LAST TAG is #{last_tag}") if debug_enabled?
-        last_tag == '' ? nil : last_tag
-    end
-    
-    def staging_was_tagged?
-      begin
-        current_sha = `#{cd_working_directory} && git log --pretty=format:%H HEAD -1`
-        debug("curent SHA is #{current_sha}") if debug_enabled?
-        last_staging_tag_sha = last_staging_tag ?   `#{cd_working_directory} && git log --pretty=format:%H #{last_staging_tag} -1` : nil
-        debug("LAST TAGGING SHA  is #{last_staging_tag_sha}") if debug_enabled?
-        last_staging_tag_sha == current_sha
-      rescue
-        return false
-      end
-    end
     
     def cd_working_directory
       "cd #{CapistranoMulticonfigParallel.detect_root.to_s}"
@@ -148,7 +126,7 @@ module CapistranoMulticonfigParallel
 
     def handle_subscription(message)
       if message_is_about_a_task?(message)
-        if @env_name == 'staging' && @manager.can_tag_staging? && staging_was_tagged? && has_executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
+        if @env_name == 'staging' && @manager.can_tag_staging?  && has_executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
          @manager.dispatch_new_job(@job.merge('env' =>  'production'))
        end
         save_tasks_to_be_executed(message)
