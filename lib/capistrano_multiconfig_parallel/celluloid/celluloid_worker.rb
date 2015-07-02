@@ -148,6 +148,9 @@ module CapistranoMulticonfigParallel
 
     def handle_subscription(message)
       if message_is_about_a_task?(message)
+        if @env_name == 'staging' && @manager.can_tag_staging? && staging_was_tagged? && has_executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
+         @manager.dispatch_new_job(@job.merge('env' =>  'production'))
+       end
         save_tasks_to_be_executed(message)
         update_machine_state(message['task']) # if message['action'] == 'invoke'
         debug("worker #{@job_id} state is #{@machine.state}") if debug_enabled?
@@ -166,9 +169,6 @@ module CapistranoMulticonfigParallel
     end
 
     def task_approval(message)
-       if @env_name == 'staging' && @manager.can_tag_staging? && staging_was_tagged? && has_executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
-         @manager.dispatch_new_job(@job.merge('env' =>  'production'))
-       end
       if @manager.apply_confirmations? && CapistranoMulticonfigParallel.configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
         task_confirmation = @manager.job_to_condition[@job_id][message['task']]
         task_confirmation[:status] = 'confirmed'
