@@ -38,7 +38,7 @@ module CapistranoMulticonfigParallel
       @machine = CapistranoMulticonfigParallel::StateMachine.new(job, Actor.current)
       manager.register_worker_for_job(job, Actor.current)
     end
-
+    
     def debug_enabled?
       @manager.class.debug_enabled?
     end
@@ -102,7 +102,7 @@ module CapistranoMulticonfigParallel
       setup_task_arguments
       debug("worker #{@job_id} executes: #{generate_command}") if debug_enabled?
       @child_process.async.work(generate_command, actor: Actor.current, silent: true)
-      @manager.wait_task_confirmations_worker(Actor.current) unless @manager.syncronized_confirmation?
+      @manager.wait_task_confirmations_worker(Actor.current)
     end
 
     def check_child_proces
@@ -135,7 +135,7 @@ module CapistranoMulticonfigParallel
     end
 
     def task_approval(message)
-      if CapistranoMulticonfigParallel.configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
+      if @manager.apply_confirmations? && CapistranoMulticonfigParallel.configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
         task_confirmation = @manager.job_to_condition[@job_id][message['task']]
         task_confirmation[:status] = 'confirmed'
         task_confirmation[:condition].signal(message['task'])
