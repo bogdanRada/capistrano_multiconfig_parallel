@@ -220,16 +220,14 @@ module CapistranoMulticonfigParallel
     end
    
     def crashed?
-      @action_name == 'deploy:rollback' || @action_name == 'deploy:failed'  || died_previously?(@job)
+      @action_name == 'deploy:rollback' || @action_name == 'deploy:failed'  || @manager.job_failed?(@job)
     end
 
-
-    
     def finish_worker
       @manager.mark_completed_remaining_tasks(Actor.current)
       @worker_state = 'finished'
       @manager.job_to_worker.each do|_job_id, worker|
-        debug("worker #{worker.job_id}has state #{worker.worker_state}") if worker.alive? && ebug_enabled?
+        debug("worker #{worker.job_id}has state #{worker.worker_state}") if worker.alive? && debug_enabled?
       end
     end
 
