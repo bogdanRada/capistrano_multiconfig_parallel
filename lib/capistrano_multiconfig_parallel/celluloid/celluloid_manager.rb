@@ -198,6 +198,17 @@ module CapistranoMulticonfigParallel
       end
     end
 
+    def can_tag_staging?
+     @job_manager.is_able_to_tag_staging?  && @jobs.detect{|job| job['env'] == 'production'}.blank? 
+    end
+    
+    def dispatch_new_job(job)
+      original_env = job['env_options']
+      env_opts = @job_manager.get_app_additional_env_options(job['app_name'], job['stage'])
+      job['env_options'] =  original_env.merge(env_opts)
+      aync.delegate(job)
+    end
+    
     def process_job(job)
       env_options = {}
       job['env_options'].each do |key, value|

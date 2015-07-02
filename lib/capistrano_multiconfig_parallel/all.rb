@@ -20,6 +20,8 @@ require 'capistrano/all'
 require 'fileutils'
 require 'logger'
 require 'pp'
+require 'devnull'
+require 'inquirer'
 # fix error with not files that can not be found
 Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 
@@ -27,5 +29,7 @@ Gem.find_files('capistrano_multiconfig_parallel/initializers/**/*.rb').each { |p
 Gem.find_files('capistrano_multiconfig_parallel/helpers/**/*.rb').each { |path| require path }
 Gem.find_files('capistrano_multiconfig_parallel/celluloid/**/*.rb').each { |path| require path }
 
+require_relative './version'
+require_relative './configuration'
 require_relative './base'
-require_relative 'application'
+require_relative './application'

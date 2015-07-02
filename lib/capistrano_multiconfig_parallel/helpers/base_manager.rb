@@ -58,10 +58,6 @@ module CapistranoMulticonfigParallel
     def check_before_starting
       @condition = Celluloid::Condition.new
       @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
-      if CapistranoMulticonfigParallel::CelluloidManager.debug_enabled == true
-        Celluloid.logger = CapistranoMulticonfigParallel.logger
-        Celluloid.task_class = Celluloid::TaskThread
-      end
     end
     
     def collect_jobs(options = {}, &block)
@@ -79,22 +75,38 @@ module CapistranoMulticonfigParallel
         run_async_jobs
       end
     end
+    
+    def tag_staging_exists? # check exists task from capistrano-gitflow
+      begin
+        Rake::Task[:tag_staging].present? ||  Rake::Task["tag_staging"].present?
+      rescue
+        return false
+      end
+    end
 
     def fetch_multi_stages
       stages = @argv['STAGES'].blank? ? '' : @argv['STAGES']
       stages = parse_inputted_value(value: stages).split(',').compact if stages.present?
-      stages
+      stages.present? ? stages :  [@default_stage]
     end
 
+    def wants_deploy_production?
+     (!custom_command? &&  @stage == 'production') || (custom_command? && fetch_multi_stages.include?("production"))
+    end
+    
+     def is_able_to_tag_staging?
+        using_git? &&  wants_deploy_production? && tag_staging_exists? 
+    end
+    
     def deploy_app(options = {})
       options = options.stringify_keys
       app = options['app'].is_a?(Hash) ? options['app'] : { 'app' => options['app'] }
       branch = @branch_backup.present? ? @branch_backup : @argv['BRANCH'].to_s
-      call_task_deploy_app({
-          branch: branch,
-          app: app,
-          action: options['action']
-        }.reverse_merge(options))
+        call_task_deploy_app({
+            branch: branch,
+            app: app,
+            action: options['action']
+          }.reverse_merge(options))
     end
 
     private
@@ -177,6 +189,10 @@ module CapistranoMulticonfigParallel
       else
         return ''
       end
+    end
+     
+    def using_git?
+    fetch(:scm, :git).to_sym == :git
     end
 
     def get_app_additional_env_options(app, app_message)

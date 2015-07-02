@@ -88,10 +88,34 @@ module CapistranoMulticonfigParallel
     def rake_tasks
       @rake_tasks ||= []
     end
-
+      
+    def last_staging_tag
+      last_tag_matching('staging-*')
+    end
+    
+    def last_tag_matching(pattern)
+      # search for most recent (chronologically) tag matching the passed pattern, then get the name of that tag.
+      last_tag = `#{cd_working_directory} && git describe --exact-match --match '#{pattern}' \` #{cd_working_directory} && git log --tags='#{pattern}*' --format="%H" -1\``.chomp
+      last_tag == '' ? nil : last_tag
+    end
+    
+    def staging_was_tagged?
+      begin
+        current_sha = `#{cd_working_directory} && git log --pretty=format:%H HEAD -1`
+        last_staging_tag_sha = last_staging_tag ?   `#{cd_working_directory} && git log --pretty=format:%H #{last_staging_tag} -1` : nil
+        last_staging_tag_sha == current_sha
+      rescue
+        return false
+      end
+    end
+    
+    def cd_working_directory
+      "cd #{CapistranoMulticonfigParallel.detect_root.to_s}"
+    end
+    
     def generate_command
       <<-CMD
-            bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env { %x[cd #{CapistranoMulticonfigParallel.detect_root.to_s} && bundle install && RAILS_ENV=#{@env_name} bundle exec multi_cap #{@task_argv.join(' ')} ] } "
+           #{cd_working_directory} && RAILS_ENV=#{@env_name} bundle exec multi_cap #{@task_argv.join(' ')}
       CMD
     end
     
@@ -135,6 +159,9 @@ module CapistranoMulticonfigParallel
     end
 
     def task_approval(message)
+       if @env_name == 'staging' && @manager.can_tag_staging? && staging_was_tagged?
+         @manager.dispatch_new_job(@job.merge('env' =>  'production'))
+       end
       if @manager.apply_confirmations? && CapistranoMulticonfigParallel.configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
         task_confirmation = @manager.job_to_condition[@job_id][message['task']]
         task_confirmation[:status] = 'confirmed'
