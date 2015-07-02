@@ -78,7 +78,7 @@ module CapistranoMulticonfigParallel
     
     def tag_staging_exists? # check exists task from capistrano-gitflow
       begin
-        Rake::Task[:tag_staging].present? ||  Rake::Task["tag_staging"].present?
+        Rake::Task["gitflow:tag_staging"].present?
       rescue
         return false
       end
@@ -97,6 +97,10 @@ module CapistranoMulticonfigParallel
      def is_able_to_tag_staging?
         using_git? &&  wants_deploy_production? && tag_staging_exists? 
     end
+    
+     def check_multi_stages(stages)
+         is_able_to_tag_staging? ?  stages.reject{|u| u == 'production'} : stages
+     end
     
     def deploy_app(options = {})
       options = options.stringify_keys

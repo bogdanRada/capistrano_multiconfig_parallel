@@ -94,9 +94,9 @@ module CapistranoMulticonfigParallel
     end
     
     def last_tag_matching(pattern)
-      # search for most recent (chronologically) tag matching the passed pattern, then get the name of that tag.
-      last_tag = `#{cd_working_directory} && git describe --exact-match --match '#{pattern}' \` #{cd_working_directory} && git log --tags='#{pattern}*' --format="%H" -1\``.chomp
-      last_tag == '' ? nil : last_tag
+        # search for most recent (chronologically) tag matching the passed pattern, then get the name of that tag.
+        last_tag = `#{cd_working_directory} && git describe --exact-match --match '#{pattern}' \`  git log --tags='#{pattern}*' -n1 --pretty='%h' \``.chomp
+        last_tag == '' ? nil : last_tag
     end
     
     def staging_was_tagged?
@@ -159,9 +159,9 @@ module CapistranoMulticonfigParallel
     end
 
     def task_approval(message)
-       if @env_name == 'staging' && @manager.can_tag_staging? && staging_was_tagged?
-         @manager.dispatch_new_job(@job.merge('env' =>  'production'))
-       end
+#       if @env_name == 'staging' && @manager.can_tag_staging? && staging_was_tagged?
+#         @manager.dispatch_new_job(@job.merge('env' =>  'production'))
+#       end
       if @manager.apply_confirmations? && CapistranoMulticonfigParallel.configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
         task_confirmation = @manager.job_to_condition[@job_id][message['task']]
         task_confirmation[:status] = 'confirmed'

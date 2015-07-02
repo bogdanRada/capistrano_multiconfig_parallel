@@ -199,7 +199,8 @@ module CapistranoMulticonfigParallel
     end
 
     def can_tag_staging?
-     @job_manager.is_able_to_tag_staging?  && @jobs.detect{|job| job['env'] == 'production'}.blank? 
+     @job_manager.is_able_to_tag_staging?  &&
+       @jobs.detect{|job_id, job| job['env'] == 'production'}.blank? 
     end
     
     def dispatch_new_job(job)

@@ -98,23 +98,6 @@ module CapistranoMulticonfigParallel
       system('cls') || system('clear') || puts("\e[H\e[2J")
     end
 
-    # rubocop:disable Lint/Eval
-    def capture(stream)
-      stream = stream.to_s
-      captured_stream = Tempfile.new(stream)
-      stream_io = eval("$#{stream}")
-      origin_stream = stream_io.dup
-      stream_io.reopen(captured_stream)
-
-      yield
-
-      stream_io.rewind
-      return captured_stream.read
-    ensure
-      captured_stream.close
-      captured_stream.unlink
-      stream_io.reopen(origin_stream)
-    end
 
     def worker_progress(worker)
       tasks = worker.rake_tasks
@@ -122,7 +105,7 @@ module CapistranoMulticonfigParallel
       total_tasks = tasks.size
       task_index = tasks.index(current_task)
       progress = Formatador::ProgressBar.new(total_tasks, color: 'green', start: task_index.to_i)
-      result = capture(:stdout) do
+      result = CapistranoMulticonfigParallel::Helper.capture(:stdout) do
         progress.increment
       end
       result = result.gsub("\r\n", '')
