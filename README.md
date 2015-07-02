@@ -99,7 +99,9 @@ development_stages:
   - development
   - webdev
 
-syncronize_confirmation: true  
+syncronize_confirmation: true
+apply_stage_confirmation:
+  - production  
 task_confirmation_active: false  
 task_confirmations: 
   - deploy:symlink:release
@@ -131,6 +133,10 @@ application_dependencies: []
 
 * --syncronize_confirmation
   * if option is present and has value TRUE, all workers will be synchronized to wait for same task from the ***task_confirmations** Array before they execute it 
+
+* --apply_stage_confirmation
+  * If option is present and has value an ARRAY of STRING, each string should be the name of a stage. 
+    The confirmations will only be applied if the workers are executing tasks to one of that stage.
 
 * --task_confirmation_active
   * if option is present and has value TRUE, will enable user confirmation dialogs before executing each task from option  **--task_confirmations**
@@ -176,22 +182,19 @@ bundle exec multi_cap  <development_stage> <task_name>   BOX=<box_name>,<box_nam
 ```
 
 If a branch is specified using "BRANCH=name" it will deploy same branch to all sandboxes
-If a branch is not specified, will ask for each of the sandboxes the name of the branch to deploy
 The branch environment variable is then passed to the capistrano task
 
 Also the script will ask if there are any other environment variables that user might want to pass to each of the sandboxes separately.
 
-### 1.2) Deploying the application  to multiple stages  ( Using the customized command "deploy_stages")
+### 1.2) Deploying the application  to multiple stages  ( Using the customized command "deploy_multi_stages")
   
 
 ```shell
 
-bundle exec multi_cap deploy_stages  STAGES=development, staging, production
+bundle exec multi_cap deploy_multi_stages  STAGES=development, staging, production
 ```
 
-If a branch is specified using "BRANCH=name" it will deploy same branch to all stages
-If a branch is not specified, will ask for each of the stage the name of the branch to deploy
-The branch environment variable is then passed to the capistrano process
+If a branch is specified using "BRANCH=name" it will deploy same branch to all stages.The branch environment variable is then passed to the capistrano task
 
 Also the script will ask if there are any other environment variables that user might want to pass to each of the stages separately.
 
@@ -238,6 +241,17 @@ bundle exec multi_cap foo2:development deploy
 
 Will ask user if he wants to deploy the apps "foo" and "bar" , since they appear in the dependencies list for the application "foo2"
  
+
+### 1.2) Deploying multiple application  to multiple stages  ( Using the customized command "deploy_multi_stages")
+  
+
+```shell
+
+bundle exec multi_cap deploy_multi_stages  STAGES=development, staging, production
+```
+
+If a branch is specified using **BRANCH=<name>** it will deploy same branch to all stages.The branch environment variable is then passed to the capistrano task
+If you want different branches , capistrano will ask for additional ENV options for each stage, and can be specified then for each stage
 
  Testing
 --------

@@ -39,9 +39,7 @@ module CapistranoMulticonfigParallel
       CapistranoMulticonfigParallel.interactive_menu = true
       options[:action] = @argv['ACTION'].present? ? @argv['ACTION'].present? : 'deploy'
       action_name = @name
-      if action_name == custom_commands[:menu]
-        menu_deploy_interactive(options)
-      elsif action_name == custom_commands[:stages]
+      if  action_name == custom_commands[:stages]
         multi_stage_deploy(options)
       else
         raise "Custom command #{@name} not available for multi apps"

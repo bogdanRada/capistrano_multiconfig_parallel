@@ -42,17 +42,19 @@ module CapistranoMulticonfigParallel
     end
     
     def start(&block)
-       CapistranoMulticonfigParallel.configuration_valid?
+      CapistranoMulticonfigParallel.configuration_valid?
+      @default_stage = CapistranoMulticonfigParallel.configuration.development_stages.present? ? CapistranoMulticonfigParallel.configuration.development_stages.first : 'development'
       check_before_starting
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
+      @stage = @stage.present? ? @stage : @default_stage
       @name, @args = @cap_app.parse_task_string(@top_level_tasks.second)
       @argv = @cap_app.handle_options.delete_if { |arg| arg == @stage || arg == @name || arg == @top_level_tasks.first }
       @argv = multi_fetch_argv(@argv)
       block.call if block_given?
       run
     end
-
+    
     def check_before_starting
       @condition = Celluloid::Condition.new
       @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
@@ -89,13 +91,13 @@ module CapistranoMulticonfigParallel
       app = options['app'].is_a?(Hash) ? options['app'] : { 'app' => options['app'] }
       branch = @branch_backup.present? ? @branch_backup : @argv['BRANCH'].to_s
       call_task_deploy_app({
-        branch: branch,
-        app: app,
-        action: options['action']
-      }.reverse_merge(options))
+          branch: branch,
+          app: app,
+          action: options['action']
+        }.reverse_merge(options))
     end
 
-  private
+    private
 
     def call_task_deploy_app(options = {})
       options = options.stringify_keys
@@ -154,8 +156,6 @@ module CapistranoMulticonfigParallel
     end
 
     def prepare_options(options)
-      @default_stage = CapistranoMulticonfigParallel.configuration.development_stages.present? ? CapistranoMulticonfigParallel.configuration.development_stages.first : 'development'
-      @stage = @stage.present? ? @stage : @default_stage
       options = options.stringify_keys
       options['app'] = options.fetch('app', @application.to_s.clone)
       options['action'] = options.fetch('action', @name.to_s.clone)

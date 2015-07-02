@@ -99,6 +99,13 @@ module CapistranoMulticonfigParallel
             default: default_config[:syncronize_confirmation]
           },
           {
+            name: 'apply_stage_confirmation',
+            type: Array,
+            description: "if option is present and has value TRUE, all workers will be synchronized to wait for same task
+                                \t from the ***task_confirmations** Array before they execute it ",
+            default: default_config[:apply_stage_confirmation]
+          },
+          {
             name: 'track_dependencies',
             type: :boolean,
             description: "This should be useed only for Caphub-like applications ,
@@ -159,10 +166,10 @@ module CapistranoMulticonfigParallel
       end
 
       def check_configuration(c)
-        %w(multi_debug multi_progress multi_secvential task_confirmation_active track_dependencies websocket_server.enable_debug).each do |prop|
+        %w(multi_debug multi_progress multi_secvential task_confirmation_active track_dependencies websocket_server.enable_debug syncronize_confirmation).each do |prop|
           c.send("#{prop}=", c[prop.to_sym]) if check_boolean(c, prop.to_sym)
         end
-        %w(task_confirmations development_stages).each do |prop|
+        %w(task_confirmations development_stages apply_stage_confirmation).each do |prop|
           c.send("#{prop}=", c[prop.to_sym]) if verify_array_of_strings(c, prop.to_sym)
         end
         c.application_dependencies = c[:application_dependencies] if c[:track_dependencies].to_s.downcase == 'true' && verify_application_dependencies(c[:application_dependencies])

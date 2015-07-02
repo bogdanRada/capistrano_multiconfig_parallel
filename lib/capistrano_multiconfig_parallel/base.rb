@@ -14,7 +14,6 @@ module CapistranoMulticonfigParallel
 
   CUSTOM_COMMANDS = {
     CapistranoMulticonfigParallel::MULTI_KEY => {
-      menu: 'show_menu',
       stages: 'deploy_multi_stages'
     },
     CapistranoMulticonfigParallel::SINGLE_KEY => {
@@ -23,7 +22,7 @@ module CapistranoMulticonfigParallel
   }
 
   class << self
-    attr_accessor :show_task_progress, :execute_in_sequence, :logger, :original_args
+    attr_accessor :show_task_progress, :execute_in_sequence, :logger, :original_args, :interactive_menu
 
     def root
       File.expand_path(File.dirname(__dir__))

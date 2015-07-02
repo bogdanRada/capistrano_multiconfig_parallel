@@ -9,6 +9,8 @@ development_stages:
   - webdev
 
 syncronize_confirmation: true  
+apply_stage_confirmation:
+  - production
 task_confirmation_active: false  
 task_confirmations: 
   - deploy:symlink:release
