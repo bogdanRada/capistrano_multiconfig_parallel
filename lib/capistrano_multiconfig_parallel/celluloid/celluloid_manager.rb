@@ -63,7 +63,7 @@ module CapistranoMulticonfigParallel
     # a job
     def delegate(job)
       job = job.stringify_keys
-      job['id'] = generate_job_id(job) if job['worker_action'] != 'worker_died'
+      job['id'] = generate_job_id(job) unless job_failed?(job)
       @jobs[job['id']] = job
       job['env_options'][CapistranoMulticonfigParallel::ENV_KEY_JOB_ID] = job['id']
       # debug(@jobs)
@@ -198,6 +198,18 @@ module CapistranoMulticonfigParallel
       end
     end
 
+    def can_tag_staging?
+     @job_manager.is_able_to_tag_staging?  &&
+       @jobs.detect{|job_id, job| job['env'] == 'production'}.blank? 
+    end
+    
+    def dispatch_new_job(job)
+      original_env = job['env_options']
+      env_opts = @job_manager.get_app_additional_env_options(job['app_name'], job['stage'])
+      job['env_options'] =  original_env.merge(env_opts)
+      async.delegate(job)
+    end
+    
     def process_job(job)
       env_options = {}
       job['env_options'].each do |key, value|
@@ -228,14 +240,18 @@ module CapistranoMulticonfigParallel
       end
       status
     end
+    
+    def job_failed?(job)
+      job['worker_action'].present? && job['worker_action'] == 'worker_died'
+    end
 
     def worker_died(worker, reason)
       debug("worker with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}") if self.class.debug_enabled?
       job = @worker_to_job[worker.mailbox.address]
       @worker_to_job.delete(worker.mailbox.address)
       debug "restarting #{job} on new worker" if self.class.debug_enabled?
-      return if job.blank? || job['worker_action'] == 'worker_died'
-      return unless job['worker_action'] == 'deploy'
+      return if job.blank? || job_failed?(job)
+      return unless job['action_name'] == 'deploy'
       job = job.merge(:action => 'deploy:rollback', 'worker_action' => 'worker_died')
       delegate(job)
     end

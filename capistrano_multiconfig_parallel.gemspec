@@ -30,6 +30,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'activesupport',  '~> 4.0','>= 4.0'
   s.add_runtime_dependency 'configliere', '~> 0.4', '>=0.4'
   s.add_runtime_dependency 'inquirer', '~> 0.2', '>= 0.2'
+   s.add_runtime_dependency 'devnull','~> 0.1', '>= 0.1'
     
   s.add_development_dependency 'rspec-rails', '~> 2.0', '>= 2.0'
   s.add_development_dependency 'guard', '~> 2.6', '>= 2.6.1'

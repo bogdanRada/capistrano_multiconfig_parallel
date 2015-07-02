@@ -57,7 +57,7 @@ module CapistranoMulticonfigParallel
       worker = @manager.get_worker_for_job(job_id)
       if worker.alive?
         state = worker.machine.state.to_s
-        state = worker_crashed?(worker) ? state.red : state.green
+        state = worker.crashed? ? state.red : state.green
       else
         state = "dead".upcase.red
       end
@@ -98,26 +98,6 @@ module CapistranoMulticonfigParallel
       system('cls') || system('clear') || puts("\e[H\e[2J")
     end
 
-    def worker_crashed?(worker)
-      worker.crashed?
-    end
-    # rubocop:disable Lint/Eval
-    def capture(stream)
-      stream = stream.to_s
-      captured_stream = Tempfile.new(stream)
-      stream_io = eval("$#{stream}")
-      origin_stream = stream_io.dup
-      stream_io.reopen(captured_stream)
-
-      yield
-
-      stream_io.rewind
-      return captured_stream.read
-    ensure
-      captured_stream.close
-      captured_stream.unlink
-      stream_io.reopen(origin_stream)
-    end
 
     def worker_progress(worker)
       tasks = worker.rake_tasks
@@ -125,14 +105,14 @@ module CapistranoMulticonfigParallel
       total_tasks = tasks.size
       task_index = tasks.index(current_task)
       progress = Formatador::ProgressBar.new(total_tasks, color: 'green', start: task_index.to_i)
-      result = capture(:stdout) do
+      result = CapistranoMulticonfigParallel::Helper.capture(:stdout) do
         progress.increment
       end
       result = result.gsub("\r\n", '')
       result = result.gsub("\n", '')
       result = result.gsub('|', '#')
       result = result.gsub(/\s+/, ' ')
-      if worker_crashed?(worker)
+      if worker.crashed?
         return result.red
       else
         return result.green
