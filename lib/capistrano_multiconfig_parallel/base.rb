@@ -23,7 +23,11 @@ module CapistranoMulticonfigParallel
     end
 
     def ask_confirm(message, default)
+      begin
       Ask.input message, default: default
+      rescue
+        return nil
+      end
     end
 
     def log_directory
@@ -40,8 +44,8 @@ module CapistranoMulticonfigParallel
 
     def enable_logging
       CapistranoMulticonfigParallel.configuration_valid?
-      if  CapistranoMulticonfigParallel::CelluloidManager.debug_enabled
-        FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
+      FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
+      if  CapistranoMulticonfigParallel::CelluloidManager.debug_enabled.to_s.downcase == 'true'
         FileUtils.touch(main_log_file) unless File.file?(main_log_file)
         if ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
           log_file = File.open(main_log_file, 'w')

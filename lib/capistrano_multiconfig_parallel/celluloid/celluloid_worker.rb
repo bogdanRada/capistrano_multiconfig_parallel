@@ -220,12 +220,10 @@ module CapistranoMulticonfigParallel
     end
    
     def crashed?
-      @action_name == 'deploy:rollback' || @action_name == 'deploy:failed' 
+      @action_name == 'deploy:rollback' || @action_name == 'deploy:failed'  || died_previously?(@job)
     end
 
-    def died?
-      @job['worker_action'] == 'worker_died'
-    end
+
     
     def finish_worker
       @manager.mark_completed_remaining_tasks(Actor.current)

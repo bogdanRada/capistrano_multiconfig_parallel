@@ -63,7 +63,7 @@ module CapistranoMulticonfigParallel
     # a job
     def delegate(job)
       job = job.stringify_keys
-      job['id'] = generate_job_id(job) if job['worker_action'] != 'worker_died'
+      job['id'] = generate_job_id(job) unless died_previously?(job)
       @jobs[job['id']] = job
       job['env_options'][CapistranoMulticonfigParallel::ENV_KEY_JOB_ID] = job['id']
       # debug(@jobs)
@@ -239,14 +239,18 @@ module CapistranoMulticonfigParallel
       end
       status
     end
+    
+    def died_previously?(job)
+      job['worker_action'].present? && job['worker_action'] == 'worker_died'
+    end
 
     def worker_died(worker, reason)
       debug("worker with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}") if self.class.debug_enabled?
       job = @worker_to_job[worker.mailbox.address]
       @worker_to_job.delete(worker.mailbox.address)
       debug "restarting #{job} on new worker" if self.class.debug_enabled?
-      return if job.blank? || job['worker_action'] == 'worker_died'
-      return unless job['worker_action'] == 'deploy'
+      return if job.blank? || died_previously?(job)
+      return unless job['action_name'] == 'deploy'
       job = job.merge(:action => 'deploy:rollback', 'worker_action' => 'worker_died')
       delegate(job)
     end

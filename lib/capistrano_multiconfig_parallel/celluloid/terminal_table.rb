@@ -57,7 +57,7 @@ module CapistranoMulticonfigParallel
       worker = @manager.get_worker_for_job(job_id)
       if worker.alive?
         state = worker.machine.state.to_s
-        state = worker_crashed?(worker) ? state.red : state.green
+        state = worker.crashed? ? state.red : state.green
       else
         state = "dead".upcase.red
       end
@@ -98,9 +98,6 @@ module CapistranoMulticonfigParallel
       system('cls') || system('clear') || puts("\e[H\e[2J")
     end
 
-    def worker_crashed?(worker)
-      worker.crashed?
-    end
     # rubocop:disable Lint/Eval
     def capture(stream)
       stream = stream.to_s
@@ -132,7 +129,7 @@ module CapistranoMulticonfigParallel
       result = result.gsub("\n", '')
       result = result.gsub('|', '#')
       result = result.gsub(/\s+/, ' ')
-      if worker_crashed?(worker)
+      if worker.crashed?
         return result.red
       else
         return result.green
