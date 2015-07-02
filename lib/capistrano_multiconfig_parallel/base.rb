@@ -1,9 +1,3 @@
-require 'rubygems'
-require 'bundler'
-require 'bundler/setup'
-require 'inquirer'
-require_relative './version'
-require_relative './configuration'
 # base module that has the statis methods that this gem is using
 module CapistranoMulticonfigParallel
   include CapistranoMulticonfigParallel::Configuration
@@ -11,7 +5,8 @@ module CapistranoMulticonfigParallel
   ENV_KEY_JOB_ID = 'multi_cap_job_id'
   MULTI_KEY = 'multi'
   SINGLE_KEY = 'single'
-
+ GITFLOW_TAG_STAGING_TASK = "gitflow:tag_staging"
+ 
   CUSTOM_COMMANDS = {
     CapistranoMulticonfigParallel::MULTI_KEY => {
       stages: 'deploy_multi_stages'
@@ -29,7 +24,11 @@ module CapistranoMulticonfigParallel
     end
 
     def ask_confirm(message, default)
+      begin
       Ask.input message, default: default
+      rescue
+        return nil
+      end
     end
 
     def log_directory
@@ -46,14 +45,19 @@ module CapistranoMulticonfigParallel
 
     def enable_logging
       CapistranoMulticonfigParallel.configuration_valid?
-      return unless CapistranoMulticonfigParallel::CelluloidManager.debug_enabled
       FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
-      FileUtils.touch(main_log_file) unless File.file?(main_log_file)
-      if ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
-        log_file = File.open(main_log_file, 'w')
-        log_file.sync = true
+      if  CapistranoMulticonfigParallel::CelluloidManager.debug_enabled.to_s.downcase == 'true'
+        FileUtils.touch(main_log_file) unless File.file?(main_log_file)
+        if ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
+          log_file = File.open(main_log_file, 'w')
+          log_file.sync = true
+        end
+        self.logger = ::Logger.new(main_log_file)
+      else
+        self.logger =  ::Logger.new(DevNull.new)
       end
-      self.logger = ::Logger.new(main_log_file)
+      Celluloid.logger = CapistranoMulticonfigParallel.logger
+      Celluloid.task_class = Celluloid::TaskThread
     end
 
     def log_message(message)

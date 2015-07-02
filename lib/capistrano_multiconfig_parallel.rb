@@ -1,1 +1,1 @@
-require 'capistrano_multiconfig_parallel/base'
+require 'capistrano_multiconfig_parallel/all'

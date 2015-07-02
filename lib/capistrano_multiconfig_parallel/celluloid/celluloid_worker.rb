@@ -88,10 +88,37 @@ module CapistranoMulticonfigParallel
     def rake_tasks
       @rake_tasks ||= []
     end
-
+      
+    def last_staging_tag
+      last_tag_matching('staging-*')
+    end
+    
+    def last_tag_matching(pattern)
+        # search for most recent (chronologically) tag matching the passed pattern, then get the name of that tag.
+        last_tag = `#{cd_working_directory} && git describe --exact-match  --tags --match='#{pattern}' $(git log --tags='#{pattern}*' -n1 --pretty='%h')`.chomp
+        debug("LAST TAG is #{last_tag}") if debug_enabled?
+        last_tag == '' ? nil : last_tag
+    end
+    
+    def staging_was_tagged?
+      begin
+        current_sha = `#{cd_working_directory} && git log --pretty=format:%H HEAD -1`
+        debug("curent SHA is #{current_sha}") if debug_enabled?
+        last_staging_tag_sha = last_staging_tag ?   `#{cd_working_directory} && git log --pretty=format:%H #{last_staging_tag} -1` : nil
+        debug("LAST TAGGING SHA  is #{last_staging_tag_sha}") if debug_enabled?
+        last_staging_tag_sha == current_sha
+      rescue
+        return false
+      end
+    end
+    
+    def cd_working_directory
+      "cd #{CapistranoMulticonfigParallel.detect_root.to_s}"
+    end
+    
     def generate_command
       <<-CMD
-            bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env { %x[cd #{CapistranoMulticonfigParallel.detect_root.to_s} && bundle install && RAILS_ENV=#{@env_name} bundle exec multi_cap #{@task_argv.join(' ')} ] } "
+           #{cd_working_directory} && RAILS_ENV=#{@env_name} bundle exec multi_cap #{@task_argv.join(' ')}
       CMD
     end
     
@@ -121,6 +148,9 @@ module CapistranoMulticonfigParallel
 
     def handle_subscription(message)
       if message_is_about_a_task?(message)
+        if @env_name == 'staging' && @manager.can_tag_staging? && staging_was_tagged? && has_executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
+         @manager.dispatch_new_job(@job.merge('env' =>  'production'))
+       end
         save_tasks_to_be_executed(message)
         update_machine_state(message['task']) # if message['action'] == 'invoke'
         debug("worker #{@job_id} state is #{@machine.state}") if debug_enabled?
@@ -132,6 +162,10 @@ module CapistranoMulticonfigParallel
 
     def message_is_about_a_task?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['task'].present?
+    end
+    
+    def has_executed_task?(task)
+      @rake_tasks.present? && @rake_tasks[task].present?
     end
 
     def task_approval(message)
@@ -193,14 +227,14 @@ module CapistranoMulticonfigParallel
     end
    
     def crashed?
-      @action_name == 'deploy:rollback' || @action_name == 'deploy:failed'
+      @action_name == 'deploy:rollback' || @action_name == 'deploy:failed'  || @manager.job_failed?(@job)
     end
 
     def finish_worker
       @manager.mark_completed_remaining_tasks(Actor.current)
       @worker_state = 'finished'
       @manager.job_to_worker.each do|_job_id, worker|
-        debug("worker #{worker.job_id}has state #{worker.worker_state}") if worker.alive? && ebug_enabled?
+        debug("worker #{worker.job_id}has state #{worker.worker_state}") if worker.alive? && debug_enabled?
       end
     end
 

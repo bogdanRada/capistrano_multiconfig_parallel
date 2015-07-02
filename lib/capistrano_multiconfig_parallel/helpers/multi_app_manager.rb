@@ -49,6 +49,7 @@ module CapistranoMulticonfigParallel
     def multi_stage_deploy(options)
       stages = fetch_multi_stages
       return if stages.blank?
+      stages = check_multi_stages(stages)
       multi_collect_and_run_jobs(options) do |apps, new_options|
         apps.each do |app|
           stages.each do |stage|

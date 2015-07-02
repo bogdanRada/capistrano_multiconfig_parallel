@@ -26,9 +26,9 @@ module CapistranoMulticonfigParallel
     end
 
     def set_worker_log
-      FileUtils.mkdir_p(CapistranoMulticonfigParallel.log_directory)
+      FileUtils.mkdir_p(CapistranoMulticonfigParallel.log_directory) unless File.directory?(CapistranoMulticonfigParallel.log_directory)
       @filename = File.join(CapistranoMulticonfigParallel.log_directory, "worker_#{@actor.job_id}.log")
-      FileUtils.rm_rf(@filename) if @options[:dry_run] || @actor.executed_dry_run != true
+      FileUtils.rm_rf(@filename) if File.file?(@filename) && !@actor.crashed? &&  (@options[:dry_run] || @actor.executed_dry_run != true)
       @worker_log = ::Logger.new(@filename)
       @worker_log.level = ::Logger::Severity::DEBUG
       @worker_log.formatter = proc do |severity, datetime, progname, msg|

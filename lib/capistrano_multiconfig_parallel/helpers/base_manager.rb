@@ -5,7 +5,7 @@ module CapistranoMulticonfigParallel
   class BaseManager
     include Celluloid
     include Celluloid::Logger
-
+  
     attr_accessor :condition, :manager, :deps, :application, :stage, :name, :args, :argv, :jobs, :job_registered_condition, :default_stage
 
     def initialize(cap_app, top_level_tasks, stages)
@@ -58,10 +58,6 @@ module CapistranoMulticonfigParallel
     def check_before_starting
       @condition = Celluloid::Condition.new
       @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
-      if CapistranoMulticonfigParallel::CelluloidManager.debug_enabled == true
-        Celluloid.logger = CapistranoMulticonfigParallel.logger
-        Celluloid.task_class = Celluloid::TaskThread
-      end
     end
     
     def collect_jobs(options = {}, &block)
@@ -79,22 +75,50 @@ module CapistranoMulticonfigParallel
         run_async_jobs
       end
     end
+    
+    def tag_staging_exists? # check exists task from capistrano-gitflow
+      begin
+        Rake::Task[CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK].present?
+      rescue
+        return false
+      end
+    end
 
     def fetch_multi_stages
       stages = @argv['STAGES'].blank? ? '' : @argv['STAGES']
       stages = parse_inputted_value(value: stages).split(',').compact if stages.present?
-      stages
+      stages.present? ? stages :  [@default_stage]
     end
 
+    def wants_deploy_production?
+     (!custom_command? &&  @stage == 'production') || (custom_command? && fetch_multi_stages.include?("production"))
+    end
+    
+     def is_able_to_tag_staging?
+        using_git? &&  wants_deploy_production? && tag_staging_exists? 
+    end
+    
+     def check_multi_stages(stages)
+         is_able_to_tag_staging? ?  stages.reject{|u| u == 'production'} : stages
+     end
+    
     def deploy_app(options = {})
       options = options.stringify_keys
       app = options['app'].is_a?(Hash) ? options['app'] : { 'app' => options['app'] }
       branch = @branch_backup.present? ? @branch_backup : @argv['BRANCH'].to_s
-      call_task_deploy_app({
-          branch: branch,
-          app: app,
-          action: options['action']
-        }.reverse_merge(options))
+        call_task_deploy_app({
+            branch: branch,
+            app: app,
+            action: options['action']
+          }.reverse_merge(options))
+    end
+    
+    def get_app_additional_env_options(app, app_message)
+      app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
+      app_name = app_name.present? ? app_name : 'current application'
+      message = "Please write additional ENV options for #{app_name} for #{app_message}"
+      set :app_additional_env_options, CapistranoMulticonfigParallel.ask_confirm(message, nil)
+      fetch_app_additional_env_options
     end
 
     private
@@ -178,14 +202,12 @@ module CapistranoMulticonfigParallel
         return ''
       end
     end
-
-    def get_app_additional_env_options(app, app_message)
-      app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
-      app_name = app_name.present? ? app_name : 'current application'
-      message = "Please write additional ENV options for #{app_name} for #{app_message}"
-      set :app_additional_env_options, CapistranoMulticonfigParallel.ask_confirm(message, nil)
-      fetch_app_additional_env_options
+     
+    def using_git?
+    fetch(:scm, :git).to_sym == :git
     end
+
+  
 
     def fetch_app_additional_env_options
       options = {}
