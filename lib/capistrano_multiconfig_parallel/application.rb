@@ -1,4 +1,3 @@
-Gem.find_files('capistrano_multiconfig_parallel/extensions/**/*.rb').each { |path| require path }
 module CapistranoMulticonfigParallel
   # class used as a wrapper around capistrano
   class Application < Capistrano::Application
