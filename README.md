@@ -75,7 +75,7 @@ Add the following to your Gemfile:
 ```
 
 
-Add the following to your Capfile:
+Add the following to your Capfile after requiring **capistrano** and **capistrano-multiconfig**
   
 ```ruby
   require 'capistrano_multiconfig_parallel'
