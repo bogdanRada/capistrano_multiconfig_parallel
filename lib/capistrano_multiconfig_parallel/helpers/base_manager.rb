@@ -112,6 +112,14 @@ module CapistranoMulticonfigParallel
             action: options['action']
           }.reverse_merge(options))
     end
+    
+    def get_app_additional_env_options(app, app_message)
+      app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
+      app_name = app_name.present? ? app_name : 'current application'
+      message = "Please write additional ENV options for #{app_name} for #{app_message}"
+      set :app_additional_env_options, CapistranoMulticonfigParallel.ask_confirm(message, nil)
+      fetch_app_additional_env_options
+    end
 
     private
 
@@ -199,13 +207,7 @@ module CapistranoMulticonfigParallel
     fetch(:scm, :git).to_sym == :git
     end
 
-    def get_app_additional_env_options(app, app_message)
-      app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
-      app_name = app_name.present? ? app_name : 'current application'
-      message = "Please write additional ENV options for #{app_name} for #{app_message}"
-      set :app_additional_env_options, CapistranoMulticonfigParallel.ask_confirm(message, nil)
-      fetch_app_additional_env_options
-    end
+  
 
     def fetch_app_additional_env_options
       options = {}

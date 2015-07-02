@@ -207,7 +207,7 @@ module CapistranoMulticonfigParallel
       original_env = job['env_options']
       env_opts = @job_manager.get_app_additional_env_options(job['app_name'], job['stage'])
       job['env_options'] =  original_env.merge(env_opts)
-      aync.delegate(job)
+      async.delegate(job)
     end
     
     def process_job(job)
