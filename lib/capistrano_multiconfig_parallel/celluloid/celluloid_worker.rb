@@ -160,9 +160,13 @@ module CapistranoMulticonfigParallel
     def message_is_about_a_task?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['task'].present?
     end
+    
+    def has_executed_task?(task)
+      @rake_tasks.present? && @rake_tasks[task].present?
+    end
 
     def task_approval(message)
-       if @env_name == 'staging' && @manager.can_tag_staging? && staging_was_tagged?
+       if @env_name == 'staging' && @manager.can_tag_staging? && staging_was_tagged? && has_executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
          @manager.dispatch_new_job(@job.merge('env' =>  'production'))
        end
       if @manager.apply_confirmations? && CapistranoMulticonfigParallel.configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'

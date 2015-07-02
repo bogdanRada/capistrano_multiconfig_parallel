@@ -5,7 +5,8 @@ module CapistranoMulticonfigParallel
   ENV_KEY_JOB_ID = 'multi_cap_job_id'
   MULTI_KEY = 'multi'
   SINGLE_KEY = 'single'
-
+ GITFLOW_TAG_STAGING_TASK = "gitflow:tag_staging"
+ 
   CUSTOM_COMMANDS = {
     CapistranoMulticonfigParallel::MULTI_KEY => {
       stages: 'deploy_multi_stages'

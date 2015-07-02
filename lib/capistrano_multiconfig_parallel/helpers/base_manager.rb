@@ -5,7 +5,7 @@ module CapistranoMulticonfigParallel
   class BaseManager
     include Celluloid
     include Celluloid::Logger
-
+  
     attr_accessor :condition, :manager, :deps, :application, :stage, :name, :args, :argv, :jobs, :job_registered_condition, :default_stage
 
     def initialize(cap_app, top_level_tasks, stages)
@@ -78,7 +78,7 @@ module CapistranoMulticonfigParallel
     
     def tag_staging_exists? # check exists task from capistrano-gitflow
       begin
-        Rake::Task["gitflow:tag_staging"].present?
+        Rake::Task[CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK].present?
       rescue
         return false
       end
