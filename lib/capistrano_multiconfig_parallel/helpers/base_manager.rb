@@ -194,7 +194,7 @@ module CapistranoMulticonfigParallel
       job = {
         app: app,
         env: options['stage'],
-        action: custom_command? ? env_options['ACTION'] : options['action'],
+        action: custom_command? && env_options['ACTION'].present?  ? env_options['ACTION'] : options['action'],
         task_arguments: options['task_arguments'],
         env_options: job_env_options
       }
