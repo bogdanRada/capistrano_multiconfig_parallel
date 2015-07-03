@@ -19,5 +19,4 @@ module CapistranoMulticonfigParallel
       stream_io.reopen(origin_stream)
     end
   end
-
 end

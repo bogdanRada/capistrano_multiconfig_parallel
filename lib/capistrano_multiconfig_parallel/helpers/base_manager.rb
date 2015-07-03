@@ -5,7 +5,7 @@ module CapistranoMulticonfigParallel
   class BaseManager
     include Celluloid
     include Celluloid::Logger
-  
+
     attr_accessor :condition, :manager, :deps, :application, :stage, :name, :args, :argv, :jobs, :job_registered_condition, :default_stage, :original_argv
 
     def initialize(cap_app, top_level_tasks, stages)
@@ -40,11 +40,15 @@ module CapistranoMulticonfigParallel
     def configuration
       CapistranoMulticonfigParallel.configuration
     end
-    
+
     def start(&block)
-      CapistranoMulticonfigParallel.configuration_valid?
-      @default_stage = CapistranoMulticonfigParallel.configuration.development_stages.present? ? CapistranoMulticonfigParallel.configuration.development_stages.first : 'development'
       check_before_starting
+      initialize_data
+      block.call if block_given?
+      run
+    end
+
+    def initialize_data
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
       @stage = @stage.present? ? @stage : @default_stage
@@ -52,21 +56,21 @@ module CapistranoMulticonfigParallel
       @argv = @cap_app.handle_options.delete_if { |arg| arg == @stage || arg == @name || arg == @top_level_tasks.first }
       @argv = multi_fetch_argv(@argv)
       @original_argv = @argv.clone
-      block.call if block_given?
-      run
     end
-    
+
     def verify_options_custom_command(options)
       options[:action] = @argv['ACTION'].present? ? @argv['ACTION'] : 'deploy'
       @argv = @argv['ACTION'].present? ? @argv.except('ACTION') : @argv
       options
     end
-    
+
     def check_before_starting
+      CapistranoMulticonfigParallel.configuration_valid?
+      @default_stage = CapistranoMulticonfigParallel.configuration.development_stages.present? ? CapistranoMulticonfigParallel.configuration.development_stages.first : 'development'
       @condition = Celluloid::Condition.new
       @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
     end
-    
+
     def collect_jobs(options = {}, &block)
       options = prepare_options(options)
       block.call(options) if block_given?
@@ -82,48 +86,50 @@ module CapistranoMulticonfigParallel
         run_async_jobs
       end
     end
-    
+
     def tag_staging_exists? # check exists task from capistrano-gitflow
-      begin
-        rake1 = Rake::Task[CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK]
-        rake2 = Rake::Task[GITFLOW_CALCULATE_TAG_TASK]
-        rake3 = Rake::Task[GITFLOW_VERIFY_UPTODATE_TASK]
-        rake1.present? && rake2.present? && rake3.present? && rake2.prerequisites.present? && rake2.actions.present? && rake3.prerequisites.present?
-      rescue
-        return false
-      end
+      rake1 = Rake::Task[CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK]
+      rake2 = Rake::Task[GITFLOW_CALCULATE_TAG_TASK]
+      rake3 = Rake::Task[GITFLOW_VERIFY_UPTODATE_TASK]
+      check_giflow_tasks(rake1, rake2, rake3)
+    rescue
+      return false
+    end
+
+    def check_giflow_tasks(rake1, rake2, rake3)
+      rake1.present? && rake2.present? && rake3.present? && rake2.prerequisites.present? && rake2.actions.present? && rake3.prerequisites.present?
     end
 
     def fetch_multi_stages
       stages = @argv['STAGES'].blank? ? '' : @argv['STAGES']
       @argv = @argv['STAGES'].present? ? @argv.except('STAGES') : @argv
       stages = parse_inputted_value(value: stages).split(',').compact if stages.present?
-      stages.present? ? stages :  [@default_stage]
+      stages.present? ? stages : [@default_stage]
     end
 
     def wants_deploy_production?
-     (!custom_command? &&  @stage == 'production') || (custom_command? && fetch_multi_stages.include?("production"))
+      (!custom_command? && @stage == 'production') || (custom_command? && fetch_multi_stages.include?('production'))
     end
-    
-     def can_tag_staging?
-        using_git? &&  wants_deploy_production? && tag_staging_exists? 
+
+    def can_tag_staging?
+      using_git? && wants_deploy_production? && tag_staging_exists?
     end
-    
-     def check_multi_stages(stages)
-         can_tag_staging? ?  stages.reject{|u| u == 'production'} : stages
-     end
-    
+
+    def check_multi_stages(stages)
+      can_tag_staging? ? stages.reject { |u| u == 'production' } : stages
+    end
+
     def deploy_app(options = {})
       options = options.stringify_keys
       app = options['app'].is_a?(Hash) ? options['app'] : { 'app' => options['app'] }
       branch = @branch_backup.present? ? @branch_backup : @argv['BRANCH'].to_s
-        call_task_deploy_app({
-            branch: branch,
-            app: app,
-            action: options['action']
-          }.reverse_merge(options))
+      call_task_deploy_app({
+        branch: branch,
+        app: app,
+        action: options['action']
+      }.reverse_merge(options))
     end
-    
+
     def get_app_additional_env_options(app, app_message)
       app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
       app_name = app_name.present? ? app_name : 'current application'
@@ -133,11 +139,11 @@ module CapistranoMulticonfigParallel
     end
 
     def confirmation_applies_to_all_workers?
-      environments = @jobs.map{|job| job['env']}
+      environments = @jobs.map { |job| job['env'] }
       CapistranoMulticonfigParallel.configuration.apply_stage_confirmation.all? { |e| environments.include?(e) }
     end
-    
-    private
+
+  private
 
     def call_task_deploy_app(options = {})
       options = options.stringify_keys
@@ -183,9 +189,8 @@ module CapistranoMulticonfigParallel
       options['env_options'] = options['env_options'].reverse_merge(env_opts.except('BOX'))
 
       env_options = branch_name.present? ? { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
-      job_env_options =  custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
-      
-      
+      job_env_options = custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
+
       job = {
         app: app,
         env: options['stage'],
@@ -196,8 +201,6 @@ module CapistranoMulticonfigParallel
       job = job.stringify_keys
       @jobs << job
     end
-    
-   
 
     def prepare_options(options)
       options = options.stringify_keys
@@ -222,12 +225,10 @@ module CapistranoMulticonfigParallel
         return ''
       end
     end
-     
-    def using_git?
-    fetch(:scm, :git).to_sym == :git
-    end
 
-  
+    def using_git?
+      fetch(:scm, :git).to_sym == :git
+    end
 
     def fetch_app_additional_env_options
       options = {}

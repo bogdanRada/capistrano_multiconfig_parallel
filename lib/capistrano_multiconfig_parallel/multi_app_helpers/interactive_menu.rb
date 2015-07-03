@@ -49,7 +49,7 @@ module CapistranoMulticonfigParallel
         num = number_option.to_i
         if /^[0-9]+/.match(num.to_s) && ((num.to_i > 0 && num.to_i <= applications.size))
           num -= 1
-          msg += "#{applications[num]} was #{choices[num].present? ? 'un' : '' }checked\n"
+          msg += "#{applications[num]} was #{choices[num].present? ? 'un' : ''}checked\n"
           choices[num] = choices[num].blank? ? '+' : ' '
         else
           msg = "Invalid option: #{num}\n"
