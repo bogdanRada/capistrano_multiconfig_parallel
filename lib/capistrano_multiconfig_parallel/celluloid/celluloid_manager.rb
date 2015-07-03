@@ -173,8 +173,7 @@ module CapistranoMulticonfigParallel
         message = "Do you want  to continue the deployment and execute #{task.upcase}"
         message += " for JOB #{worker.job_id}" if worker.present?
         message += '?'
-        
-        set :apps_symlink_confirmation, CapistranoMulticonfigParallel.ask_confirm(message, false)
+        set :apps_symlink_confirmation, CapistranoMulticonfigParallel.ask_confirm(message, 'Y/N')
         until fetch(:apps_symlink_confirmation).present?
           sleep(0.1) # keep current thread alive
         end
