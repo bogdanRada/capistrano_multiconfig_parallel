@@ -17,6 +17,7 @@ module CapistranoMulticonfigParallel
 
     def run_custom_command(options)
       return unless custom_command?
+      options = verify_options_custom_command(options)
       action_name = @name
       if action_name == custom_commands[:stages]
         stage_deploy(options)
@@ -32,7 +33,7 @@ module CapistranoMulticonfigParallel
       stages = check_multi_stages(stages)
       collect_jobs(options) do |new_options|
         stages.each do |stage|
-          deploy_app(new_options.merge('stage' => stage, 'action' => 'deploy'))
+          deploy_app(new_options.merge('stage' => stage))
         end
       end
     end

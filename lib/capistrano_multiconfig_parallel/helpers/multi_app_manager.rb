@@ -37,7 +37,7 @@ module CapistranoMulticonfigParallel
     def run_custom_command(options)
       return unless custom_command?
       CapistranoMulticonfigParallel.interactive_menu = true
-      options[:action] = @argv['ACTION'].present? ? @argv['ACTION'].present? : 'deploy'
+      options = verify_options_custom_command(options)
       action_name = @name
       if  action_name == custom_commands[:stages]
         multi_stage_deploy(options)
