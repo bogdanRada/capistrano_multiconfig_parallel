@@ -117,7 +117,7 @@ module CapistranoMulticonfigParallel
   
     def syncronized_confirmation?
       ( syncronization_required? && !@job_manager.executes_deploy_stages?) ||
-        (@job_manager.executes_deploy_stages? && !@job_manager.can_tag_staging? && @job_manager.confirmation_applies_to_all_workers?)
+        (yncronization_required? && @job_manager.executes_deploy_stages? && !@job_manager.can_tag_staging? && @job_manager.confirmation_applies_to_all_workers?)
     end
 
     def apply_confirmation_for_worker(worker)
