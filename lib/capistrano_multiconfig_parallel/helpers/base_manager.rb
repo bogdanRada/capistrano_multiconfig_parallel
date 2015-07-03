@@ -183,13 +183,15 @@ module CapistranoMulticonfigParallel
       options['env_options'] = options['env_options'].reverse_merge(env_opts.except('BOX'))
 
       env_options = branch_name.present? ? { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
-
+      job_env_options =  custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
+      
+      
       job = {
         app: app,
         env: options['stage'],
-        action: options['action'],
+        action: custom_command? ? env_options['ACTION'] : options['action'],
         task_arguments: options['task_arguments'],
-        env_options: env_options
+        env_options: job_env_options
       }
       job = job.stringify_keys
       @jobs << job

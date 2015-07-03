@@ -195,6 +195,7 @@ Also the script will ask if there are any other environment variables that user 
 
 bundle exec multi_cap deploy_multi_stages  STAGES=development, staging, production
 ```
+NOTE: IF you want to execute a different command on all stages, you can specify environment variable **ACTION=<task_name>**
 
 If a branch is specified using "BRANCH=name" it will deploy same branch to all stages.The branch environment variable is then passed to the capistrano task
 
@@ -253,6 +254,8 @@ Will ask user if he wants to deploy the apps "foo" and "bar" , since they appear
 
 bundle exec multi_cap deploy_multi_stages  STAGES=development, staging, production
 ```
+
+NOTE: IF you want to execute a different command on all stages, you can specify environment variable **ACTION=<task_name>**
 
 If a branch is specified using **BRANCH=<name>** it will deploy same branch to all stages.The branch environment variable is then passed to the capistrano task
 If you want different branches , capistrano will ask for additional ENV options for each stage, and can be specified then for each stage
