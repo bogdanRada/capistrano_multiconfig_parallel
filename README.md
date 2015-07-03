@@ -40,6 +40,7 @@ Requirements
 12. [capistrano >= 3.0] [capistrano]
 13. [configliere >= 0.4] [configliere]
 14.  [inquirer >= 0.2] [inquirer]
+14.  [devnull >= 0.1] [inquirer]
 
 [ruby]: http://www.ruby-lang.org
 [activesupport]:https://rubygems.org/gems/activesupport
@@ -55,6 +56,7 @@ Requirements
 [capistrano]: https://github.com/capistrano/capistrano/
 [configliere]: https://github.com/infochimps-platform/configliere
 [inquirer]: https://github.com/arlimus/inquirer.rb
+[devnull]: https://github.com/maraigue/devnull
 
 Compatibility
 --------
@@ -198,6 +200,8 @@ If a branch is specified using "BRANCH=name" it will deploy same branch to all s
 
 Also the script will ask if there are any other environment variables that user might want to pass to each of the stages separately.
 
+If you use **capistrano-gitflow**, the workers will first deploy to all the other stages 
+and only after staging is tagged , will trigger a new worker to start deploying to production
 
 
 ## 2.)  Multiple Apps ( like [Caphub][caphub]  ) 
@@ -252,6 +256,10 @@ bundle exec multi_cap deploy_multi_stages  STAGES=development, staging, producti
 
 If a branch is specified using **BRANCH=<name>** it will deploy same branch to all stages.The branch environment variable is then passed to the capistrano task
 If you want different branches , capistrano will ask for additional ENV options for each stage, and can be specified then for each stage
+
+If you use **capistrano-gitflow**, the workers will first deploy to all the other stages 
+and only after staging is tagged , will trigger a new worker to start deploying to production
+
 
  Testing
 --------
