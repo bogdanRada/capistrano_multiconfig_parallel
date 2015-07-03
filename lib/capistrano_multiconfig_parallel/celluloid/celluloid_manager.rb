@@ -90,8 +90,7 @@ module CapistranoMulticonfigParallel
       debug("worker #{worker.job_id} registed into manager") if self.class.debug_enabled?
       Actor.current.link worker
       worker.async.start_task unless syncronized_confirmation?
-      return unless @job_manager.jobs.size != @job_to_worker.size
-      @registration_complete = true
+      @registration_complete = true if @job_manager.jobs.size == @job_to_worker.size
     end
 
     def process_jobs
