@@ -112,7 +112,7 @@ module CapistranoMulticonfigParallel
     end
 
     def can_tag_staging?
-      using_git? && wants_deploy_production? && tag_staging_exists?
+      using_git? && wants_deploy_production? && tag_staging_exists? && worker_environments.include?('staging')
     end
 
     def check_multi_stages(stages)
@@ -138,9 +138,12 @@ module CapistranoMulticonfigParallel
       fetch_app_additional_env_options
     end
 
+    def worker_environments
+       @jobs.map { |job| job['env'] }
+    end
+
     def confirmation_applies_to_all_workers?
-      environments = @jobs.map { |job| job['env'] }
-      CapistranoMulticonfigParallel.configuration.apply_stage_confirmation.all? { |e| environments.include?(e) }
+      CapistranoMulticonfigParallel.configuration.apply_stage_confirmation.all? { |e| worker_environments.include?(e) }
     end
 
   private
