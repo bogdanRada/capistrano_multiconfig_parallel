@@ -23,7 +23,7 @@ module CapistranoMulticonfigParallel
       end
       raise ArgumentError, "invalid configuration for #{wrong.inspect}" if wrong.present?
     end
-    
+
     def run
       options = {}
       if custom_command?
@@ -39,7 +39,7 @@ module CapistranoMulticonfigParallel
       CapistranoMulticonfigParallel.interactive_menu = true
       options = verify_options_custom_command(options)
       action_name = @name
-      if  action_name == custom_commands[:stages]
+      if action_name == custom_commands[:stages]
         multi_stage_deploy(options)
       else
         raise "Custom command #{@name} not available for multi apps"
@@ -66,7 +66,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    private
+  private
 
     def multi_collect_and_run_jobs(options = {}, &block)
       collect_jobs(options) do |new_options|

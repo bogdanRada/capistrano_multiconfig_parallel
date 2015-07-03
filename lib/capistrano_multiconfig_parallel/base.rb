@@ -5,10 +5,10 @@ module CapistranoMulticonfigParallel
   ENV_KEY_JOB_ID = 'multi_cap_job_id'
   MULTI_KEY = 'multi'
   SINGLE_KEY = 'single'
-  GITFLOW_TAG_STAGING_TASK = "gitflow:tag_staging"
+  GITFLOW_TAG_STAGING_TASK = 'gitflow:tag_staging'
   GITFLOW_CALCULATE_TAG_TASK = 'gitflow:calculate_tag'
   GITFLOW_VERIFY_UPTODATE_TASK = 'gitflow:verify_up_to_date'
-  
+
   CUSTOM_COMMANDS = {
     CapistranoMulticonfigParallel::MULTI_KEY => {
       stages: 'deploy_multi_stages'
@@ -26,11 +26,9 @@ module CapistranoMulticonfigParallel
     end
 
     def ask_confirm(message, default)
-      begin
       Ask.input message, default: default
       rescue
         return nil
-      end
     end
 
     def log_directory
@@ -48,7 +46,7 @@ module CapistranoMulticonfigParallel
     def enable_logging
       CapistranoMulticonfigParallel.configuration_valid?
       FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
-      if  CapistranoMulticonfigParallel::CelluloidManager.debug_enabled.to_s.downcase == 'true'
+      if CapistranoMulticonfigParallel::CelluloidManager.debug_enabled.to_s.downcase == 'true'
         FileUtils.touch(main_log_file) unless File.file?(main_log_file)
         if ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
           log_file = File.open(main_log_file, 'w')
@@ -56,7 +54,7 @@ module CapistranoMulticonfigParallel
         end
         self.logger = ::Logger.new(main_log_file)
       else
-        self.logger =  ::Logger.new(DevNull.new)
+        self.logger = ::Logger.new(DevNull.new)
       end
       Celluloid.logger = CapistranoMulticonfigParallel.logger
       Celluloid.task_class = Celluloid::TaskThread

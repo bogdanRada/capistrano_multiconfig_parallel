@@ -23,9 +23,9 @@ module CapistranoMulticonfigParallel
     class TaskFailed < StandardError; end
 
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv, :execute_deploy, :executed_dry_run,
-      :rake_tasks, :current_task_number, # tracking tasks
-    :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-    :job_termination_condition, :worker_state
+                  :rake_tasks, :current_task_number, # tracking tasks
+                  :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
+                  :job_termination_condition, :worker_state
 
     def work(job, manager)
       @job = job
@@ -38,7 +38,7 @@ module CapistranoMulticonfigParallel
       @machine = CapistranoMulticonfigParallel::StateMachine.new(job, Actor.current)
       manager.register_worker_for_job(job, Actor.current)
     end
-    
+
     def debug_enabled?
       @manager.class.debug_enabled?
     end
@@ -88,18 +88,17 @@ module CapistranoMulticonfigParallel
     def rake_tasks
       @rake_tasks ||= []
     end
-      
-    
+
     def cd_working_directory
-      "cd #{CapistranoMulticonfigParallel.detect_root.to_s}"
+      "cd #{CapistranoMulticonfigParallel.detect_root}"
     end
-    
+
     def generate_command
       <<-CMD
            #{cd_working_directory} && RAILS_ENV=#{@env_name} bundle exec multi_cap #{@task_argv.join(' ')}
       CMD
     end
-    
+
     def execute_deploy
       @execute_deploy = true
       debug("invocation chain #{@job_id} is : #{@rake_tasks.inspect}") if debug_enabled? && CapistranoMulticonfigParallel.show_task_progress
@@ -124,11 +123,14 @@ module CapistranoMulticonfigParallel
       debug("worker #{@job_id} websocket connection closed: #{code.inspect}, #{reason.inspect}") if debug_enabled?
     end
 
+    def check_gitflow
+      return if !@env_name == 'staging' || !@manager.can_tag_staging? || !executed_task?(CapistranoMulticonfigParallel::GITFLOW_VERIFY_UPTODATE_TASK)
+      @manager.dispatch_new_job(@job.merge('env' => 'production'))
+    end
+
     def handle_subscription(message)
       if message_is_about_a_task?(message)
-        if @env_name == 'staging' && @manager.can_tag_staging?  && has_executed_task?(CapistranoMulticonfigParallel::GITFLOW_VERIFY_UPTODATE_TASK)
-         @manager.dispatch_new_job(@job.merge('env' =>  'production'))
-       end
+        check_gitflow
         save_tasks_to_be_executed(message)
         update_machine_state(message['task']) # if message['action'] == 'invoke'
         debug("worker #{@job_id} state is #{@machine.state}") if debug_enabled?
@@ -141,8 +143,8 @@ module CapistranoMulticonfigParallel
     def message_is_about_a_task?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['task'].present?
     end
-    
-    def has_executed_task?(task)
+
+    def executed_task?(task)
       @rake_tasks.present? && @rake_tasks[task].present?
     end
 
@@ -203,9 +205,9 @@ module CapistranoMulticonfigParallel
       @env_options = processed_job['env_options']
       @task_arguments = processed_job['task_arguments']
     end
-   
+
     def crashed?
-      @action_name == 'deploy:rollback' || @action_name == 'deploy:failed'  || @manager.job_failed?(@job)
+      @action_name == 'deploy:rollback' || @action_name == 'deploy:failed' || @manager.job_failed?(@job)
     end
 
     def finish_worker

@@ -22,6 +22,7 @@ require 'logger'
 require 'pp'
 require 'devnull'
 require 'inquirer'
+require 'yaml'
 # fix error with not files that can not be found
 Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 

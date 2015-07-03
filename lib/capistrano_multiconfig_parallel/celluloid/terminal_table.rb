@@ -50,42 +50,52 @@ module CapistranoMulticonfigParallel
       puts "\n"
       sleep(1)
     end
-    
-    def get_worker_details(job_id)
-      job = @manager.jobs[job_id]
-      processed_job = @manager.process_job(job)
-      worker = @manager.get_worker_for_job(job_id)
+
+    def worker_state(worker)
       if worker.alive?
         state = worker.machine.state.to_s
-        state = worker.crashed? ? state.red : state.green
+        worker.crashed? ? state.red : state.green
       else
-        state = "dead".upcase.red
+        'dead'.upcase.red
       end
+    end
+
+    def worker_env_options(processed_job)
       worker_optons = ''
       processed_job['env_options'].each do |key, value|
         worker_optons << "#{key}=#{value}\n"
       end
-      action = processed_job['task_arguments'].present? ? "#{processed_job['action_name']}[#{processed_job['task_arguments'].join(',')}]" :  processed_job['action_name']
-      
+      worker_optons
+    end
+
+    def worker_action(processed_job)
+      processed_job['task_arguments'].present? ? "#{processed_job['action_name']}[#{processed_job['task_arguments'].join(',')}]" : processed_job['action_name']
+    end
+
+    def get_worker_details(job_id)
+      job = @manager.jobs[job_id]
+      processed_job = @manager.process_job(job)
+      worker = @manager.get_worker_for_job(job_id)
+
       {
         'job_id' => job_id,
-        'app_name' =>processed_job['app_name'],
-        'env_name' =>processed_job['env_name'],
-        'action_name' => action,
-        'env_options' => worker_optons,
+        'app_name' => processed_job['app_name'],
+        'env_name' => processed_job['env_name'],
+        'action_name' => worker_action(processed_job),
+        'env_options' => worker_env_options(processed_job),
         'task_arguments' => job['task_arguments'],
-        'state' =>  state
+        'state' => worker_state(worker)
       }
     end
-    
+
     def add_job_to_table(table, job_id)
       details = get_worker_details(job_id)
       row = [{ value: job_id.to_s },
-        { value: "#{details['app_name']}\n#{details['env_name']}" },
-        { value: details['action_name']  },
-        { value: details['env_options'] },
-        { value: "#{details['state']}" }
-      ]
+             { value: "#{details['app_name']}\n#{details['env_name']}" },
+             { value: details['action_name'] },
+             { value: details['env_options'] },
+             { value: "#{details['state']}" }
+            ]
       if CapistranoMulticonfigParallel.show_task_progress
         row << { value: worker.rake_tasks.size }
         row << { value: worker_progress(worker) }
@@ -97,7 +107,6 @@ module CapistranoMulticonfigParallel
     def terminal_clear
       system('cls') || system('clear') || puts("\e[H\e[2J")
     end
-
 
     def worker_progress(worker)
       tasks = worker.rake_tasks

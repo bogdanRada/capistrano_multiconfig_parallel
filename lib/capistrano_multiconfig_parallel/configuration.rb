@@ -27,7 +27,7 @@ module CapistranoMulticonfigParallel
 
       def default_config
         @default_config ||= Configliere::Param.new
-        @default_config.read File.join(CapistranoMulticonfigParallel.root.to_s, 'capistrano_multiconfig_parallel', 'initializers', 'default.yml')
+        @default_config.read File.join(internal_config_directory, 'default.yml')
         @default_config.resolve!
       end
 
@@ -35,7 +35,11 @@ module CapistranoMulticonfigParallel
         File.join(CapistranoMulticonfigParallel.detect_root.to_s, 'config', 'multi_cap.yml')
       end
 
-      def command_line_params
+        def internal_config_directory
+           File.join(CapistranoMulticonfigParallel.root.to_s, 'capistrano_multiconfig_parallel', 'initializers')
+        end
+      
+        def command_line_params
         [
           {
             name: 'multi_debug',
@@ -122,7 +126,7 @@ module CapistranoMulticonfigParallel
             default: default_config[:application_dependencies]
           }
         ]
-      end
+        end
 
       def capistrano_options
         command_line_params.map do |param|
@@ -181,5 +185,5 @@ module CapistranoMulticonfigParallel
         CapistranoMulticonfigParallel.execute_in_sequence = true if c[:multi_secvential].to_s.downcase == 'true'
       end
     end
-end
+  end
 end
