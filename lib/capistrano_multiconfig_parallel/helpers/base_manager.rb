@@ -91,13 +91,13 @@ module CapistranoMulticonfigParallel
       rake1 = Rake::Task[CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK]
       rake2 = Rake::Task[GITFLOW_CALCULATE_TAG_TASK]
       rake3 = Rake::Task[GITFLOW_VERIFY_UPTODATE_TASK]
-      check_giflow_tasks(rake1, rake2, rake3)
+      rake1.present? && check_giflow_tasks(rake2, rake3)
     rescue
       return false
     end
 
-    def check_giflow_tasks(rake1, rake2, rake3)
-      rake1.present? && rake2.present? && rake3.present? && rake2.prerequisites.present? && rake2.actions.present? && rake3.prerequisites.present?
+    def check_giflow_tasks(*tasks)
+      tasks.all? {|t| t.present? && t.prerequisites.present? }
     end
 
     def fetch_multi_stages
