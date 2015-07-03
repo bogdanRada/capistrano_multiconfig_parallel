@@ -126,7 +126,7 @@ module CapistranoMulticonfigParallel
 
     def handle_subscription(message)
       if message_is_about_a_task?(message)
-        if @env_name == 'staging' && @manager.can_tag_staging?  && has_executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
+        if @env_name == 'staging' && @manager.can_tag_staging?  && has_executed_task?(CapistranoMulticonfigParallel::GITFLOW_VERIFY_UPTODATE_TASK)
          @manager.dispatch_new_job(@job.merge('env' =>  'production'))
        end
         save_tasks_to_be_executed(message)

@@ -85,8 +85,10 @@ module CapistranoMulticonfigParallel
     
     def tag_staging_exists? # check exists task from capistrano-gitflow
       begin
-        rake = Rake::Task[CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK]
-        rake.present? && rake.actions.present? && rake.prerequisites.present?
+        rake1 = Rake::Task[CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK]
+        rake2 = Rake::Task[GITFLOW_CALCULATE_TAG_TASK]
+        rake3 = Rake::Task[GITFLOW_VERIFY_UPTODATE_TASK]
+        rake1.present? && rake2.present? && rake3.present? && rake2.prerequisites.present? && rake2.actions.present?
       rescue
         return false
       end
