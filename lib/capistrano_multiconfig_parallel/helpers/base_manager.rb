@@ -175,8 +175,14 @@ module CapistranoMulticonfigParallel
         task_arguments: options['task_arguments'],
         env_options: env_options
       }
-
+      job = job.stringify_keys
       @jobs << job
+    end
+    
+    
+    def confirmation_applies_to_all_workers?
+      environments = @jobs.map{|job| job['env']}
+      CapistranoMulticonfigParallel.configuration.apply_stage_confirmation.all? { |e| environments.include?(e) }
     end
 
     def prepare_options(options)
