@@ -173,7 +173,8 @@ module CapistranoMulticonfigParallel
         message = "Do you want  to continue the deployment and execute #{task.upcase}"
         message += " for JOB #{worker.job_id}" if worker.present?
         message += '?'
-        set :apps_symlink_confirmation, CapistranoMulticonfigParallel.ask_confirm(message, 'Y/N')
+        
+        set :apps_symlink_confirmation, CapistranoMulticonfigParallel.ask_confirm(message, false)
         until fetch(:apps_symlink_confirmation).present?
           sleep(0.1) # keep current thread alive
         end
@@ -203,7 +204,7 @@ module CapistranoMulticonfigParallel
     end
 
     def can_tag_staging?
-     @job_manager.is_able_to_tag_staging?  &&
+     @job_manager.can_tag_staging?  &&
        @jobs.detect{|job_id, job| job['env'] == 'production'}.blank? 
     end
     
