@@ -111,10 +111,13 @@ module CapistranoMulticonfigParallel
     def apply_confirmations?
       CapistranoMulticonfigParallel.configuration.task_confirmation_active.to_s.downcase == 'true'
     end
-
+    def syncronization_required?
+      CapistranoMulticonfigParallel.configuration.syncronize_confirmation.to_s.downcase == 'true'
+    end
+  
     def syncronized_confirmation?
-      (CapistranoMulticonfigParallel.configuration.syncronize_confirmation.to_s.downcase == 'true' && !@job_manager.executes_deploy_stages?) ||
-        (@job_manager.executes_deploy_stages? && @job_manager.confirmation_applies_to_all_workers?)
+      ( syncronization_required? && !@job_manager.executes_deploy_stages?) ||
+        (@job_manager.executes_deploy_stages? && !@job_manager.can_tag_staging? && @job_manager.confirmation_applies_to_all_workers?)
     end
 
     def apply_confirmation_for_worker(worker)
