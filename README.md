@@ -67,6 +67,7 @@ Ruby 1.8 is not officially supported. We will accept further compatibilty pull-r
 
 Rubinius and Jruby  support temporarily dropped due to Rails 4 incompatibility.
 
+
 Installation Instructions
 --------
 
@@ -265,6 +266,9 @@ If you want different branches , capistrano will ask for additional ENV options 
 If you use **capistrano-gitflow**, the workers will first deploy to all the other stages 
 and only after staging is tagged , will trigger a new worker to start deploying to production
 
+Known Limitations
+--------
+- Currently it works only if Celluloid.cores >= 2
 
  Testing
 --------
