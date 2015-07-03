@@ -88,7 +88,7 @@ module CapistranoMulticonfigParallel
         rake1 = Rake::Task[CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK]
         rake2 = Rake::Task[GITFLOW_CALCULATE_TAG_TASK]
         rake3 = Rake::Task[GITFLOW_VERIFY_UPTODATE_TASK]
-        rake1.present? && rake2.present? && rake3.present? && rake2.prerequisites.present? && rake2.actions.present?
+        rake1.present? && rake2.present? && rake3.present? && rake2.prerequisites.present? && rake2.actions.present? && rake3.prerequisites.present?
       rescue
         return false
       end
