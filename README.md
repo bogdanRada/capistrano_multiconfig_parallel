@@ -183,7 +183,7 @@ bundle exec multi_cap  <development_stage> <task_name>   BOX=<box_name>,<box_nam
 
 ```
 
-If a branch is specified using "BRANCH=name" it will deploy same branch to all sandboxes
+If a branch is specified using **BRANCH=name** it will deploy same branch to all sandboxes
 The branch environment variable is then passed to the capistrano task
 
 Also the script will ask if there are any other environment variables that user might want to pass to each of the sandboxes separately.
