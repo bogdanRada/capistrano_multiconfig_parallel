@@ -56,12 +56,21 @@ module CapistranoMulticonfigParallel
         target: self,
         environment: options[:environment].present? ? options[:environment] : nil,
         pid_handler: :on_pid,
-        input: $stdin, 
+        input: stdin_thread, 
         stdout_handler: :on_read_stdout,
         stderr_handler: :on_read_stderr,
         watch_handler: :watch_handler,
         async_exception_handler: :async_exception_handler,
         exit_handler: :on_exit)
+    end
+    
+    
+    def stdin_thread
+      Thread.new($stdin) do |terr|
+         while (line = terr.gets)
+            puts "stdinnnnnn #{line}"
+         end
+     end
     end
 
     def on_pid(pid)
@@ -109,7 +118,7 @@ module CapistranoMulticonfigParallel
       get_question_details(data).present?
     end
     
-    def user_prompt_needed?
+    def user_prompt_needed?(data)
       return unless printing_question?(data)
       details =  get_question_details(data)
       default = details.second.present? ? details.second : nil
@@ -118,7 +127,7 @@ module CapistranoMulticonfigParallel
     
     def io_callback(io, data)
       @worker_log.debug("#{io.upcase} ---- #{data}")
-      user_prompt_needed?
+     user_prompt_needed?(data)
     end
   end
 end
