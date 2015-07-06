@@ -1,4 +1,5 @@
 require_relative './standard_deploy'
+require_relative '../celluloid/celluloid_manager'
 module CapistranoMulticonfigParallel
   # finds app dependencies, shows menu and delegates jobs to celluloid manager
   # rubocop:disable ClassLength

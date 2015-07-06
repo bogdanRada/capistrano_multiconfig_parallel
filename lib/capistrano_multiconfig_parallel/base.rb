@@ -37,9 +37,11 @@ module CapistranoMulticonfigParallel
     def ask_confirm(message, default)
       `stty -raw echo`
       check_terminal_tty
-      result = Ask.input(message, default: default)
+      default_text= default.nil? ? '' : "(#{default})"
+      $stdout.print "#{message}: #{default_text}"
+      $stdout.flush
+      $stdin.gets.chomp
       `stty -raw echo`
-      result
     rescue
       return nil
     end
