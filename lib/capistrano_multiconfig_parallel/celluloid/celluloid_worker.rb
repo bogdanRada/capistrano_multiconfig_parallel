@@ -56,9 +56,9 @@ module CapistranoMulticonfigParallel
     end
 
     def publish_io_event(data)
-      @client.publish("rake_io_#{@job_id}",{'approved' => 'yes', 'job_id' => @job_id, 'result' => data})
+      @client.publish("rake_io_#{@job_id}", 'approved' => 'yes', 'action' => 'stdin', 'job_id' => @job_id, 'result' => data)
     end
-    
+
     def rake_actor_id(data)
       data['action'].present? && data['action'] == 'count' ? "rake_worker_#{@job_id}_count" : "rake_worker_#{@job_id}"
     end
@@ -193,6 +193,7 @@ module CapistranoMulticonfigParallel
         array_options << "#{key}=#{value}" if value.present?
       end
       array_options << '--trace' if debug_enabled?
+      array_options << '--multi_debug=true' if debug_enabled?
       setup_command_line(*array_options)
     end
 

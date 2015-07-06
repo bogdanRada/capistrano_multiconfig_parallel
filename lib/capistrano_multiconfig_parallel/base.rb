@@ -25,10 +25,23 @@ module CapistranoMulticonfigParallel
       File.expand_path(File.dirname(__dir__))
     end
 
+    def check_terminal_tty
+      if $stdin.isatty
+        $stdin.sync = true
+      end
+      if $stdout.isatty
+        $stdout.sync = true
+      end
+    end
+
     def ask_confirm(message, default)
-      Ask.input message, default: default
-      rescue
-        return nil
+      `stty -raw echo`
+      check_terminal_tty
+      result = Ask.input(message, default: default)
+      `stty -raw echo`
+      result
+    rescue
+      return nil
     end
 
     def log_directory
@@ -69,7 +82,7 @@ module CapistranoMulticonfigParallel
           class_name: message.class,
           message: error_message,
           backtrace: err_backtrace
-        )
+          )
       else
         logger.debug(message)
       end
@@ -93,4 +106,4 @@ module CapistranoMulticonfigParallel
       root
     end
   end
-end
+  end

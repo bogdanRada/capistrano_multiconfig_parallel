@@ -56,15 +56,12 @@ module CapistranoMulticonfigParallel
         target: self,
         environment: options[:environment].present? ? options[:environment] : nil,
         pid_handler: :on_pid,
-        input: $stdin, 
         stdout_handler: :on_read_stdout,
         stderr_handler: :on_read_stderr,
         watch_handler: :watch_handler,
         async_exception_handler: :async_exception_handler,
         exit_handler: :on_exit)
     end
-    
-   
 
     def on_pid(pid)
       @pid ||= pid
@@ -100,158 +97,28 @@ module CapistranoMulticonfigParallel
     def get_question_details(data)
       question = ''
       default = nil
-      if data =~/(.*)\?+\s*\:*\s*(\([^)]*\))*/m
-        question= Regexp.last_match(1)
+      if data =~ /(.*)\?+\s*\:*\s*(\([^)]*\))*/m
+        question = Regexp.last_match(1)
         default = Regexp.last_match(2)
       end
-      question.present?  ? [question, default] : nil
+      question.present? ? [question, default] : nil
     end
-    
+
     def printing_question?(data)
       get_question_details(data).present?
     end
-    
+
     def user_prompt_needed?(data)
-        return unless printing_question?(data)
-        details =  get_question_details(data)
-        default = details.second.present? ? details.second : nil
-        result = CapistranoMulticonfigParallel.ask_confirm(details.first, default) 
-        @actor.publish_io_event(result)
+      return unless printing_question?(data)
+      details = get_question_details(data)
+      default = details.second.present? ? details.second : nil
+      result = CapistranoMulticonfigParallel.ask_confirm(details.first, default)
+      @actor.publish_io_event(result)
     end
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     def io_callback(io, data)
       @worker_log.debug("#{io.upcase} ---- #{data}")
       user_prompt_needed?(data)
     end
-    
   end
 end

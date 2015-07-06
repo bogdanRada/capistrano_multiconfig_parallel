@@ -43,7 +43,8 @@ module CapistranoMulticonfigParallel
     end
 
     def self.debug_websocket?
-      websocket_config['enable_debug'].to_s == 'true'
+      true
+      # websocket_config['enable_debug'].to_s == 'true'
     end
 
     def self.websocket_config
@@ -111,12 +112,13 @@ module CapistranoMulticonfigParallel
     def apply_confirmations?
       CapistranoMulticonfigParallel.configuration.task_confirmation_active.to_s.downcase == 'true'
     end
+
     def syncronization_required?
       CapistranoMulticonfigParallel.configuration.syncronize_confirmation.to_s.downcase == 'true'
     end
-  
+
     def syncronized_confirmation?
-      ( syncronization_required? && !@job_manager.executes_deploy_stages?) ||
+      (syncronization_required? && !@job_manager.executes_deploy_stages?) ||
         (syncronization_required? && @job_manager.executes_deploy_stages? && !@job_manager.can_tag_staging? && @job_manager.confirmation_applies_to_all_workers?)
     end
 
@@ -223,9 +225,9 @@ module CapistranoMulticonfigParallel
     end
 
     def filtered_env_keys
-      ["STAGES", "ACTION"]
+      %w(STAGES ACTION)
     end
-    
+
     def process_job(job)
       env_options = {}
       job['env_options'].each do |key, value|

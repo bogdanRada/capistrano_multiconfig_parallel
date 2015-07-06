@@ -35,11 +35,11 @@ module CapistranoMulticonfigParallel
         File.join(CapistranoMulticonfigParallel.detect_root.to_s, 'config', 'multi_cap.yml')
       end
 
-        def internal_config_directory
-           File.join(CapistranoMulticonfigParallel.root.to_s, 'capistrano_multiconfig_parallel', 'initializers')
-        end
-      
-        def command_line_params
+      def internal_config_directory
+        File.join(CapistranoMulticonfigParallel.root.to_s, 'capistrano_multiconfig_parallel', 'initializers')
+      end
+
+      def command_line_params
         [
           {
             name: 'multi_debug',
@@ -126,7 +126,7 @@ module CapistranoMulticonfigParallel
             default: default_config[:application_dependencies]
           }
         ]
-        end
+      end
 
       def capistrano_options
         command_line_params.map do |param|

@@ -88,8 +88,8 @@ module CapistranoMulticonfigParallel
 
     def tag_staging_exists? # check exists task from capistrano-gitflow
       check_giflow_tasks(
-        CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK, 
-        CapistranoMulticonfigParallel::GITFLOW_CALCULATE_TAG_TASK, 
+        CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK,
+        CapistranoMulticonfigParallel::GITFLOW_CALCULATE_TAG_TASK,
         CapistranoMulticonfigParallel::GITFLOW_VERIFY_UPTODATE_TASK
       )
     rescue
@@ -97,14 +97,14 @@ module CapistranoMulticonfigParallel
     end
 
     def check_giflow_tasks(*tasks)
-      tasks.all? {|t| Rake::Task[t].present?  }
+      tasks.all? { |t| Rake::Task[t].present? }
     end
 
     def fetch_multi_stages
       stages = @argv['STAGES'].blank? ? '' : @argv['STAGES']
       stages = parse_inputted_value(value: stages).split(',').compact if stages.present?
-     stages = stages.present? ? stages : [@default_stage]
-     return stages
+      stages = stages.present? ? stages : [@default_stage]
+      stages
     end
 
     def wants_deploy_production?
@@ -139,7 +139,7 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_environments
-       @jobs.map { |job| job['env'] }
+      @jobs.map { |job| job['env'] }
     end
 
     def confirmation_applies_to_all_workers?
@@ -197,7 +197,7 @@ module CapistranoMulticonfigParallel
       job = {
         app: app,
         env: options['stage'],
-        action: custom_command? && env_options['ACTION'].present?  ? env_options['ACTION'] : options['action'],
+        action: custom_command? && env_options['ACTION'].present? ? env_options['ACTION'] : options['action'],
         task_arguments: options['task_arguments'],
         env_options: job_env_options
       }
