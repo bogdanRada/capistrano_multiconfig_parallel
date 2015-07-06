@@ -56,7 +56,7 @@ module CapistranoMulticonfigParallel
         target: self,
         environment: options[:environment].present? ? options[:environment] : nil,
         pid_handler: :on_pid,
-        input: stdin_thread, 
+        input: $stdin, 
         stdout_handler: :on_read_stdout,
         stderr_handler: :on_read_stderr,
         watch_handler: :watch_handler,
@@ -64,14 +64,7 @@ module CapistranoMulticonfigParallel
         exit_handler: :on_exit)
     end
     
-    
-    def stdin_thread
-      Thread.new($stdin) do |terr|
-         while (line = terr.gets)
-            puts "stdinnnnnn #{line}"
-         end
-     end
-    end
+   
 
     def on_pid(pid)
       @pid ||= pid
@@ -119,15 +112,146 @@ module CapistranoMulticonfigParallel
     end
     
     def user_prompt_needed?(data)
-      return unless printing_question?(data)
-      details =  get_question_details(data)
-      default = details.second.present? ? details.second : nil
-      Ask.input(details.first, default: default) 
+        return unless printing_question?(data)
+        details =  get_question_details(data)
+        default = details.second.present? ? details.second : nil
+        result = CapistranoMulticonfigParallel.ask_confirm(details.first, default) 
+        @actor.publish_io_event(result)
     end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     def io_callback(io, data)
       @worker_log.debug("#{io.upcase} ---- #{data}")
-     user_prompt_needed?(data)
+      user_prompt_needed?(data)
     end
+    
   end
 end

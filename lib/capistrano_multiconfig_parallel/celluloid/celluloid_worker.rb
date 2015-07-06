@@ -55,6 +55,10 @@ module CapistranoMulticonfigParallel
       @client.publish(rake_actor_id(data), data)
     end
 
+    def publish_io_event(data)
+      @client.publish("rake_io_#{@job_id}",{'approved' => 'yes', 'job_id' => @job_id, 'result' => data})
+    end
+    
     def rake_actor_id(data)
       data['action'].present? && data['action'] == 'count' ? "rake_worker_#{@job_id}_count" : "rake_worker_#{@job_id}"
     end
