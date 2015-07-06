@@ -60,7 +60,6 @@ module CapistranoMulticonfigParallel
 
     def verify_options_custom_command(options)
       options[:action] = @argv['ACTION'].present? ? @argv['ACTION'] : 'deploy'
-      @argv = @argv['ACTION'].present? ? @argv.except('ACTION') : @argv
       options
     end
 
@@ -88,23 +87,24 @@ module CapistranoMulticonfigParallel
     end
 
     def tag_staging_exists? # check exists task from capistrano-gitflow
-      rake1 = Rake::Task[CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK]
-      rake2 = Rake::Task[GITFLOW_CALCULATE_TAG_TASK]
-      rake3 = Rake::Task[GITFLOW_VERIFY_UPTODATE_TASK]
-      rake1.present? && check_giflow_tasks(rake2, rake3)
+      check_giflow_tasks(
+        CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK, 
+        CapistranoMulticonfigParallel::GITFLOW_CALCULATE_TAG_TASK, 
+        CapistranoMulticonfigParallel::GITFLOW_VERIFY_UPTODATE_TASK
+      )
     rescue
       return false
     end
 
     def check_giflow_tasks(*tasks)
-      tasks.all? {|t| t.present? && t.prerequisites.present? }
+      tasks.all? {|t| Rake::Task[t].present?  }
     end
 
     def fetch_multi_stages
       stages = @argv['STAGES'].blank? ? '' : @argv['STAGES']
-      @argv = @argv['STAGES'].present? ? @argv.except('STAGES') : @argv
       stages = parse_inputted_value(value: stages).split(',').compact if stages.present?
-      stages.present? ? stages : [@default_stage]
+     stages = stages.present? ? stages : [@default_stage]
+     return stages
     end
 
     def wants_deploy_production?
@@ -112,7 +112,7 @@ module CapistranoMulticonfigParallel
     end
 
     def can_tag_staging?
-      using_git? && wants_deploy_production? && tag_staging_exists? && worker_environments.include?('staging')
+      using_git? && wants_deploy_production? && tag_staging_exists? && fetch_multi_stages.include?('staging')
     end
 
     def check_multi_stages(stages)

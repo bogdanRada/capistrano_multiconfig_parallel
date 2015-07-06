@@ -222,10 +222,14 @@ module CapistranoMulticonfigParallel
       async.delegate(job)
     end
 
+    def filtered_env_keys
+      ["STAGES", "ACTION"]
+    end
+    
     def process_job(job)
       env_options = {}
       job['env_options'].each do |key, value|
-        env_options[key] = value if value.present?
+        env_options[key] = value if value.present? && !filtered_env_keys.include?(key)
       end
       {
         'job_id' => job['id'],
