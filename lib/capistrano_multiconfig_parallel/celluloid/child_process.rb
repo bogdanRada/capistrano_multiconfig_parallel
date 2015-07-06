@@ -56,6 +56,7 @@ module CapistranoMulticonfigParallel
         target: self,
         environment: options[:environment].present? ? options[:environment] : nil,
         pid_handler: :on_pid,
+        input: $stdin, 
         stdout_handler: :on_read_stdout,
         stderr_handler: :on_read_stderr,
         watch_handler: :watch_handler,
@@ -94,8 +95,30 @@ module CapistranoMulticonfigParallel
       @process ||= process
     end
 
+    def get_question_details(data)
+      question = ''
+      default = nil
+      if data =~/(.*)\?+\s*\:*\s*(\([^)]*\))*/m
+        question= Regexp.last_match(1)
+        default = Regexp.last_match(2)
+      end
+      question.present?  ? [question, default] : nil
+    end
+    
+    def printing_question?(data)
+      get_question_details(data).present?
+    end
+    
+    def user_prompt_needed?
+      return unless printing_question?(data)
+      details =  get_question_details(data)
+      default = details.second.present? ? details.second : nil
+      Ask.input(details.first, default: default) 
+    end
+    
     def io_callback(io, data)
       @worker_log.debug("#{io.upcase} ---- #{data}")
+      user_prompt_needed?
     end
   end
 end
