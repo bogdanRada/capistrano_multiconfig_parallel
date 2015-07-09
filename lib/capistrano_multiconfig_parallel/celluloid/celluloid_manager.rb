@@ -9,7 +9,7 @@ module CapistranoMulticonfigParallel
 
     cattr_accessor :debug_enabled
 
-    attr_accessor :jobs, :job_to_worker, :worker_to_job, :actor_system, :job_to_condition, :mutex, :registration_complete
+    attr_accessor :jobs, :job_to_worker, :worker_to_job, :actor_system, :job_to_condition, :mutex, :registration_complete, :workers_terminated
 
     attr_reader :worker_supervisor, :workers
     trap_exit :worker_died
@@ -34,7 +34,7 @@ module CapistranoMulticonfigParallel
       @worker_to_job = {}
       @job_to_condition = {}
 
-      @worker_supervisor.supervise_as(:terminal_server, CapistranoMulticonfigParallel::TerminalTable, Actor.current)
+      @worker_supervisor.supervise_as(:terminal_server, CapistranoMulticonfigParallel::TerminalTable, Actor.current, @job_manager)
       @worker_supervisor.supervise_as(:web_server, CelluloidPubsub::WebServer, self.class.websocket_config.merge(enable_debug: self.class.debug_websocket?))
     end
 
@@ -93,19 +93,24 @@ module CapistranoMulticonfigParallel
       @registration_complete = true if @job_manager.jobs.size == @job_to_worker.size
     end
 
+    def all_workers_finished?
+      @job_to_worker.all? { |job_id, worker| @jobs[job_id]['worker_action'] == 'finished' }
+    end
+    
     def process_jobs
+      @workers_terminated = Celluloid::Condition.new
       if syncronized_confirmation?
         @job_to_worker.pmap do |_job_id, worker|
           worker.async.start_task
         end
         wait_task_confirmations
       end
-      condition = @job_to_worker.all? { |_job_id, worker| worker.alive? && worker.worker_state == 'finished' }
-      until condition == true
+      condition = @workers_terminated.wait
+      until condition.present?
         sleep(0.1) # keep current thread alive
-      end
+    end
       debug("all jobs have completed #{condition}") if self.class.debug_enabled?
-      @job_manager.condition.signal('completed') if condition
+      Celluloid::Actor[:terminal_server].async.notify_time_change( CapistranoMulticonfigParallel::TerminalTable::TOPIC,  :type => "output") if Celluloid::Actor[:terminal_server].alive?
     end
 
     def apply_confirmations?
@@ -191,10 +196,10 @@ module CapistranoMulticonfigParallel
       @jobs.pmap do |job_id, job|
         worker = get_worker_for_job(job_id)
         worker.publish_rake_event('approved' => 'yes',
-                                  'action' => 'invoke',
-                                  'job_id' => job['id'],
-                                  'task' => task
-                                 )
+          'action' => 'invoke',
+          'job_id' => job['id'],
+          'task' => task
+        )
       end
     end
 
@@ -228,6 +233,9 @@ module CapistranoMulticonfigParallel
     end
 
     def process_job(job)
+      if job['processed']
+        @jobs[job['job_id']]
+      else
       env_options = {}
       job['env_options'].each do |key, value|
         env_options[key] = value if value.present? && !filtered_env_keys.include?(key)
@@ -238,8 +246,10 @@ module CapistranoMulticonfigParallel
         'env_name' => job['env'],
         'action_name' => job['action'],
         'env_options' => env_options,
-        'task_arguments' => job['task_arguments']
-      }
+        'task_arguments' => job['task_arguments'],
+        'processed' => true
+       }   
+      end
     end
 
     # lookup status of job by asking actor running it
@@ -265,6 +275,7 @@ module CapistranoMulticonfigParallel
     def worker_died(worker, reason)
       debug("worker with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}") if self.class.debug_enabled?
       job = @worker_to_job[worker.mailbox.address]
+      return if  @jobs[job['job_id']]['worker_action'] == "finished"
       @worker_to_job.delete(worker.mailbox.address)
       debug "restarting #{job} on new worker" if self.class.debug_enabled?
       return if job.blank? || job_failed?(job)

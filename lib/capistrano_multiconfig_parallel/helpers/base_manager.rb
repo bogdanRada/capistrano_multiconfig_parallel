@@ -174,7 +174,7 @@ module CapistranoMulticonfigParallel
     end
 
     def wait_jobs_termination
-      return if @jobs.blank? || CapistranoMulticonfigParallel.execute_in_sequence
+      return if CapistranoMulticonfigParallel.execute_in_sequence
       result = @condition.wait
       return unless result.present?
       @manager.terminate

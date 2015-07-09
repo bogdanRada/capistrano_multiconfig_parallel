@@ -8,8 +8,9 @@ module CapistranoMulticonfigParallel
     include Celluloid::Logger
     TOPIC = 'sshkit_terminal'
 
-    def initialize(manager)
+    def initialize(manager, job_manager)
       @manager = manager
+      @job_manager = job_manager
       async.run
     end
 
@@ -49,6 +50,7 @@ module CapistranoMulticonfigParallel
       puts table
       puts "\n"
       sleep(1)
+      @job_manager.condition.signal('completed') if @manager.all_workers_finished? 
     end
 
     def worker_state(worker)
@@ -80,7 +82,7 @@ module CapistranoMulticonfigParallel
       job = @manager.jobs[job_id]
       processed_job = @manager.process_job(job)
       worker = @manager.get_worker_for_job(job_id)
-
+      
       {
         'job_id' => job_id,
         'app_name' => processed_job['app_name'],

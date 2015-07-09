@@ -21,15 +21,15 @@ module CapistranoMulticonfigParallel
     end
 
     def wait_execution(name = task_name, time = 0.1)
-      info "Before waiting #{name}"
+  #    info "Before waiting #{name}"
       Actor.current.wait_for(name, time)
-      info "After waiting #{name}"
+    #  info "After waiting #{name}"
     end
 
     def wait_for(name, time)
-      info "waiting for #{time} seconds on #{name}"
+     # info "waiting for #{time} seconds on #{name}"
       sleep time
-      info "done waiting on #{name} "
+     # info "done waiting on #{name} "
     end
 
     def default_settings
@@ -95,7 +95,7 @@ module CapistranoMulticonfigParallel
       publish_to_worker(task_data)
       @successfull_subscription = true
     end
-
+    
     def stdin_approval(message)
       if @job_id.to_i == message['job_id'].to_i && message['approved'] == 'yes'
         @stdin_result = message

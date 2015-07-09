@@ -26,7 +26,7 @@ module CapistranoMulticonfigParallel
                   :rake_tasks, :current_task_number, # tracking tasks
                   :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
                   :job_termination_condition, :worker_state
-
+    
     def work(job, manager)
       @job = job
       @worker_state = 'started'
@@ -217,10 +217,12 @@ module CapistranoMulticonfigParallel
 
     def finish_worker
       @manager.mark_completed_remaining_tasks(Actor.current)
-      @worker_state = 'finished'
-      @manager.job_to_worker.each do|_job_id, worker|
-        debug("worker #{worker.job_id}has state #{worker.worker_state}") if worker.alive? && debug_enabled?
-      end
+      @manager.jobs[@job_id]['worker_action'] = 'finished'
+      @manager.workers_terminated.signal('completed')  if @manager.all_workers_finished?
+    end
+    
+    def worker_finshed?
+       @manager.jobs[@job_id]['worker_action'] == 'finished'
     end
 
     def notify_finished(exit_status)

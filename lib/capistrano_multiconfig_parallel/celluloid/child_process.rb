@@ -6,6 +6,8 @@ module CapistranoMulticonfigParallel
 
     attr_accessor :actor, :pid, :exit_status, :process, :filename, :worker_log
 
+    finalizer :process_finalizer
+      
     def work(cmd, options = {})
       @options = options
       @actor = @options.fetch(:actor, nil)
@@ -37,14 +39,17 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def check_exit_status
-      return unless @exit_status.present?
+    def process_finalizer
       @timer.cancel
       EM.stop
+    end
+    
+    def check_exit_status
+      return unless @exit_status.present?
       if @options[:dry_run]
         debug("worker #{@actor.job_id} starts execute deploy") if @actor.debug_enabled?
         @actor.async.execute_deploy
-      else
+      elsif !@actor.worker_finshed?
         debug("worker #{@actor.job_id} startsnotify finished") if @actor.debug_enabled?
         @actor.notify_finished(@exit_status)
       end
