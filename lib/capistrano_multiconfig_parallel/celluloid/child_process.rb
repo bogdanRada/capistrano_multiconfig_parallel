@@ -117,9 +117,8 @@ module CapistranoMulticonfigParallel
     end
 
     def io_callback(io, data)
-      debug("#{io.upcase} ---- #{data}")
       @worker_log.debug("#{io.upcase} ---- #{data}")
-      user_prompt_needed?(data)
+      #      user_prompt_needed?(data)
     end
   end
 end

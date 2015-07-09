@@ -237,7 +237,7 @@ module CapistranoMulticonfigParallel
     def fetch_app_additional_env_options
       options = {}
       return options if fetch(:app_additional_env_options).blank?
-      env_options = parse_inputted_value('key'  => :app_additional_env_options)
+      env_options = parse_inputted_value('key' => :app_additional_env_options)
       env_options = env_options.split(' ')
       options = multi_fetch_argv(env_options)
       options.stringify_keys!
@@ -255,7 +255,7 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_on_multiple_boxes(main_box_name, options)
-      boxes = parse_inputted_value('value' =>  main_box_name).split(',').compact
+      boxes = parse_inputted_value('value' => main_box_name).split(',').compact
       boxes.each do |box_name|
         options['env_options']['BOX'] = box_name
         prepare_job(options)

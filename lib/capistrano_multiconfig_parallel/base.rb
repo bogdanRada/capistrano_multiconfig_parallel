@@ -26,21 +26,15 @@ module CapistranoMulticonfigParallel
     end
 
     def check_terminal_tty
-      if $stdin.isatty
-        $stdin.sync = true
-      end
-      if $stdout.isatty
-        $stdout.sync = true
-      end
+      $stdin.sync = true if $stdin.isatty
+      $stdout.sync = true if $stdout.isatty
     end
 
     def ask_confirm(message, default)
       `stty -raw echo`
       check_terminal_tty
-      default_text= default.nil? ? '' : "(#{default})"
-      $stdout.print "#{message}: #{default_text}"
+      result = Ask.input message, default: default
       $stdout.flush
-     result =  $stdin.gets.chomp
       `stty -raw echo`
       return result
     rescue
@@ -85,7 +79,7 @@ module CapistranoMulticonfigParallel
           class_name: message.class,
           message: error_message,
           backtrace: err_backtrace
-          )
+        )
       else
         logger.debug(message)
       end
@@ -109,4 +103,4 @@ module CapistranoMulticonfigParallel
       root
     end
   end
-  end
+end

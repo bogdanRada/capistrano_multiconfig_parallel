@@ -43,7 +43,7 @@ module CapistranoMulticonfigParallel
     end
 
     def self.debug_websocket?
-       websocket_config['enable_debug'].to_s == 'true'
+      websocket_config['enable_debug'].to_s == 'true'
     end
 
     def self.websocket_config

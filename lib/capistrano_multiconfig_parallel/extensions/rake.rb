@@ -9,6 +9,6 @@ Rake::Task.class_eval do
       end
     else
       original_execute(*args)
-   end
+    end
   end
 end
