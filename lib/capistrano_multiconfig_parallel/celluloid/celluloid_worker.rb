@@ -229,7 +229,7 @@ module CapistranoMulticonfigParallel
       return unless @execute_deploy
       if exit_status.exitstatus != 0
         debug("worker #{job_id} tries to terminate") if debug_enabled?
-        terminate
+        raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task #{@action} failed ")  # force worker to rollback
       else
         update_machine_state('FINISHED')
         debug("worker #{job_id} notifies manager has finished") if debug_enabled?

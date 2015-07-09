@@ -275,7 +275,7 @@ module CapistranoMulticonfigParallel
     def worker_died(worker, reason)
       debug("worker with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}") if self.class.debug_enabled?
       job = @worker_to_job[worker.mailbox.address]
-      return if  @jobs[job['job_id']]['worker_action'] == "finished"
+      debug job.inspect  if self.class.debug_enabled?
       @worker_to_job.delete(worker.mailbox.address)
       debug "restarting #{job} on new worker" if self.class.debug_enabled?
       return if job.blank? || job_failed?(job)
