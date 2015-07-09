@@ -103,7 +103,7 @@ module CapistranoMulticonfigParallel
 
     def fetch_multi_stages
       stages = @argv['STAGES'].blank? ? '' : @argv['STAGES']
-      stages = parse_inputted_value(value: stages).split(',').compact if stages.present?
+      stages = parse_inputted_value('value' => stages).split(',').compact if stages.present?
       stages = stages.present? ? stages : [@default_stage]
       stages
     end
@@ -190,7 +190,7 @@ module CapistranoMulticonfigParallel
       message = box.present? ? "BOX #{box}:" : "stage #{options['stage']}:"
       env_opts = get_app_additional_env_options(app, message)
 
-      options['env_options'] = options['env_options'].reverse_merge(env_opts.except('BOX'))
+      options['env_options'] = options['env_options'].reverse_merge(env_opts)
 
       env_options = branch_name.present? ? { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
       job_env_options = custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
@@ -237,7 +237,7 @@ module CapistranoMulticonfigParallel
     def fetch_app_additional_env_options
       options = {}
       return options if fetch(:app_additional_env_options).blank?
-      env_options = parse_inputted_value(key: :app_additional_env_options)
+      env_options = parse_inputted_value('key'  => :app_additional_env_options)
       env_options = env_options.split(' ')
       options = multi_fetch_argv(env_options)
       options.stringify_keys!
@@ -255,7 +255,7 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_on_multiple_boxes(main_box_name, options)
-      boxes = parse_inputted_value(value: main_box_name).split(',').compact
+      boxes = parse_inputted_value('value' =>  main_box_name).split(',').compact
       boxes.each do |box_name|
         options['env_options']['BOX'] = box_name
         prepare_job(options)

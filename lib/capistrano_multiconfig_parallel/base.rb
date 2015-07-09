@@ -40,8 +40,9 @@ module CapistranoMulticonfigParallel
       default_text= default.nil? ? '' : "(#{default})"
       $stdout.print "#{message}: #{default_text}"
       $stdout.flush
-      $stdin.gets.chomp
+     result =  $stdin.gets.chomp
       `stty -raw echo`
+      return result
     rescue
       return nil
     end
