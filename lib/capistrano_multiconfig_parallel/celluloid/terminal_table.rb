@@ -72,6 +72,10 @@ module CapistranoMulticonfigParallel
       processed_job['task_arguments'].present? ? "#{processed_job['action_name']}[#{processed_job['task_arguments'].join(',')}]" : processed_job['action_name']
     end
 
+    def worker_stage(processed_job)
+      processed_job['app_name'].present? ? "#{processed_job['app_name']}\n#{processed_job['env_name']}" : "#{processed_job['env_name']}"
+    end
+
     def get_worker_details(job_id)
       job = @manager.jobs[job_id]
       processed_job = @manager.process_job(job)
@@ -81,6 +85,7 @@ module CapistranoMulticonfigParallel
         'job_id' => job_id,
         'app_name' => processed_job['app_name'],
         'env_name' => processed_job['env_name'],
+        'full_stage' => worker_stage(processed_job),
         'action_name' => worker_action(processed_job),
         'env_options' => worker_env_options(processed_job),
         'task_arguments' => job['task_arguments'],
@@ -91,7 +96,7 @@ module CapistranoMulticonfigParallel
     def add_job_to_table(table, job_id)
       details = get_worker_details(job_id)
       row = [{ value: job_id.to_s },
-             { value: "#{details['app_name']}\n#{details['env_name']}" },
+             { value: details['full_stage'] },
              { value: details['action_name'] },
              { value: details['env_options'] },
              { value: "#{details['state']}" }
