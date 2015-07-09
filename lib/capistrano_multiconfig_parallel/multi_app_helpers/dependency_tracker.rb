@@ -19,7 +19,6 @@ module CapistranoMulticonfigParallel
       applications << 'all_frameworks'
       interactive_menu = CapistranoMulticonfigParallel::InteractiveMenu.new
       applications_selected = interactive_menu.show_all_websites_interactive_menu(applications)
-
       applications_selected = applications_selected.gsub("\r\n", '') if applications_selected.present?
       applications_selected = applications_selected.gsub("\n", '') if applications_selected.present?
       applications_selected = applications_selected.split(',') if applications_selected.present?
@@ -69,7 +68,7 @@ module CapistranoMulticonfigParallel
     end
 
     def show_frameworks_used(applications_to_deploy, all_frameworks, action)
-      return [] if applications_to_deploy.blank? || applications_to_deploy.size <= 1
+      return [] if applications_to_deploy.blank? || applications_to_deploy.size < 1
       puts 'The following frameworks will be used:'
       app_names = []
       if all_frameworks.present?

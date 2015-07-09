@@ -25,10 +25,20 @@ module CapistranoMulticonfigParallel
       File.expand_path(File.dirname(__dir__))
     end
 
+    def check_terminal_tty
+      $stdin.sync = true if $stdin.isatty
+      $stdout.sync = true if $stdout.isatty
+    end
+
     def ask_confirm(message, default)
-      Ask.input message, default: default
-      rescue
-        return nil
+      `stty -raw echo`
+      check_terminal_tty
+      result = Ask.input message, default: default
+      $stdout.flush
+      `stty -raw echo`
+      return result
+    rescue
+      return nil
     end
 
     def log_directory

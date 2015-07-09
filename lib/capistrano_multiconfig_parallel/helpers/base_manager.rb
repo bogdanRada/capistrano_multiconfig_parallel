@@ -1,4 +1,5 @@
 require_relative './standard_deploy'
+require_relative '../celluloid/celluloid_manager'
 module CapistranoMulticonfigParallel
   # finds app dependencies, shows menu and delegates jobs to celluloid manager
   # rubocop:disable ClassLength
@@ -88,8 +89,8 @@ module CapistranoMulticonfigParallel
 
     def tag_staging_exists? # check exists task from capistrano-gitflow
       check_giflow_tasks(
-        CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK, 
-        CapistranoMulticonfigParallel::GITFLOW_CALCULATE_TAG_TASK, 
+        CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK,
+        CapistranoMulticonfigParallel::GITFLOW_CALCULATE_TAG_TASK,
         CapistranoMulticonfigParallel::GITFLOW_VERIFY_UPTODATE_TASK
       )
     rescue
@@ -97,14 +98,14 @@ module CapistranoMulticonfigParallel
     end
 
     def check_giflow_tasks(*tasks)
-      tasks.all? {|t| Rake::Task[t].present?  }
+      tasks.all? { |t| Rake::Task[t].present? }
     end
 
     def fetch_multi_stages
       stages = @argv['STAGES'].blank? ? '' : @argv['STAGES']
-      stages = parse_inputted_value(value: stages).split(',').compact if stages.present?
-     stages = stages.present? ? stages : [@default_stage]
-     return stages
+      stages = parse_inputted_value('value' => stages).split(',').compact if stages.present?
+      stages = stages.present? ? stages : [@default_stage]
+      stages
     end
 
     def wants_deploy_production?
@@ -139,7 +140,7 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_environments
-       @jobs.map { |job| job['env'] }
+      @jobs.map { |job| job['env'] }
     end
 
     def confirmation_applies_to_all_workers?
@@ -189,7 +190,7 @@ module CapistranoMulticonfigParallel
       message = box.present? ? "BOX #{box}:" : "stage #{options['stage']}:"
       env_opts = get_app_additional_env_options(app, message)
 
-      options['env_options'] = options['env_options'].reverse_merge(env_opts.except('BOX'))
+      options['env_options'] = options['env_options'].reverse_merge(env_opts)
 
       env_options = branch_name.present? ? { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
       job_env_options = custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
@@ -197,7 +198,7 @@ module CapistranoMulticonfigParallel
       job = {
         app: app,
         env: options['stage'],
-        action: custom_command? && env_options['ACTION'].present?  ? env_options['ACTION'] : options['action'],
+        action: custom_command? && env_options['ACTION'].present? ? env_options['ACTION'] : options['action'],
         task_arguments: options['task_arguments'],
         env_options: job_env_options
       }
@@ -236,7 +237,7 @@ module CapistranoMulticonfigParallel
     def fetch_app_additional_env_options
       options = {}
       return options if fetch(:app_additional_env_options).blank?
-      env_options = parse_inputted_value(key: :app_additional_env_options)
+      env_options = parse_inputted_value('key' => :app_additional_env_options)
       env_options = env_options.split(' ')
       options = multi_fetch_argv(env_options)
       options.stringify_keys!
@@ -254,7 +255,7 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_on_multiple_boxes(main_box_name, options)
-      boxes = parse_inputted_value(value: main_box_name).split(',').compact
+      boxes = parse_inputted_value('value' => main_box_name).split(',').compact
       boxes.each do |box_name|
         options['env_options']['BOX'] = box_name
         prepare_job(options)
