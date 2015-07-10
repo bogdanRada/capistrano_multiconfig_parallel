@@ -21,15 +21,15 @@ module CapistranoMulticonfigParallel
     end
 
     def wait_execution(name = task_name, time = 0.1)
-  #    info "Before waiting #{name}"
+      #    info "Before waiting #{name}"
       Actor.current.wait_for(name, time)
-    #  info "After waiting #{name}"
+      #  info "After waiting #{name}"
     end
 
     def wait_for(name, time)
-     # info "waiting for #{time} seconds on #{name}"
+      # info "waiting for #{time} seconds on #{name}"
       sleep time
-     # info "done waiting on #{name} "
+      # info "done waiting on #{name} "
     end
 
     def default_settings
@@ -79,8 +79,10 @@ module CapistranoMulticonfigParallel
       debug("Rake worker #{@job_id} received after parse #{message}") if debug_enabled?
       if @client.succesfull_subscription?(message)
         publish_subscription_successfull
-      elsif message.present? && message['client_action'].blank?
+      elsif message.present? && message['task'].present? 
         task_approval(message)
+      elsif message.present? && message['action'].present? && message['action'] == 'stdin'
+        stdin_approval(message)
       else
         warn "unknown action: #{message.inspect}" if debug_enabled?
       end
@@ -96,9 +98,16 @@ module CapistranoMulticonfigParallel
       @successfull_subscription = true
     end
     
+    def wait_for_stdin_input
+      until @stdin_result.present?
+        wait_execution
+      end
+      return @stdin_result
+    end
+    
     def stdin_approval(message)
-      if @job_id.to_i == message['job_id'].to_i && message['approved'] == 'yes'
-        @stdin_result = message
+      if @job_id.to_i == message['job_id'].to_i && message['result'].present? && message['action'] == 'stdin'
+        @stdin_result = message['result']
       else
         warn "unknown invocation #{message.inspect}" if debug_enabled?
       end
@@ -116,5 +125,36 @@ module CapistranoMulticonfigParallel
       debug("websocket connection closed: #{code.inspect}, #{reason.inspect}") if debug_enabled?
       terminate
     end
+    
+    def get_question_details(data)
+      question = ''
+      default = nil
+      if data =~ /(.*)\?+\s*\:*\s*(\([^)]*\))*/m
+        question = Regexp.last_match(1)
+        default = Regexp.last_match(2)
+      end
+      question.present? ? [question, default] : nil
+    end
+
+    def printing_question?(data)
+      get_question_details(data).present?
+    end
+
+    def user_prompt_needed?(data)
+      return unless printing_question?(data)
+      excluded do
+        details = get_question_details(data)
+        default = details.second.present? ? details.second : nil
+        publish_to_worker({
+            action: "stdout",
+            question: data,
+            default: default,
+            job_id: @job_id
+          })
+        wait_for_stdin_input
+      end
+    end
+    
+    
   end
 end

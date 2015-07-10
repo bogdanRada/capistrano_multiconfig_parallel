@@ -54,10 +54,7 @@ module CapistranoMulticonfigParallel
     def publish_rake_event(data)
       @client.publish(rake_actor_id(data), data)
     end
-
-    def publish_io_event(data)
-      @client.publish("rake_io_#{@job_id}", 'approved' => 'yes', 'action' => 'stdin', 'job_id' => @job_id, 'result' => data)
-    end
+    
 
     def rake_actor_id(data)
       data['action'].present? && data['action'] == 'count' ? "rake_worker_#{@job_id}_count" : "rake_worker_#{@job_id}"
@@ -139,11 +136,18 @@ module CapistranoMulticonfigParallel
         update_machine_state(message['task']) # if message['action'] == 'invoke'
         debug("worker #{@job_id} state is #{@machine.state}") if debug_enabled?
         task_approval(message)
+      elsif message_is_for_stdout?(message)
+       result =   CapistranoMulticonfigParallel.ask_confirm(message['question'],message['default'])
+       publish_rake_event(message.merge(action: "stdin",result: result, "client_action" => "stdin"))
       else
         debug("worker #{@job_id} could not handle  #{message}") if debug_enabled?
       end
     end
 
+      def message_is_for_stdout?(message)
+      message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['action'] == 'stdout'
+    end
+      
     def message_is_about_a_task?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['task'].present?
     end

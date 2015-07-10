@@ -1,10 +1,14 @@
 require_relative './extension_helper'
+require_relative './input_stream'
+require_relative './output_stream'
 Rake::Task.class_eval do
   alias_method :original_execute, :execute
 
   def execute(args = nil)
     if CapistranoMulticonfigParallel::ExtensionHelper.inside_job?
-      CapistranoMulticonfigParallel::ExtensionHelper.run_the_actor(self) do
+      CapistranoMulticonfigParallel::ExtensionHelper.run_the_actor(self) do |actor|
+        CapistranoMulticonfigParallel::InputStream.hook(actor)
+        CapistranoMulticonfigParallel::OutputStream.hook(actor)
         original_execute(*args)
       end
     else

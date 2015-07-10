@@ -37,11 +37,11 @@ module CapistranoMulticonfigParallel
       info ex.backtrace
       terminate
     end
-
+    
     def message_valid?(message)
       message[:type].present? && message[:type] == 'output' || message[:type] == 'event'
     end
-
+    
     def show_terminal_screen(table)
       return unless table.rows.present?
       terminal_clear
