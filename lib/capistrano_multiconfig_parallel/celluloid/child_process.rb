@@ -13,7 +13,6 @@ module CapistranoMulticonfigParallel
       @actor = @options.fetch(:actor, nil)
       @job_id = @actor.job_id
       @debug_enabled = @actor.debug_enabled?
-      @input = StringIO.new
       set_worker_log
       EM.run do
         EM.next_tick do
@@ -127,7 +126,7 @@ module CapistranoMulticonfigParallel
 
     def io_callback(io, data)
       @worker_log.debug("#{io.upcase} ---- #{data}")
-      user_prompt_needed?(data)
+     # user_prompt_needed?(data)
     end
   end
 end
