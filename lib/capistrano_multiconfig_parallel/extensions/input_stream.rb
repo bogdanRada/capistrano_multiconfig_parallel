@@ -9,14 +9,15 @@ module CapistranoMulticonfigParallel
       $stdin = STDIN
     end
 
+    attr_accessor :real, :actor
+
     def initialize(real_stdin, actor)
-      @real = real_stdin
-      @actor = actor
+      self.real = real_stdin
+      self.actor = actor
     end
 
     def gets(*args)
-     input = @actor.wait_for_stdin_input
-      input
+      @actor.wait_for_stdin_input
     end
 
     def finish

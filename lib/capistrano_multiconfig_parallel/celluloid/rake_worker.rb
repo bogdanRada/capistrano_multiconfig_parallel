@@ -4,7 +4,10 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Logger
 
-    attr_accessor :env, :client, :job_id, :action, :task, :task_approved, :successfull_subscription, :subscription_channel, :publisher_channel, :stdin_result
+    attr_accessor :env, :client, :job_id, :action, :task, 
+    :task_approved, :successfull_subscription,
+     :subscription_channel, :publisher_channel, :stdin_result,
+     :questions_prompted
 
     def work(env, options = {})
       @options = options.stringify_keys
@@ -33,6 +36,7 @@ module CapistranoMulticonfigParallel
     end
 
     def default_settings
+      @questions_prompted ||=[]
       @stdin_result = nil
       @job_id = @options['job_id']
       @subscription_channel = @options['actor_id']
@@ -140,9 +144,13 @@ module CapistranoMulticonfigParallel
       get_question_details(data).present?
     end
 
+    def has_asked_question?(question)
+      @questions_prompted.include?(question)
+    end
+
     def user_prompt_needed?(data)
-      return unless printing_question?(data)
-    
+      return if !printing_question?(data) || has_asked_question?(data)
+      
         details = get_question_details(data)
         default = details.second.present? ? details.second : nil
         publish_to_worker({
@@ -151,6 +159,7 @@ module CapistranoMulticonfigParallel
             default: default.delete('()'),
             job_id: @job_id
           })
+        @questions_prompted << data
        
      
     end
