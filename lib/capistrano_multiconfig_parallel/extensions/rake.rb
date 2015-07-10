@@ -1,4 +1,4 @@
-require_relative '../helpers/extension_helper'
+require_relative './extension_helper'
 Rake::Task.class_eval do
   alias_method :original_execute, :execute
 

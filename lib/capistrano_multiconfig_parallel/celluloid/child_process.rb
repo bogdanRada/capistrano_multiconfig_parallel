@@ -4,13 +4,16 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Logger
 
-    attr_accessor :actor, :pid, :exit_status, :process, :filename, :worker_log
+    attr_accessor :actor, :pid, :exit_status, :process, :filename, :worker_log, :job_id, :debug_enabled
 
     finalizer :process_finalizer
       
     def work(cmd, options = {})
       @options = options
       @actor = @options.fetch(:actor, nil)
+      @job_id = @actor.job_id
+      @debug_enabled = @actor.debug_enabled?
+      @input = StringIO.new
       set_worker_log
       EM.run do
         EM.next_tick do
@@ -21,8 +24,8 @@ module CapistranoMulticonfigParallel
         end
       end
       EM.error_handler do|e|
-        puts "Error during event loop for worker #{@actor.job_id}: #{e.inspect}" if @actor.debug_enabled?
-        puts e.backtrace if @actor.debug_enabled?
+        @worker_log.debug "Error during event loop for worker #{@job_id}: #{e.inspect}" if @debug_enabled
+        @worker_log.debug e.backtrace if @debug_enabled
         EM.stop
       end
     end
@@ -47,10 +50,10 @@ module CapistranoMulticonfigParallel
     def check_exit_status
       return unless @exit_status.present?
       if @options[:dry_run]
-        debug("worker #{@actor.job_id} starts execute deploy") if @actor.debug_enabled?
+        debug("worker #{@actor.job_id} starts execute deploy") if @debug_enabled
         @actor.async.execute_deploy
       elsif !@actor.worker_finshed?
-        debug("worker #{@actor.job_id} startsnotify finished") if @actor.debug_enabled?
+        debug("worker #{@actor.job_id} startsnotify finished") if @debug_enabled
         @actor.notify_finished(@exit_status)
       end
     end
@@ -61,6 +64,7 @@ module CapistranoMulticonfigParallel
         target: self,
         environment: options[:environment].present? ? options[:environment] : nil,
         pid_handler: :on_pid,
+        input: :on_input_stdin ,
         stdout_handler: :on_read_stdout,
         stderr_handler: :on_read_stderr,
         watch_handler: :watch_handler,
@@ -85,12 +89,12 @@ module CapistranoMulticonfigParallel
     end
 
     def on_exit(status)
-      debug "Child process for worker #{@actor.job_id} on_exit  disconnected due to error #{status.inspect}" if @actor.debug_enabled?
+        @worker_log.debug "Child process for worker #{@job_id} on_exit  disconnected due to error #{status.inspect}" if @debug_enabled
       @exit_status = status
     end
 
     def async_exception_handler(*data)
-      debug "Child process for worker #{@actor.job_id} async_exception_handler  disconnected due to error #{data.inspect}" if @actor.debug_enabled?
+      @worker_log.debug "Child process for worker #{@job_id} async_exception_handler  disconnected due to error #{data.inspect}" if @debug_enabled
       io_callback('stderr', data)
       @exit_status = 1
     end
@@ -98,7 +102,7 @@ module CapistranoMulticonfigParallel
     def watch_handler(process)
       @process ||= process
     end
-
+    
     def get_question_details(data)
       question = ''
       default = nil
@@ -123,7 +127,7 @@ module CapistranoMulticonfigParallel
 
     def io_callback(io, data)
       @worker_log.debug("#{io.upcase} ---- #{data}")
-      #      user_prompt_needed?(data)
+      user_prompt_needed?(data)
     end
   end
 end

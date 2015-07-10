@@ -1,3 +1,5 @@
+require 'celluloid/autostart'
+require_relative "../celluloid/rake_worker"
 module CapistranoMulticonfigParallel
   class ExtensionHelper
     class << self
@@ -8,6 +10,7 @@ module CapistranoMulticonfigParallel
       def job_id
         ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
       end
+      
 
       def rake_actor_id
         ENV['count_rake'].present? ? "rake_worker_#{job_id}_count" : "rake_worker_#{job_id}"
@@ -34,7 +37,7 @@ module CapistranoMulticonfigParallel
         until Celluloid::Actor[rake_actor_id].task_approved
           Celluloid::Actor[rake_actor_id].wait_execution
         end
-        yield if Celluloid::Actor[rake_actor_id].task_approved
+        yield Celluloid::Actor[rake_actor_id]  if Celluloid::Actor[rake_actor_id].task_approved
       end
     end
   end
