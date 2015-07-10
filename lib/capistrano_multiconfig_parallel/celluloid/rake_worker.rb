@@ -47,7 +47,7 @@ module CapistranoMulticonfigParallel
     end
 
     def debug_enabled?
-      CapistranoMulticonfigParallel::CelluloidManager.debug_websocket?
+       CapistranoMulticonfigParallel::CelluloidManager.debug_websocket?
     end
 
     def task_name
@@ -76,7 +76,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_message(message)
-      debug("Rake worker #{@job_id} received after parse #{message}") if debug_enabled?
+      debug("Rake worker #{@job_id} received after parse #{message}") #if debug_enabled?
       if @client.succesfull_subscription?(message)
         publish_subscription_successfull
       elsif message.present? && message['task'].present? 
@@ -142,17 +142,17 @@ module CapistranoMulticonfigParallel
 
     def user_prompt_needed?(data)
       return unless printing_question?(data)
-      excluded do
+    
         details = get_question_details(data)
         default = details.second.present? ? details.second : nil
         publish_to_worker({
             action: "stdout",
-            question: data,
-            default: default,
+            question: details.first,
+            default: default.delete('()'),
             job_id: @job_id
           })
-        wait_for_stdin_input
-      end
+       
+     
     end
     
     

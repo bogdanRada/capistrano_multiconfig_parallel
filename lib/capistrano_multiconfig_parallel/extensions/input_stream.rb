@@ -19,13 +19,8 @@ module CapistranoMulticonfigParallel
       input
     end
 
-    def log(input)
-      @log.puts input
-      @log.flush
-    end
-
     def finish
-      @log.close
+     
     end
 
     def method_missing(name, *args, &block)

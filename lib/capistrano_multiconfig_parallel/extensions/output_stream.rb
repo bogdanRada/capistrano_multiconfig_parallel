@@ -15,7 +15,8 @@ module CapistranoMulticonfigParallel
     end
 
     def write(*args)
-      @real.write(*args)
+     # @real.write(*args)
+      @actor.debug(args.join(" "))
       input = @actor.user_prompt_needed?(args.join(" "))
       input
     end
