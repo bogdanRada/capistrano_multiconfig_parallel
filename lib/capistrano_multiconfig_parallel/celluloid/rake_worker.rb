@@ -4,41 +4,49 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Logger
 
-    attr_accessor :env, :client, :job_id, :action, :task, :task_approved, :successfull_subscription, :subscription_channel, :publisher_channel, :stdin_result
+    attr_accessor :env, :client, :job_id, :action, :task, 
+    :task_approved, :successfull_subscription,
+     :subscription_channel, :publisher_channel, :stdin_result,
+     :questions_prompted, :nitialize_options
+
+
+
+     def initialize(options={})
+      @initialize_options = options.stringify_keys
+      @questions_prompted ||=[]
+      @stdin_result = nil
+      @job_id = @initialize_options['job_id']
+      @subscription_channel = @initialize_options['actor_id']
+      @publisher_channel = "worker_#{@job_id}"
+      @task_approved = false
+      @successfull_subscription = false
+      initialize_subscription
+     end
+
 
     def work(env, options = {})
       @options = options.stringify_keys
       @env = env
-      default_settings
-      custom_attributes
-      initialize_subscription
+      @action = @subscription_channel.include?('_count') ? 'count' : 'invoke'
+      @task = @options['task']
+      wait_execution until @successfull_subscription == true && defined?(@client)
+      publish_to_worker(task_data)
     end
 
-    def custom_attributes
-      @publisher_channel = "worker_#{@job_id}"
-      @action = @options['actor_id'].include?('_count') ? 'count' : 'invoke'
-      @task = @options['task']
-    end
+ 
 
     def wait_execution(name = task_name, time = 0.1)
-  #    info "Before waiting #{name}"
+      #    info "Before waiting #{name}"
       Actor.current.wait_for(name, time)
-    #  info "After waiting #{name}"
+      #  info "After waiting #{name}"
     end
 
     def wait_for(name, time)
-     # info "waiting for #{time} seconds on #{name}"
+      # info "waiting for #{time} seconds on #{name}"
       sleep time
-     # info "done waiting on #{name} "
+      # info "done waiting on #{name} "
     end
 
-    def default_settings
-      @stdin_result = nil
-      @job_id = @options['job_id']
-      @subscription_channel = @options['actor_id']
-      @task_approved = false
-      @successfull_subscription = false
-    end
 
     def initialize_subscription
       @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: debug_enabled?) do |ws|
@@ -47,7 +55,7 @@ module CapistranoMulticonfigParallel
     end
 
     def debug_enabled?
-      CapistranoMulticonfigParallel::CelluloidManager.debug_websocket?
+       CapistranoMulticonfigParallel::CelluloidManager.debug_websocket?
     end
 
     def task_name
@@ -62,25 +70,20 @@ module CapistranoMulticonfigParallel
       }
     end
 
-    def publish_new_work(env, new_options = {})
-      work(env, @options.merge(new_options))
-      after_publishing_new_work
-    end
-
-    def after_publishing_new_work
-      publish_to_worker(task_data)
-    end
 
     def publish_to_worker(data)
       @client.publish(@publisher_channel, data)
     end
 
     def on_message(message)
-      debug("Rake worker #{@job_id} received after parse #{message}") if debug_enabled?
+      debug("Rake worker #{@job_id} received after parse #{message}") #if debug_enabled?
       if @client.succesfull_subscription?(message)
-        publish_subscription_successfull
-      elsif message.present? && message['client_action'].blank?
+       debug("Rake worker #{@job_id} received  parse #{message}") if debug_enabled?
+       @successfull_subscription = true
+      elsif message.present? && message['task'].present? 
         task_approval(message)
+      elsif message.present? && message['action'].present? && message['action'] == 'stdin'
+        stdin_approval(message)
       else
         warn "unknown action: #{message.inspect}" if debug_enabled?
       end
@@ -91,14 +94,21 @@ module CapistranoMulticonfigParallel
     end
 
     def publish_subscription_successfull
-      debug("Rake worker #{@job_id} received  parse #{message}") if debug_enabled?
-      publish_to_worker(task_data)
-      @successfull_subscription = true
+    
+    end
+    
+    def wait_for_stdin_input
+      until @stdin_result.present?
+        wait_execution
+      end
+      output = @stdin_result.clone
+      Actor.current.stdin_result = nil
+      output
     end
     
     def stdin_approval(message)
-      if @job_id.to_i == message['job_id'].to_i && message['approved'] == 'yes'
-        @stdin_result = message
+      if @job_id.to_i == message['job_id'].to_i && message['result'].present? && message['action'] == 'stdin'
+        @stdin_result = message['result']
       else
         warn "unknown invocation #{message.inspect}" if debug_enabled?
       end
@@ -116,5 +126,41 @@ module CapistranoMulticonfigParallel
       debug("websocket connection closed: #{code.inspect}, #{reason.inspect}") if debug_enabled?
       terminate
     end
+    
+    def get_question_details(data)
+      question = ''
+      default = nil
+      if data =~ /(.*)\?+\s*\:*\s*(\([^)]*\))*/m
+        question = Regexp.last_match(1)
+        default = Regexp.last_match(2)
+      end
+      question.present? ? [question, default] : nil
+    end
+
+    def printing_question?(data)
+      get_question_details(data).present?
+    end
+
+    def has_asked_question?(question)
+      @questions_prompted.include?(question)
+    end
+
+    def user_prompt_needed?(data)
+      return if !printing_question?(data) || has_asked_question?(data)
+      
+        details = get_question_details(data)
+        default = details.second.present? ? details.second : nil
+        publish_to_worker({
+            action: "stdout",
+            question: details.first,
+            default: default.delete('()'),
+            job_id: @job_id
+          })
+        @questions_prompted << data
+       
+     
+    end
+    
+    
   end
 end

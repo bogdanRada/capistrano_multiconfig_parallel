@@ -1,4 +1,6 @@
 require_relative './extension_helper'
+require_relative './input_stream'
+require_relative './output_stream'
 Rake::Task.class_eval do
   alias_method :original_execute, :execute
 
