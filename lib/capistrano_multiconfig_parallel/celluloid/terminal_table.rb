@@ -37,6 +37,13 @@ module CapistranoMulticonfigParallel
       info ex.backtrace
       terminate
     end
+
+
+    def show_confirmation(message, default)
+      exclusive do
+        CapistranoMulticonfigParallel.ask_confirm(message, default)
+      end
+    end
     
     def message_valid?(message)
       message[:type].present? && message[:type] == 'output' || message[:type] == 'event'

@@ -137,7 +137,7 @@ module CapistranoMulticonfigParallel
         debug("worker #{@job_id} state is #{@machine.state}") if debug_enabled?
         task_approval(message)
       elsif message_is_for_stdout?(message)
-       result =   CapistranoMulticonfigParallel.ask_confirm(message['question'],message['default'])
+       result =   Celluloid::Actor[:terminal_server].show_confirmation(message['question'],message['default'])
        publish_rake_event(message.merge('action' => "stdin",'result' => result, "client_action" => "stdin"))
       else
         debug("worker #{@job_id} could not handle  #{message}") if debug_enabled?
