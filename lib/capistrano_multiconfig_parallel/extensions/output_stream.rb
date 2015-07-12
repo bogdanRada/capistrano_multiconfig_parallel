@@ -18,18 +18,13 @@ module CapistranoMulticonfigParallel
     end
 
     def write(*args)
-      try_output_data(*args)
+      @real.write(*args) 
+      @real.flush
       @actor.user_prompt_needed?(args.join(' ')) 
     end
 
 
-    def try_output_data(*args)
-     data = args.join(' ')
-     return if @strings.include?(data)
-     @real.write(*args) 
-     @real.flush
-     @strings << data
-   end
+
 
    def finish
 
