@@ -6,9 +6,7 @@ Rake::Task.class_eval do
 
   def execute(args = nil)
     if CapistranoMulticonfigParallel::ExtensionHelper.inside_job?
-      CapistranoMulticonfigParallel::ExtensionHelper.run_the_actor(self) do |actor|
-        CapistranoMulticonfigParallel::InputStream.hook(actor)
-        CapistranoMulticonfigParallel::OutputStream.hook(actor)
+      CapistranoMulticonfigParallel::ExtensionHelper.run_the_actor(self) do
         original_execute(*args)
       end
     else
