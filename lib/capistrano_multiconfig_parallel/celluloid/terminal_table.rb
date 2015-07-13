@@ -1,4 +1,4 @@
-
+require 'open3'
 module CapistranoMulticonfigParallel
   # class used to display the progress of each worker on terminal screen using a table
   # rubocop:disable ClassLength
@@ -105,12 +105,13 @@ module CapistranoMulticonfigParallel
     def add_job_to_table(table, job_id)
       details = get_worker_details(job_id)
       row = [{ value: job_id.to_s },
-             { value: details['full_stage'] },
-             { value: details['action_name'] },
-             { value: details['env_options'] },
-             { value: "#{details['state']}" }
-            ]
+        { value: details['full_stage'] },
+        { value: details['action_name'] },
+        { value: details['env_options'] },
+        { value: "#{details['state']}" }
+      ]
       if CapistranoMulticonfigParallel.show_task_progress
+        worker = @manager.get_worker_for_job(job_id)
         row << { value: worker.rake_tasks.size }
         row << { value: worker_progress(worker) }
       end
@@ -123,6 +124,7 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_progress(worker)
+      return worker_state(worker) unless worker.alive?
       tasks = worker.rake_tasks
       current_task = worker.machine.state
       total_tasks = tasks.size
