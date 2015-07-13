@@ -130,7 +130,7 @@ module CapistranoMulticonfigParallel
     def get_question_details(data)
       question = ''
       default = nil
-      if data =~ /(.*)\?+\s*\:*\s*(\([^)]*\))*/m
+      if data =~ /(.*)\?*\s*\:*\s*(\([^)]*\))*/m
         question = Regexp.last_match(1)
         default = Regexp.last_match(2)
       end
@@ -157,7 +157,7 @@ module CapistranoMulticonfigParallel
             job_id: @job_id
           })
         @questions_prompted << data
-       
+       wait_for_stdin_input
      
     end
     

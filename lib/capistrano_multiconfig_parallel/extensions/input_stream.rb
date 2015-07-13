@@ -1,7 +1,7 @@
 module CapistranoMulticonfigParallel
   class InputStream
-    def self.hook(actor)
-      $stdin = new($stdin, actor)
+    def self.hook(actor, stringio)
+      $stdin = new($stdin, actor, stringio)
     end
 
     def self.unhook
@@ -9,15 +9,18 @@ module CapistranoMulticonfigParallel
       $stdin = STDIN
     end
 
-    attr_accessor :real, :actor
+    attr_accessor :real, :actor, :stringio
 
-    def initialize(real_stdin, actor)
+    def initialize(real_stdin, actor, stringio)
       self.real = real_stdin
       self.actor = actor
+      self.stringio = stringio
     end
 
     def gets(*args)
-      @actor.wait_for_stdin_input
+      @stringio.rewind
+      data = @stringio.read
+      @actor.user_prompt_needed?(data) 
     end
 
     def finish

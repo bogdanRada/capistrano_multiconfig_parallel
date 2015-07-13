@@ -1,7 +1,7 @@
 module CapistranoMulticonfigParallel
   class OutputStream
-    def self.hook(actor)
-      $stdout = new($stdout, actor)
+    def self.hook(stringio)
+      $stdout = new($stdout, stringio)
     end
 
     def self.unhook
@@ -9,18 +9,17 @@ module CapistranoMulticonfigParallel
       $stdout = STDOUT
     end
 
-    attr_accessor :real, :actor, :strings
+    attr_accessor :real, :stringio
 
-    def initialize(real_stdout, actor)
+    def initialize(real_stdout, stringio)
       self.real= real_stdout
-      self.actor = actor
-      self.strings = []
+      self.stringio = stringio
     end
 
     def write(*args)
+      @stringio.print(*args)
       @real.write(*args) 
       @real.flush
-      @actor.user_prompt_needed?(args.join(' ')) 
     end
 
 
