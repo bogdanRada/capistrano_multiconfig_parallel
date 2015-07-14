@@ -136,24 +136,21 @@ module CapistranoMulticonfigParallel
       return worker_state(worker) unless worker.alive? 
       return if worker.executing_dry_run.nil?
       tasks = worker.alive? ?  worker.rake_tasks : []
-      current_task =  worker_state(worker)
+      current_task =    worker.alive? ? worker.machine.state.to_s : ""
       total_tasks =  worker_dry_running?(worker) ? nil : tasks.size
-      task_index =  worker_dry_running?(worker) ? 0 : tasks.index(current_task).to_i + 1
-      stringio = StringIO.new
-      progress_bar =  ProgressBar.create(:output => stringio, :starting_at => task_index, :total => total_tasks, :length => 40, title: "JOB #{details['job_id']}:  #{task_index.to_s} of  #{total_tasks}")
-      progress_bar.refresh
-      progress_bar.stop
-      stringio.rewind
-      result = stringio.read
-      result = result.gsub("\r\n", '')
-      result = result.gsub("\n", '')
-      result = result.gsub('|', '#')
-      result = result.gsub(/\s+/, ' ')
-      if worker.crashed?
-        return result.red
+      task_index =  worker_dry_running?(worker) ? 0 : tasks.index(current_task.to_s).to_i + 1
+      percent = percent_of(task_index, total_tasks)
+      result  =   worker_dry_running?(worker) ? "Please wait.. building the progress bars"  : "Progress [#{sprintf('%.2f', percent)}%]  (#{task_index} of #{total_tasks})"
+      if worker.alive?
+        worker.crashed? ? result.red : result.green
       else
-        return result.green
+        worker_state(worker)
       end
     end
+    
+    def percent_of(index, total)
+       index.to_f / total.to_f * 100.0
+    end
+    
   end
 end
