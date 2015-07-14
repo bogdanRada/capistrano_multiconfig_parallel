@@ -7,7 +7,7 @@ module CapistranoMulticonfigParallel
   # module used for generating the version
   module VERSION
     MAJOR = 0
-    MINOR = 10
+    MINOR = 11
     TINY = 0
     PRE = nil
 

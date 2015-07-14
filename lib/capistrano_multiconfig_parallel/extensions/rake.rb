@@ -3,11 +3,8 @@ Rake::Task.class_eval do
   alias_method :original_execute, :execute
 
   def execute(*args)
-    if CapistranoMulticonfigParallel::ExtensionHelper.inside_job?
-      CapistranoMulticonfigParallel::ExtensionHelper.run_the_actor(self) do
-        original_execute(*args)
-     end
-    else
+    rake =  CapistranoMulticonfigParallel::ExtensionHelper.new(ENV, self) 
+    rake.work do
       original_execute(*args)
     end
   end
