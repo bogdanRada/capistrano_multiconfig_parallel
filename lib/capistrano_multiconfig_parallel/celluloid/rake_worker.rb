@@ -11,29 +11,24 @@ module CapistranoMulticonfigParallel
 
 
 
-     def initialize(options={})
-      @initialize_options = options.stringify_keys
-      @questions_prompted ||=[]
-      @stdin_result = nil
-      @job_id = @initialize_options['job_id']
-      @subscription_channel = @initialize_options['actor_id']
-      @publisher_channel = "worker_#{@job_id}"
-      @task_approved = false
-      @successfull_subscription = false
-      initialize_subscription
-     end
-
-
-    def work(env, options = {})
+     def work(env, options = {})
       @options = options.stringify_keys
       @env = env
-      @action = @subscription_channel.include?('_count') ? 'count' : 'invoke'
-      @task = @options['task']
-      wait_execution until @successfull_subscription == true && defined?(@client)
-      publish_to_worker(task_data)
+      default_settings
+      custom_attributes
+      initialize_subscription
     end
 
- 
+    def custom_attributes
+      @publisher_channel = "worker_#{@job_id}"
+      @action = @options['actor_id'].include?('_count') ? 'count' : 'invoke'
+      @task = @options['task']
+    end
+
+   def publish_new_work(env, new_options = {})
+      work(env, @options.merge(new_options))
+       publish_to_worker(task_data)
+    end
 
     def wait_execution(name = task_name, time = 0.1)
       #    info "Before waiting #{name}"
@@ -47,6 +42,13 @@ module CapistranoMulticonfigParallel
       # info "done waiting on #{name} "
     end
 
+    def default_settings
+      @stdin_result = nil
+      @job_id = @options['job_id']
+      @subscription_channel = @options['actor_id']
+      @task_approved = false
+      @successfull_subscription = false
+    end
 
     def initialize_subscription
       @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: debug_enabled?) do |ws|
@@ -80,6 +82,7 @@ module CapistranoMulticonfigParallel
       if @client.succesfull_subscription?(message)
        debug("Rake worker #{@job_id} received  parse #{message}") if debug_enabled?
        @successfull_subscription = true
+         publish_to_worker(task_data)
       elsif message.present? && message['task'].present? 
         task_approval(message)
       elsif message.present? && message['action'].present? && message['action'] == 'stdin'

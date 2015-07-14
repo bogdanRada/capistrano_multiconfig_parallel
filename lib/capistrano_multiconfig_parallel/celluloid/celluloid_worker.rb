@@ -25,11 +25,12 @@ module CapistranoMulticonfigParallel
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv, :execute_deploy, :executed_dry_run,
                   :rake_tasks, :current_task_number, # tracking tasks
                   :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-                  :job_termination_condition, :worker_state, :executing_dry_run
+                  :job_termination_condition, :worker_state, :executing_dry_run, :job_argv
     
     def work(job, manager)
       @job = job
       @worker_state = 'started'
+      @executing_dry_run = nil
       @manager = manager
       @job_confirmation_conditions = []
       process_job(job) if job.present?
@@ -74,8 +75,7 @@ module CapistranoMulticonfigParallel
       if  @action_name != 'deploy:rollback' && CapistranoMulticonfigParallel.show_task_progress
         @executed_dry_run = true
         @rake_tasks = []
-        @executing_dry_run = true
-        setup_task_arguments( '--dry-run','count_rake=true' )
+        setup_task_arguments(dry_run_command,'count_rake=true' )
         @child_process = CapistranoMulticonfigParallel::ChildProcess.new
         Actor.current.link @child_process
         debug("worker #{@job_id} executes: #{generate_command}") if debug_enabled?
@@ -106,7 +106,6 @@ module CapistranoMulticonfigParallel
       setup_task_arguments
       debug("worker #{@job_id} executes: #{generate_command}") if debug_enabled?
       @child_process.async.work(generate_command, actor: Actor.current, silent: true)
-      @executing_dry_run = false
       @manager.wait_task_confirmations_worker(Actor.current)
     end
 
@@ -130,6 +129,8 @@ module CapistranoMulticonfigParallel
     end
 
     def handle_subscription(message)
+        @executing_dry_run = message['action'] == 'count' ? true : false
+        @manager.jobs[@job_id]['job_argv'] = @job_argv
       if message_is_about_a_task?(message)
         check_gitflow
         save_tasks_to_be_executed(message)
@@ -187,6 +188,14 @@ module CapistranoMulticonfigParallel
       @task_argv
     end
     
+    def dry_run_command
+      '--dry-run'
+    end
+    
+    def dry_running?
+      @task_argv.include?(dry_run_command) == true
+    end
+    
     def worker_stage
       @app_name.present? ? "#{@app_name}:#{@env_name}" : "#{@env_name}"
     end
@@ -205,7 +214,7 @@ module CapistranoMulticonfigParallel
       args.each do |arg|
         array_options << arg
       end
-      @manager.jobs[@job_id]['job_argv'] = array_options.clone
+      @job_argv= array_options.clone
       array_options.unshift("#{worker_action}")
        array_options.unshift("#{worker_stage}")
       setup_command_line(*array_options)

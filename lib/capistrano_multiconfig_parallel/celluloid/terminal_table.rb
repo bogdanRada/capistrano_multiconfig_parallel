@@ -112,8 +112,13 @@ module CapistranoMulticonfigParallel
         { value: "#{details['state']}" }
       ]
       if CapistranoMulticonfigParallel.show_task_progress 
-        row << { value: worker.rake_tasks.size }
-        row << { value: worker_progress(worker) }
+        if  worker.alive?
+          row << { value: worker.rake_tasks.size }
+          row << { value: worker_progress(details, worker) }
+        else
+          row << { value: 0 }
+          row << { value:  worker_state(worker) }
+        end
       end
       table.add_row(row)
       table.add_separator if @manager.jobs.keys.last.to_i != job_id.to_i
@@ -123,22 +128,21 @@ module CapistranoMulticonfigParallel
       system('cls') || system('clear') || puts("\e[H\e[2J")
     end
 
-    def worker_progress(worker)
-      return worker_state(worker) unless worker.alive?
-      tasks = worker.rake_tasks
-      current_task = worker.machine.state
-      total_tasks = tasks.size
-      task_index = tasks.index(current_task)
+    def worker_dry_running?(worker)
+      worker.alive? && worker.dry_running?
+    end
+    
+    def worker_progress(details, worker)
+      return worker_state(worker) unless worker.alive? 
+      return if worker.executing_dry_run.nil?
+      tasks = worker.alive? ?  worker.rake_tasks : []
+      current_task =  worker_state(worker)
+      total_tasks =  worker_dry_running?(worker) ? nil : tasks.size
+      task_index =  worker_dry_running?(worker) ? 0 : tasks.index(current_task).to_i + 1
       stringio = StringIO.new
-      if worker.executing_dry_run == false
-        #progress = ProgressBar::Base.new(:title => "Tasks",  :output => stringio, :format =>  '%a %B %p%% %t',  :starting_at => task_index.to_i, :total =>  total_tasks, :length => 40)
-        progress =  ProgressBar.create(:format => '%a |%b %i| %p%% Completed', :output => stringio, :starting_at => task_index, :total =>  total_tasks, :length => 40 )
-        progress.refresh
-      else
-        progress =  ProgressBar.create(:format => '%a |%b %i| %p%% Completed', :output => stringio, :length => 40, :total => nil, :unknown_progress_animation_steps => ['==>', '>==', '=>='])
-        progress.increment
-        progress.refresh
-      end
+      progress_bar =  ProgressBar.create(:output => stringio, :starting_at => task_index, :total => total_tasks, :length => 40, title: "JOB #{details['job_id']}:  #{task_index.to_s} of  #{total_tasks}")
+      progress_bar.refresh
+      progress_bar.stop
       stringio.rewind
       result = stringio.read
       result = result.gsub("\r\n", '')
