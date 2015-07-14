@@ -6,8 +6,7 @@ module CapistranoMulticonfigParallel
 
     attr_accessor :env, :client, :job_id, :action, :task, 
     :task_approved, :successfull_subscription,
-     :subscription_channel, :publisher_channel, :stdin_result,
-     :questions_prompted, :nitialize_options
+     :subscription_channel, :publisher_channel, :stdin_result
 
 
 
@@ -144,12 +143,8 @@ module CapistranoMulticonfigParallel
       get_question_details(data).present?
     end
 
-    def has_asked_question?(question)
-      @questions_prompted.include?(question)
-    end
-
     def user_prompt_needed?(data)
-      return if !printing_question?(data) || has_asked_question?(data)
+      return unless printing_question?(data)
       
         details = get_question_details(data)
         default = details.second.present? ? details.second : nil
@@ -159,7 +154,6 @@ module CapistranoMulticonfigParallel
             default: default.delete('()'),
             job_id: @job_id
           })
-        @questions_prompted << data
        wait_for_stdin_input
      
     end
