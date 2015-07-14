@@ -21,7 +21,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'celluloid_pubsub', '~> 0.0', '>= 0.0.15'
   s.add_runtime_dependency 'composable_state_machine', '~> 1.0', '>= 1.0.2'
   s.add_runtime_dependency 'terminal-table', '~> 1.4', '>= 1.4.5'
-  s.add_runtime_dependency 'ruby-progressbar', '~> 1.7', '>= 1.7.5'
   s.add_runtime_dependency 'colorize', '~> 0.7', '>= 0.7'
   s.add_runtime_dependency 'eventmachine', '~> 1.0', '>= 1.0.3'
   s.add_runtime_dependency 'right_popen', '~> 1.1', '>= 1.1.3'
