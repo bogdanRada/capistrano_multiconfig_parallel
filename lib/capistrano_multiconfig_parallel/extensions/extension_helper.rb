@@ -1,5 +1,7 @@
 require 'celluloid/autostart'
 require_relative "../celluloid/rake_worker"
+require_relative './input_stream'
+require_relative './output_stream'
 module CapistranoMulticonfigParallel
   class ExtensionHelper
     class << self

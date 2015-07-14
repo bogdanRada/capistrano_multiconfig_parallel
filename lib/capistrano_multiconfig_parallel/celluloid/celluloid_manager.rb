@@ -247,6 +247,7 @@ module CapistranoMulticonfigParallel
         'action_name' => job['action'],
         'env_options' => env_options,
         'task_arguments' => job['task_arguments'],
+        'job_argv' => job.fetch("job_argv", []),
         'processed' => true
        }   
       end

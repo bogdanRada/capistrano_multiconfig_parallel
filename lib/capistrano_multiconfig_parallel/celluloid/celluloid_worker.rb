@@ -25,7 +25,7 @@ module CapistranoMulticonfigParallel
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv, :execute_deploy, :executed_dry_run,
                   :rake_tasks, :current_task_number, # tracking tasks
                   :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-                  :job_termination_condition, :worker_state
+                  :job_termination_condition, :worker_state, :executing_dry_run
     
     def work(job, manager)
       @job = job
@@ -71,12 +71,11 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_after_succesfull_subscription
-      setup_task_arguments
-      if (@action_name == 'deploy' || @action_name == 'deploy:rollback') && CapistranoMulticonfigParallel.show_task_progress
+      if  @action_name != 'deploy:rollback' && CapistranoMulticonfigParallel.show_task_progress
         @executed_dry_run = true
         @rake_tasks = []
-        @task_argv << '--dry-run'
-        @task_argv << 'count_rake=true'
+        @executing_dry_run = true
+        setup_task_arguments( '--dry-run','count_rake=true' )
         @child_process = CapistranoMulticonfigParallel::ChildProcess.new
         Actor.current.link @child_process
         debug("worker #{@job_id} executes: #{generate_command}") if debug_enabled?
@@ -107,6 +106,7 @@ module CapistranoMulticonfigParallel
       setup_task_arguments
       debug("worker #{@job_id} executes: #{generate_command}") if debug_enabled?
       @child_process.async.work(generate_command, actor: Actor.current, silent: true)
+      @executing_dry_run = false
       @manager.wait_task_confirmations_worker(Actor.current)
     end
 
@@ -168,9 +168,8 @@ module CapistranoMulticonfigParallel
 
     def save_tasks_to_be_executed(message)
       return unless message['action'] == 'count'
-      debug("worler #{@job_id} current invocation chain : #{@rake_tasks.inspect}") if debug_enabled?
-      @rake_tasks = [] if @rake_tasks.blank?
-      @rake_tasks << message['task'] if @rake_tasks.last != message['task']
+      debug("worler #{@job_id} current invocation chain : #{rake_tasks.inspect}") if debug_enabled?
+      rake_tasks << message['task'] if rake_tasks.last != message['task']
     end
 
     def update_machine_state(name)
@@ -187,17 +186,28 @@ module CapistranoMulticonfigParallel
       end
       @task_argv
     end
+    
+    def worker_stage
+      @app_name.present? ? "#{@app_name}:#{@env_name}" : "#{@env_name}"
+    end
+    
+    def worker_action
+       "#{@action_name}[#{@task_arguments.join(',')}]"
+    end
 
-    def setup_task_arguments
+    def setup_task_arguments(*args)
       #   stage = "#{@app_name}:#{@env_name} #{@action_name}"
-      stage = @app_name.present? ? "#{@app_name}:#{@env_name}" : "#{@env_name}"
-      array_options = ["#{stage}"]
-      array_options << "#{@action_name}[#{@task_arguments.join(',')}]"
+      array_options = []
       @env_options.each do |key, value|
         array_options << "#{key}=#{value}" if value.present?
-      end
+        end
       array_options << '--trace' if debug_enabled?
-      array_options << '--multi_debug=true' if debug_enabled?
+      args.each do |arg|
+        array_options << arg
+      end
+      @manager.jobs[@job_id]['job_argv'] = array_options.clone
+      array_options.unshift("#{worker_action}")
+       array_options.unshift("#{worker_stage}")
       setup_command_line(*array_options)
     end
 

@@ -71,12 +71,12 @@ module CapistranoMulticonfigParallel
 
     def worker_env_options(processed_job)
       worker_optons = ''
-      processed_job['env_options'].each do |key, value|
-        worker_optons << "#{key}=#{value}\n"
+      processed_job['job_argv'].each do |elem|
+        worker_optons << "#{elem}\n"
       end
       worker_optons
     end
-
+    
     def worker_action(processed_job)
       processed_job['task_arguments'].present? ? "#{processed_job['action_name']}[#{processed_job['task_arguments'].join(',')}]" : processed_job['action_name']
     end
@@ -85,10 +85,9 @@ module CapistranoMulticonfigParallel
       processed_job['app_name'].present? ? "#{processed_job['app_name']}\n#{processed_job['env_name']}" : "#{processed_job['env_name']}"
     end
 
-    def get_worker_details(job_id)
+    def get_worker_details(job_id, worker)
       job = @manager.jobs[job_id]
       processed_job = @manager.process_job(job)
-      worker = @manager.get_worker_for_job(job_id)
       
       {
         'job_id' => job_id,
@@ -103,15 +102,16 @@ module CapistranoMulticonfigParallel
     end
 
     def add_job_to_table(table, job_id)
-      details = get_worker_details(job_id)
+      worker = @manager.get_worker_for_job(job_id)
+      details = get_worker_details(job_id, worker)
+      
       row = [{ value: job_id.to_s },
         { value: details['full_stage'] },
         { value: details['action_name'] },
         { value: details['env_options'] },
         { value: "#{details['state']}" }
       ]
-      if CapistranoMulticonfigParallel.show_task_progress
-        worker = @manager.get_worker_for_job(job_id)
+      if CapistranoMulticonfigParallel.show_task_progress 
         row << { value: worker.rake_tasks.size }
         row << { value: worker_progress(worker) }
       end
@@ -129,10 +129,18 @@ module CapistranoMulticonfigParallel
       current_task = worker.machine.state
       total_tasks = tasks.size
       task_index = tasks.index(current_task)
-      progress = Formatador::ProgressBar.new(total_tasks, color: 'green', start: task_index.to_i)
-      result = CapistranoMulticonfigParallel::Helper.capture(:stdout) do
+      stringio = StringIO.new
+      if worker.executing_dry_run == false
+        #progress = ProgressBar::Base.new(:title => "Tasks",  :output => stringio, :format =>  '%a %B %p%% %t',  :starting_at => task_index.to_i, :total =>  total_tasks, :length => 40)
+        progress =  ProgressBar.create(:format => '%a |%b %i| %p%% Completed', :output => stringio, :starting_at => task_index, :total =>  total_tasks, :length => 40 )
+        progress.refresh
+      else
+        progress =  ProgressBar.create(:format => '%a |%b %i| %p%% Completed', :output => stringio, :length => 40, :total => nil, :unknown_progress_animation_steps => ['==>', '>==', '=>='])
         progress.increment
+        progress.refresh
       end
+      stringio.rewind
+      result = stringio.read
       result = result.gsub("\r\n", '')
       result = result.gsub("\n", '')
       result = result.gsub('|', '#')
