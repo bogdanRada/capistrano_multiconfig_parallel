@@ -7,19 +7,20 @@ module CapistranoMulticonfigParallel
     def self.setup_command_line_standard(options)
       opts = ''
       options.each do |key, value|
-        opts << "#{key}=#{value}" if value.present?
+        opts << "#{key}=#{value} " if value.present?
       end
       opts
     end
 
     def self.execute_standard_deploy(options)
       app = options.fetch('app', '')
-      stage = options.fetch('stage', 'development')
+      stage = options.fetch('env', 'development')
       action_name = options.fetch('action', 'deploy')
       action = "#{action_name}[#{options.fetch('task_arguments:', []).join(',')}]"
       arguments = setup_command_line_standard(options.fetch('env_options', {}))
-
-      command = "bundle exec cap #{app}:#{stage} #{action}  #{arguments}"
+      job_stage = app.present? ? "#{app}:#{stage}" : "#{stage}"
+      
+      command = "bundle exec cap #{job_stage} #{action}  #{arguments}"
       puts("\n\n\n Executing '#{command}' \n\n\n .")
       sh("#{command}")
     rescue => ex
