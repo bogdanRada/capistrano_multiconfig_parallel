@@ -135,7 +135,7 @@ module CapistranoMulticonfigParallel
     def worker_progress(details, worker)
       return worker_state(worker) unless worker.alive? 
       return if worker.executing_dry_run.nil?
-      tasks = worker.alive? ?  worker.rake_tasks : []
+      tasks = worker.alive? ?  worker.dry_run_tasks : []
       current_task =    worker.alive? ? worker.machine.state.to_s : ""
       total_tasks =  worker_dry_running?(worker) ? nil : tasks.size
       task_index =  worker_dry_running?(worker) ? 0 : tasks.index(current_task.to_s).to_i + 1

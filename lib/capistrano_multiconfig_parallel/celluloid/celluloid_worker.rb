@@ -25,7 +25,7 @@ module CapistranoMulticonfigParallel
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv, :execute_deploy, :executed_dry_run,
                   :rake_tasks, :current_task_number, # tracking tasks
                   :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-                  :job_termination_condition, :worker_state, :executing_dry_run, :job_argv
+                  :job_termination_condition, :worker_state, :executing_dry_run, :job_argv, :dry_run_tasks
     
     def work(job, manager)
       @job = job
@@ -87,6 +87,10 @@ module CapistranoMulticonfigParallel
 
     def rake_tasks
       @rake_tasks ||= []
+    end
+    
+    def dry_run_tasks
+         @dry_run_tasks ||= []
     end
 
     def cd_working_directory
@@ -169,7 +173,8 @@ module CapistranoMulticonfigParallel
 
     def save_tasks_to_be_executed(message)
       debug("worler #{@job_id} current invocation chain : #{rake_tasks.inspect}") if debug_enabled?
-      rake_tasks << message['task'] if rake_tasks.last != message['task']
+      rake_tasks << message['task'] if rake_tasks.last != message['task'] 
+      dry_run_tasks << message['task'] if dry_running? &&  dry_run_tasks.last != message['task'] 
     end
 
     def update_machine_state(name)
