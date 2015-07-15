@@ -7,8 +7,8 @@ module CapistranoMulticonfigParallel
   # module used for generating the version
   module VERSION
     MAJOR = 0
-    MINOR = 11
-    TINY = 6
+    MINOR = 12
+    TINY = 0
     PRE = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')

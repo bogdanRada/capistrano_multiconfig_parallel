@@ -48,15 +48,6 @@ module CapistranoMulticonfigParallel
             default: default_config[:multi_debug]
           },
           {
-            name: 'multi_progress',
-            type: :boolean,
-            description: "if option is present and has value TRUE  will first execute before any process
-                                \t same task but with option '--dry-run'  in order to show progress of how many tasks
-                                \t are in total for that task and what is the progress of executing
-                                \t This will slow down the workers , because they will execute twice the same task.",
-            default: default_config[:multi_progress]
-          },
-          {
             name: 'multi_secvential',
             type: :boolean,
             description: "If parallel executing does not work for you, you can use this option so that
@@ -169,7 +160,7 @@ module CapistranoMulticonfigParallel
       end
 
       def check_configuration(c)
-        %w(multi_debug multi_progress multi_secvential task_confirmation_active track_dependencies websocket_server.enable_debug syncronize_confirmation).each do |prop|
+        %w(multi_debug multi_secvential task_confirmation_active track_dependencies websocket_server.enable_debug syncronize_confirmation).each do |prop|
           c.send("#{prop}=", c[prop.to_sym]) if check_boolean(c, prop.to_sym)
         end
         %w(task_confirmations development_stages apply_stage_confirmation).each do |prop|
@@ -181,7 +172,6 @@ module CapistranoMulticonfigParallel
 
       def check_additional_config(c)
         CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true if c[:multi_debug].to_s.downcase == 'true'
-        CapistranoMulticonfigParallel.show_task_progress = true if c[:multi_progress].to_s.downcase == 'true'
         CapistranoMulticonfigParallel.execute_in_sequence = true if c[:multi_secvential].to_s.downcase == 'true'
       end
     end

@@ -119,10 +119,6 @@ application_dependencies: []
 * --multi-debug
   * if option is present and has value TRUE , will enable debugging of workers
 
-* --multi-progress
-  * If option is present and has value TRUE  will first execute before any process , same task but with option "--dry-run" in order to show progress of how many tasks are in total for that task and what is the progress of executing
- This will slow down the workers , because they will execute twice the same task.
-
 * --multi-secvential
   * If parallel executing does not work for you, you can use this option so that each process is executed normally and ouputted to the screen.
   However this means that all other tasks will have to wait for each other to finish before starting 

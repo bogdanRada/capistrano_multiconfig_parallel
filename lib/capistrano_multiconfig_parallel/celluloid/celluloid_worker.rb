@@ -72,17 +72,7 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_after_succesfull_subscription
-      if  @action_name != 'deploy:rollback' && CapistranoMulticonfigParallel.show_task_progress
-        @executed_dry_run = true
-        @rake_tasks = []
-        setup_task_arguments(dry_run_command,'count_rake=true' )
-        @child_process = CapistranoMulticonfigParallel::ChildProcess.new
-        Actor.current.link @child_process
-        debug("worker #{@job_id} executes: #{generate_command}") if debug_enabled?
-        @child_process.async.work(generate_command, actor: Actor.current, silent: true, dry_run: true)
-      else
         async.execute_deploy
-      end
     end
 
     def rake_tasks
@@ -105,7 +95,7 @@ module CapistranoMulticonfigParallel
 
     def execute_deploy
       @execute_deploy = true
-      debug("invocation chain #{@job_id} is : #{@rake_tasks.inspect}") if debug_enabled? && CapistranoMulticonfigParallel.show_task_progress
+      debug("invocation chain #{@job_id} is : #{@rake_tasks.inspect}") if debug_enabled? 
       check_child_proces
       setup_task_arguments
       debug("worker #{@job_id} executes: #{generate_command}") if debug_enabled?

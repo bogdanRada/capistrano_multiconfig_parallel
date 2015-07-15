@@ -21,10 +21,10 @@ module CapistranoMulticonfigParallel
     def notify_time_change(topic, message)
       return unless topic == CapistranoMulticonfigParallel::TerminalTable::TOPIC
       default_headings = ['Job ID', 'App/Stage', 'Action', 'ENV Variables', 'Current Task']
-      if CapistranoMulticonfigParallel.show_task_progress
-        default_headings << 'Total'
-        default_headings << 'Progress'
-      end
+      # if CapistranoMulticonfigParallel.show_task_progress
+      #   default_headings << 'Total'
+      #   default_headings << 'Progress'
+      # end
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_headings)
       if @manager.jobs.present? && message_valid?(message)
         @manager.jobs.each do |job_id, _job|
@@ -111,15 +111,15 @@ module CapistranoMulticonfigParallel
         { value: details['env_options'] },
         { value: "#{details['state']}" }
       ]
-      if CapistranoMulticonfigParallel.show_task_progress 
-        if  worker.alive?
-          row << { value: worker.rake_tasks.size }
-          row << { value: worker_progress(details, worker) }
-        else
-          row << { value: 0 }
-          row << { value:  worker_state(worker) }
-        end
-      end
+      # if CapistranoMulticonfigParallel.show_task_progress 
+      #   if  worker.alive?
+      #     row << { value: worker.rake_tasks.size }
+      #     row << { value: worker_progress(details, worker) }
+      #   else
+      #     row << { value: 0 }
+      #     row << { value:  worker_state(worker) }
+      #   end
+      # end
       table.add_row(row)
       table.add_separator if @manager.jobs.keys.last.to_i != job_id.to_i
     end
