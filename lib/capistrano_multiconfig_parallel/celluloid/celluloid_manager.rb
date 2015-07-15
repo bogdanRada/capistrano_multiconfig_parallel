@@ -223,7 +223,7 @@ module CapistranoMulticonfigParallel
 
     def dispatch_new_job(job)
       original_env = job['env_options']
-      env_opts = @job_manager.get_app_additional_env_options(job['app_name'], job['stage'])
+      env_opts = @job_manager.get_app_additional_env_options(job['app_name'], job['env'])
       job['env_options'] = original_env.merge(env_opts)
       async.delegate(job)
     end
@@ -274,13 +274,12 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_died(worker, reason)
-      debug("worker with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}") if self.class.debug_enabled?
       job = @worker_to_job[worker.mailbox.address]
-      debug job.inspect  if self.class.debug_enabled?
+      debug("worker job #{job} with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}") if self.class.debug_enabled?
       @worker_to_job.delete(worker.mailbox.address)
-      debug "restarting #{job} on new worker" if self.class.debug_enabled?
       return if job.blank? || job_failed?(job)
       return unless job['action_name'] == 'deploy'
+      debug "restarting #{job} on new worker" if self.class.debug_enabled?
       job = job.merge(:action => 'deploy:rollback', 'worker_action' => 'worker_died')
       delegate(job)
     end
