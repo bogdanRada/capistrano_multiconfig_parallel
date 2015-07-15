@@ -48,7 +48,7 @@ module CapistranoMulticonfigParallel
     
     def check_exit_status
       return unless @exit_status.present?
-      if @options[:dry_run]
+      if @exit_status.exitstatus == 0 &&  @options[:dry_run]
         debug("worker #{@actor.job_id} starts execute deploy") if @debug_enabled
         @actor.async.execute_deploy
       elsif !@actor.worker_finshed?

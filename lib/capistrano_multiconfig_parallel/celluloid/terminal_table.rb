@@ -140,7 +140,7 @@ module CapistranoMulticonfigParallel
       total_tasks =  worker_dry_running?(worker) ? nil : tasks.size
       task_index =  worker_dry_running?(worker) ? 0 : tasks.index(current_task.to_s).to_i + 1
       percent = percent_of(task_index, total_tasks)
-      result  =   worker_dry_running?(worker) ? "Please wait.. building the progress bars"  : "Progress [#{sprintf('%.2f', percent)}%]  (#{task_index} of #{total_tasks})"
+      result  =   worker_dry_running?(worker) ? "Please wait.. building the progress bars"  : "Progress [#{sprintf('%.2f', percent)}%]  (executed #{task_index} of #{total_tasks})"
       if worker.alive?
         worker.crashed? ? result.red : result.green
       else

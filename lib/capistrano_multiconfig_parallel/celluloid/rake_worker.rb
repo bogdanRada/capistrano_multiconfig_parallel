@@ -142,9 +142,9 @@ module CapistranoMulticonfigParallel
     def printing_question?(data)
       get_question_details(data).present?
     end
-
+ 
     def user_prompt_needed?(data)
-      return unless printing_question?(data)
+      return if !printing_question?(data) || @action != "invoke"
       
         details = get_question_details(data)
         default = details.second.present? ? details.second : nil

@@ -124,7 +124,7 @@ module CapistranoMulticonfigParallel
     end
 
     def check_gitflow
-      return if !@env_name == 'staging' || !@manager.can_tag_staging? || !executed_task?(CapistranoMulticonfigParallel::GITFLOW_VERIFY_UPTODATE_TASK)
+      return if dry_running? ||  @env_name != 'staging' || !@manager.can_tag_staging? || !executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
       @manager.dispatch_new_job(@job.merge('env' => 'production'))
     end
 
@@ -154,7 +154,7 @@ module CapistranoMulticonfigParallel
     end
 
     def executed_task?(task)
-      @rake_tasks.present? && @rake_tasks[task].present?
+      rake_tasks.present? && rake_tasks.index(task.to_s).present?
     end
 
     def task_approval(message)
@@ -168,7 +168,6 @@ module CapistranoMulticonfigParallel
     end
 
     def save_tasks_to_be_executed(message)
-      return unless message['action'] == 'count'
       debug("worler #{@job_id} current invocation chain : #{rake_tasks.inspect}") if debug_enabled?
       rake_tasks << message['task'] if rake_tasks.last != message['task']
     end
@@ -249,7 +248,6 @@ module CapistranoMulticonfigParallel
     end
 
     def notify_finished(exit_status)
-      return unless @execute_deploy
       if exit_status.exitstatus != 0
         debug("worker #{job_id} tries to terminate") if debug_enabled?
         raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task  failed with exit status #{exit_status.inspect} ")  # force worker to rollback
