@@ -13,11 +13,11 @@ module CapistranoMulticonfigParallel
     end
 
     def self.execute_standard_deploy(options)
-      app = options.fetch(:app, '')
-      stage = options.fetch(:env, 'development')
-      action_name = options.fetch(:action, 'deploy')
-      action = "#{action_name}[#{options.fetch(:task_arguments, []).join(',')}]"
-      arguments = setup_command_line_standard(options.fetch(:env_options, {}))
+      app = options.fetch('app', '')
+      stage = options.fetch('stage', 'development')
+      action_name = options.fetch('action', 'deploy')
+      action = "#{action_name}[#{options.fetch('task_arguments:', []).join(',')}]"
+      arguments = setup_command_line_standard(options.fetch('env_options', {}))
 
       command = "bundle exec cap #{app}:#{stage} #{action}  #{arguments}"
       puts("\n\n\n Executing '#{command}' \n\n\n .")
