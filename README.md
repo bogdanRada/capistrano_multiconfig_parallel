@@ -92,7 +92,6 @@ Default Configuration:
 ```yaml
 ---
 multi_debug: true
-multi_progres: false
 multi_secvential: false
 websocket_server:
   enable_debug: false
