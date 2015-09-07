@@ -20,7 +20,7 @@ module CapistranoMulticonfigParallel
       interactive_menu = CapistranoMulticonfigParallel::InteractiveMenu.new
       applications_selected = interactive_menu.show_all_websites_interactive_menu(applications)
       applications_selected = applications_selected.gsub("\r\n", '') if applications_selected.present?
-      applications_selected = applications_selected.gsub("\n", '') if applications_selected.present?
+      applications_selected = applications_selected.delete("\n") if applications_selected.present?
       applications_selected = applications_selected.split(',') if applications_selected.present?
       applications_selected.present? ? applications_selected : []
     end

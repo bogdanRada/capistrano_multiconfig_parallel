@@ -4,19 +4,17 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Logger
 
-    attr_accessor :env, :client, :job_id, :action, :task, 
-    :task_approved, :successfull_subscription,
-     :subscription_channel, :publisher_channel, :stdin_result
+    attr_accessor :env, :client, :job_id, :action, :task,
+                  :task_approved, :successfull_subscription,
+                  :subscription_channel, :publisher_channel, :stdin_result
 
-
-
-     def work(env, options = {})
+    def work(env, options = {})
       @options = options.stringify_keys
       @env = env
       default_settings
       custom_attributes
       initialize_subscription
-    end
+   end
 
     def custom_attributes
       @publisher_channel = "worker_#{@job_id}"
@@ -24,10 +22,10 @@ module CapistranoMulticonfigParallel
       @task = @options['task']
     end
 
-   def publish_new_work(env, new_options = {})
+    def publish_new_work(env, new_options = {})
       work(env, @options.merge(new_options))
-       publish_to_worker(task_data)
-    end
+      publish_to_worker(task_data)
+     end
 
     def wait_execution(name = task_name, time = 0.1)
       #    info "Before waiting #{name}"
@@ -35,7 +33,7 @@ module CapistranoMulticonfigParallel
       #  info "After waiting #{name}"
     end
 
-    def wait_for(name, time)
+    def wait_for(_name, time)
       # info "waiting for #{time} seconds on #{name}"
       sleep time
       # info "done waiting on #{name} "
@@ -56,7 +54,7 @@ module CapistranoMulticonfigParallel
     end
 
     def debug_enabled?
-       CapistranoMulticonfigParallel::CelluloidManager.debug_websocket?
+      CapistranoMulticonfigParallel::CelluloidManager.debug_websocket?
     end
 
     def task_name
@@ -71,18 +69,17 @@ module CapistranoMulticonfigParallel
       }
     end
 
-
     def publish_to_worker(data)
       @client.publish(@publisher_channel, data)
     end
 
     def on_message(message)
-      debug("Rake worker #{@job_id} received after parse #{message}") #if debug_enabled?
+      debug("Rake worker #{@job_id} received after parse #{message}") # if debug_enabled?
       if @client.succesfull_subscription?(message)
-       debug("Rake worker #{@job_id} received  parse #{message}") if debug_enabled?
-       @successfull_subscription = true
-         publish_to_worker(task_data)
-      elsif message.present? && message['task'].present? 
+        debug("Rake worker #{@job_id} received  parse #{message}") if debug_enabled?
+        @successfull_subscription = true
+        publish_to_worker(task_data)
+      elsif message.present? && message['task'].present?
         task_approval(message)
       elsif message.present? && message['action'].present? && message['action'] == 'stdin'
         stdin_approval(message)
@@ -96,18 +93,15 @@ module CapistranoMulticonfigParallel
     end
 
     def publish_subscription_successfull
-    
     end
-    
+
     def wait_for_stdin_input
-      until @stdin_result.present?
-        wait_execution
-      end
+      wait_execution until @stdin_result.present?
       output = @stdin_result.clone
       Actor.current.stdin_result = nil
       output
     end
-    
+
     def stdin_approval(message)
       if @job_id.to_i == message['job_id'].to_i && message['result'].present? && message['action'] == 'stdin'
         @stdin_result = message['result']
@@ -128,7 +122,7 @@ module CapistranoMulticonfigParallel
       debug("websocket connection closed: #{code.inspect}, #{reason.inspect}") if debug_enabled?
       terminate
     end
-    
+
     def get_question_details(data)
       question = ''
       default = nil
@@ -142,22 +136,17 @@ module CapistranoMulticonfigParallel
     def printing_question?(data)
       get_question_details(data).present?
     end
- 
+
     def user_prompt_needed?(data)
-      return if !printing_question?(data) || @action != "invoke"
-      
-        details = get_question_details(data)
-        default = details.second.present? ? details.second : nil
-        publish_to_worker({
-            action: "stdout",
-            question: details.first,
-            default: default.delete('()'),
-            job_id: @job_id
-          })
-       wait_for_stdin_input
-     
+      return if !printing_question?(data) || @action != 'invoke'
+
+      details = get_question_details(data)
+      default = details.second.present? ? details.second : nil
+      publish_to_worker(action: 'stdout',
+                        question: details.first,
+                        default: default.delete('()'),
+                        job_id: @job_id)
+      wait_for_stdin_input
     end
-    
-    
   end
 end

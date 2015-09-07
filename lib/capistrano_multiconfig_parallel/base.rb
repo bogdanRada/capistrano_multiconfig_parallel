@@ -19,7 +19,7 @@ module CapistranoMulticonfigParallel
   }
 
   class << self
-    attr_accessor  :execute_in_sequence, :logger, :original_args, :interactive_menu
+    attr_accessor :execute_in_sequence, :logger, :original_args, :interactive_menu
 
     def root
       File.expand_path(File.dirname(__dir__))

@@ -7,7 +7,7 @@ module CapistranoMulticonfigParallel
     attr_accessor :actor, :pid, :exit_status, :process, :filename, :worker_log, :job_id, :debug_enabled
 
     finalizer :process_finalizer
-      
+
     def work(cmd, options = {})
       @options = options
       @actor = @options.fetch(:actor, nil)
@@ -45,10 +45,10 @@ module CapistranoMulticonfigParallel
       @timer.cancel
       EM.stop if EM.reactor_running?
     end
-    
+
     def check_exit_status
       return unless @exit_status.present?
-      if @exit_status.exitstatus == 0 &&  @options[:dry_run]
+      if @exit_status.exitstatus == 0 && @options[:dry_run]
         debug("worker #{@actor.job_id} starts execute deploy") if @debug_enabled
         @actor.async.execute_deploy
       elsif !@actor.worker_finshed?
@@ -63,7 +63,7 @@ module CapistranoMulticonfigParallel
         target: self,
         environment: options[:environment].present? ? options[:environment] : nil,
         pid_handler: :on_pid,
-        input: :on_input_stdin ,
+        input: :on_input_stdin,
         stdout_handler: :on_read_stdout,
         stderr_handler: :on_read_stderr,
         watch_handler: :watch_handler,
@@ -88,7 +88,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_exit(status)
-        @worker_log.debug "Child process for worker #{@job_id} on_exit  disconnected due to error #{status.inspect}" if @debug_enabled
+      @worker_log.debug "Child process for worker #{@job_id} on_exit  disconnected due to error #{status.inspect}" if @debug_enabled
       @exit_status = status
     end
 

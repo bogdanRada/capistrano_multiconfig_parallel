@@ -81,7 +81,7 @@ module CapistranoMulticonfigParallel
     def process_jobs
       return unless @jobs.present?
       if CapistranoMulticonfigParallel.execute_in_sequence
-        @jobs.each { |job| CapistranoMulticonfigParallel::StandardDeploy.execute_standard_deploy(job) }
+        @jobs.each { |job| CapistranoMulticonfigParallel::StandardDeploy.new(job) }
       else
         run_async_jobs
       end
@@ -221,7 +221,7 @@ module CapistranoMulticonfigParallel
       value = options['value'].present? ? options['value'] : fetch(options.fetch('key', :app_branch_name))
       if value.present?
         branch = value.gsub("\r\n", '')
-        branch = branch.gsub("\n", '') if branch.present?
+        branch = branch.delete("\n") if branch.present?
         branch = branch.gsub(/\s+/, ' ') if branch.present?
         branch = branch.strip if branch.present?
         return branch
