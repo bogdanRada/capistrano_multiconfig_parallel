@@ -110,7 +110,7 @@ module CapistranoMulticonfigParallel
         sleep(0.1) # keep current thread alive
     end
       debug("all jobs have completed #{condition}") if self.class.debug_enabled?
-      Celluloid::Actor[:terminal_server].async.notify_time_change(CapistranoMulticonfigParallel::TerminalTable::TOPIC, type: 'output') if Celluloid::Actor[:terminal_server].alive?
+      Celluloid::Actor[:terminal_server].async.notify_time_change(CapistranoMulticonfigParallel::TerminalTable.topic, type: 'output') if Celluloid::Actor[:terminal_server].alive?
     end
 
     def apply_confirmations?

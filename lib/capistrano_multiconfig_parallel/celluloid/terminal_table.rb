@@ -6,7 +6,10 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Notifications
     include Celluloid::Logger
-    TOPIC = 'sshkit_terminal'
+
+    def self.topic
+      'sshkit_terminal'
+    end
 
     def initialize(manager, job_manager)
       @manager = manager
@@ -15,11 +18,11 @@ module CapistranoMulticonfigParallel
     end
 
     def run
-      subscribe(CapistranoMulticonfigParallel::TerminalTable::TOPIC, :notify_time_change)
+      subscribe(CapistranoMulticonfigParallel::TerminalTable.topic, :notify_time_change)
     end
 
     def notify_time_change(topic, message)
-      return unless topic == CapistranoMulticonfigParallel::TerminalTable::TOPIC
+      return unless topic == CapistranoMulticonfigParallel::TerminalTable.topic
       default_headings = ['Job ID', 'App/Stage', 'Action', 'ENV Variables', 'Current Task']
       # if CapistranoMulticonfigParallel.show_task_progress
       #   default_headings << 'Total'
