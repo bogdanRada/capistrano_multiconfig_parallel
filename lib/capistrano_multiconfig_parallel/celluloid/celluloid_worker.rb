@@ -26,7 +26,7 @@ module CapistranoMulticonfigParallel
                   :rake_tasks, :current_task_number, # tracking tasks
                   :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
                   :job_termination_condition, :worker_state, :executing_dry_run, :job_argv, :dry_run_tasks
-    
+
     def work(job, manager)
       @job = job
       @worker_state = 'started'
@@ -47,15 +47,13 @@ module CapistranoMulticonfigParallel
     def start_task
       @manager.setup_worker_conditions(Actor.current)
       debug("exec worker #{@job_id} starts task with #{@job.inspect}") if debug_enabled?
-      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: @manager.class.debug_websocket?) do |ws|
-        ws.subscribe(@subscription_channel)
-      end
+      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: @manager.class.debug_websocket?, :channel => subscription_channel)
     end
 
     def publish_rake_event(data)
       @client.publish(rake_actor_id(data), data)
     end
-    
+
 
     def rake_actor_id(data)
       data['action'].present? && data['action'] == 'count' ? "rake_worker_#{@job_id}_count" : "rake_worker_#{@job_id}"
@@ -78,7 +76,7 @@ module CapistranoMulticonfigParallel
     def rake_tasks
       @rake_tasks ||= []
     end
-    
+
     def dry_run_tasks
          @dry_run_tasks ||= []
     end
@@ -95,7 +93,7 @@ module CapistranoMulticonfigParallel
 
     def execute_deploy
       @execute_deploy = true
-      debug("invocation chain #{@job_id} is : #{@rake_tasks.inspect}") if debug_enabled? 
+      debug("invocation chain #{@job_id} is : #{@rake_tasks.inspect}") if debug_enabled?
       check_child_proces
       setup_task_arguments
       debug("worker #{@job_id} executes: #{generate_command}") if debug_enabled?
@@ -142,7 +140,7 @@ module CapistranoMulticonfigParallel
       def message_is_for_stdout?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['action'] == 'stdout'
     end
-      
+
     def message_is_about_a_task?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['task'].present?
     end
@@ -163,8 +161,8 @@ module CapistranoMulticonfigParallel
 
     def save_tasks_to_be_executed(message)
       debug("worler #{@job_id} current invocation chain : #{rake_tasks.inspect}") if debug_enabled?
-      rake_tasks << message['task'] if rake_tasks.last != message['task'] 
-      dry_run_tasks << message['task'] if dry_running? &&  dry_run_tasks.last != message['task'] 
+      rake_tasks << message['task'] if rake_tasks.last != message['task']
+      dry_run_tasks << message['task'] if dry_running? &&  dry_run_tasks.last != message['task']
     end
 
     def update_machine_state(name)
@@ -181,19 +179,19 @@ module CapistranoMulticonfigParallel
       end
       @task_argv
     end
-    
+
     def dry_run_command
       '--dry-run'
     end
-    
+
     def dry_running?
       @task_argv.include?(dry_run_command) == true
     end
-    
+
     def worker_stage
       @app_name.present? ? "#{@app_name}:#{@env_name}" : "#{@env_name}"
     end
-    
+
     def worker_action
        "#{@action_name}[#{@task_arguments.join(',')}]"
     end
@@ -237,7 +235,7 @@ module CapistranoMulticonfigParallel
       @manager.jobs[@job_id]['worker_action'] = 'finished'
       @manager.workers_terminated.signal('completed')  if @manager.all_workers_finished?
     end
-    
+
     def worker_finshed?
        @manager.jobs[@job_id]['worker_action'] == 'finished'
     end

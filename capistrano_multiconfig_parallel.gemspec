@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
 
   s.add_runtime_dependency 'celluloid-pmap', '~> 0.2', '>= 0.2.0'
-  s.add_runtime_dependency 'celluloid_pubsub', '~> 0.0', '>= 0.0.20'
+  s.add_runtime_dependency 'celluloid_pubsub', '~> 0.0', '>= 0.0.21'
   s.add_runtime_dependency 'composable_state_machine', '~> 1.0', '>= 1.0.2'
   s.add_runtime_dependency 'terminal-table', '~> 1.4', '>= 1.4.5'
   s.add_runtime_dependency 'colorize', '~> 0.7', '>= 0.7'
@@ -29,7 +29,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'activesupport',  '~> 4.0','>= 4.0'
   s.add_runtime_dependency 'configliere', '~> 0.4', '>=0.4'
   s.add_runtime_dependency 'inquirer', '~> 0.2', '>= 0.2'
-   s.add_runtime_dependency 'devnull','~> 0.1', '>= 0.1'
+  s.add_runtime_dependency 'devnull','~> 0.1', '>= 0.1'
 
   s.add_development_dependency 'rspec-rails', '~> 2.0', '>= 2.0'
   s.add_development_dependency 'guard', '~> 2.6', '>= 2.6.1'
