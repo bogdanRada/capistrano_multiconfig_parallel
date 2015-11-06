@@ -4,7 +4,7 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Logger
 
-    attr_accessor :env, :client, :job_id, :action, :task, 
+    attr_accessor :env, :client, :job_id, :action, :task,
     :task_approved, :successfull_subscription,
      :subscription_channel, :publisher_channel, :stdin_result
 
@@ -50,9 +50,8 @@ module CapistranoMulticonfigParallel
     end
 
     def initialize_subscription
-      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: debug_enabled?) do |ws|
-        ws.subscribe(@subscription_channel)
-      end if !defined?(@client) || @client.nil?
+      return if defined?(@client) && @client.present?
+      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: debug_enabled?, :channel => @subscription_channel )
     end
 
     def debug_enabled?
@@ -82,7 +81,7 @@ module CapistranoMulticonfigParallel
        debug("Rake worker #{@job_id} received  parse #{message}") if debug_enabled?
        @successfull_subscription = true
          publish_to_worker(task_data)
-      elsif message.present? && message['task'].present? 
+      elsif message.present? && message['task'].present?
         task_approval(message)
       elsif message.present? && message['action'].present? && message['action'] == 'stdin'
         stdin_approval(message)
@@ -96,9 +95,9 @@ module CapistranoMulticonfigParallel
     end
 
     def publish_subscription_successfull
-    
+
     end
-    
+
     def wait_for_stdin_input
       until @stdin_result.present?
         wait_execution
@@ -107,7 +106,7 @@ module CapistranoMulticonfigParallel
       Actor.current.stdin_result = nil
       output
     end
-    
+
     def stdin_approval(message)
       if @job_id.to_i == message['job_id'].to_i && message['result'].present? && message['action'] == 'stdin'
         @stdin_result = message['result']
@@ -128,7 +127,7 @@ module CapistranoMulticonfigParallel
       debug("websocket connection closed: #{code.inspect}, #{reason.inspect}") if debug_enabled?
       terminate
     end
-    
+
     def get_question_details(data)
       question = ''
       default = nil
@@ -142,10 +141,10 @@ module CapistranoMulticonfigParallel
     def printing_question?(data)
       get_question_details(data).present?
     end
- 
+
     def user_prompt_needed?(data)
       return if !printing_question?(data) || @action != "invoke"
-      
+
         details = get_question_details(data)
         default = details.second.present? ? details.second : nil
         publish_to_worker({
@@ -155,9 +154,9 @@ module CapistranoMulticonfigParallel
             job_id: @job_id
           })
        wait_for_stdin_input
-     
+
     end
-    
-    
+
+
   end
 end
