@@ -7,12 +7,12 @@ module CapistranoMulticonfigParallel
       CapistranoMulticonfigParallel.check_terminal_tty
       CapistranoMulticonfigParallel.original_args = ARGV.dup
       CapistranoMulticonfigParallel::Application.new.run
-   rescue Interrupt
-     `stty icanon echo`
-     $stderr.puts 'Command cancelled.'
-   rescue => error
-     $stderr.puts error
-     exit(1)
+    rescue Interrupt
+      `stty icanon echo`
+      $stderr.puts 'Command cancelled.'
+    rescue => error
+      $stderr.puts error
+      exit(1)
     end
   end
 end
