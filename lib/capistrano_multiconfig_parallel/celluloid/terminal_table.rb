@@ -38,17 +38,16 @@ module CapistranoMulticonfigParallel
       terminate
     end
 
-
     def show_confirmation(message, default)
       exclusive do
         CapistranoMulticonfigParallel.ask_confirm(message, default)
       end
     end
-    
+
     def message_valid?(message)
       message[:type].present? && message[:type] == 'output' || message[:type] == 'event'
     end
-    
+
     def show_terminal_screen(table)
       return unless table.rows.present?
       terminal_clear
@@ -57,7 +56,7 @@ module CapistranoMulticonfigParallel
       puts table
       puts "\n"
       sleep(1)
-      @job_manager.condition.signal('completed') if @manager.all_workers_finished? 
+      @job_manager.condition.signal('completed') if @manager.all_workers_finished?
     end
 
     def worker_state(worker)
@@ -76,7 +75,7 @@ module CapistranoMulticonfigParallel
       end
       worker_optons
     end
-    
+
     def worker_action(processed_job)
       processed_job['task_arguments'].present? ? "#{processed_job['action_name']}[#{processed_job['task_arguments'].join(',')}]" : processed_job['action_name']
     end
@@ -88,7 +87,7 @@ module CapistranoMulticonfigParallel
     def get_worker_details(job_id, worker)
       job = @manager.jobs[job_id]
       processed_job = @manager.process_job(job)
-      
+
       {
         'job_id' => job_id,
         'app_name' => processed_job['app_name'],
@@ -104,14 +103,14 @@ module CapistranoMulticonfigParallel
     def add_job_to_table(table, job_id)
       worker = @manager.get_worker_for_job(job_id)
       details = get_worker_details(job_id, worker)
-      
+
       row = [{ value: job_id.to_s },
-        { value: details['full_stage'] },
-        { value: details['action_name'] },
-        { value: details['env_options'] },
-        { value: "#{details['state']}" }
-      ]
-      # if CapistranoMulticonfigParallel.show_task_progress 
+             { value: details['full_stage'] },
+             { value: details['action_name'] },
+             { value: details['env_options'] },
+             { value: "#{details['state']}" }
+            ]
+      # if CapistranoMulticonfigParallel.show_task_progress
       #   if  worker.alive?
       #     row << { value: worker.rake_tasks.size }
       #     row << { value: worker_progress(details, worker) }
@@ -131,26 +130,25 @@ module CapistranoMulticonfigParallel
     def worker_dry_running?(worker)
       worker.alive? && worker.dry_running?
     end
-    
-    def worker_progress(details, worker)
-      return worker_state(worker) unless worker.alive? 
+
+    def worker_progress(_details, worker)
+      return worker_state(worker) unless worker.alive?
       return if worker.executing_dry_run.nil?
-      tasks = worker.alive? ?  worker.dry_run_tasks : []
-      current_task =    worker.alive? ? worker.machine.state.to_s : ""
-      total_tasks =  worker_dry_running?(worker) ? nil : tasks.size
-      task_index =  worker_dry_running?(worker) ? 0 : tasks.index(current_task.to_s).to_i + 1
+      tasks = worker.alive? ? worker.dry_run_tasks : []
+      current_task = worker.alive? ? worker.machine.state.to_s : ''
+      total_tasks = worker_dry_running?(worker) ? nil : tasks.size
+      task_index = worker_dry_running?(worker) ? 0 : tasks.index(current_task.to_s).to_i + 1
       percent = percent_of(task_index, total_tasks)
-      result  =   worker_dry_running?(worker) ? "Please wait.. building the progress bars"  : "Progress [#{sprintf('%.2f', percent)}%]  (executed #{task_index} of #{total_tasks})"
+      result  = worker_dry_running?(worker) ? 'Please wait.. building the progress bars' : "Progress [#{sprintf('%.2f', percent)}%]  (executed #{task_index} of #{total_tasks})"
       if worker.alive?
         worker.crashed? ? result.red : result.green
       else
         worker_state(worker)
       end
     end
-    
+
     def percent_of(index, total)
-       index.to_f / total.to_f * 100.0
+      index.to_f / total.to_f * 100.0
     end
-    
   end
 end

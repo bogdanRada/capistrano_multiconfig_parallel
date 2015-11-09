@@ -17,14 +17,13 @@ module CapistranoMulticonfigParallel
       self.stringio = stringio
     end
 
-    def gets(*args)
+    def gets(*_args)
       @stringio.rewind
       data = @stringio.read
-      @actor.user_prompt_needed?(data) 
+      @actor.user_prompt_needed?(data)
     end
 
     def finish
-     
     end
 
     def method_missing(name, *args, &block)
@@ -32,4 +31,3 @@ module CapistranoMulticonfigParallel
     end
   end
 end
-

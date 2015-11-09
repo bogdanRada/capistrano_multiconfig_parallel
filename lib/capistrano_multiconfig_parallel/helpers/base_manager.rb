@@ -221,7 +221,7 @@ module CapistranoMulticonfigParallel
       value = options['value'].present? ? options['value'] : fetch(options.fetch('key', :app_branch_name))
       if value.present?
         branch = value.gsub("\r\n", '')
-        branch = branch.gsub("\n", '') if branch.present?
+        branch = branch.delete("\n") if branch.present?
         branch = branch.gsub(/\s+/, ' ') if branch.present?
         branch = branch.strip if branch.present?
         return branch

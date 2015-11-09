@@ -19,7 +19,7 @@ module CapistranoMulticonfigParallel
       action = "#{action_name}[#{options.fetch('task_arguments:', []).join(',')}]"
       arguments = setup_command_line_standard(options.fetch('env_options', {}))
       job_stage = app.present? ? "#{app}:#{stage}" : "#{stage}"
-      
+
       command = "bundle exec cap #{job_stage} #{action}  #{arguments}"
       puts("\n\n\n Executing '#{command}' \n\n\n .")
       sh("#{command}")

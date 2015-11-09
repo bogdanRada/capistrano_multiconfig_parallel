@@ -47,13 +47,12 @@ module CapistranoMulticonfigParallel
     def start_task
       @manager.setup_worker_conditions(Actor.current)
       debug("exec worker #{@job_id} starts task with #{@job.inspect}") if debug_enabled?
-      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: @manager.class.debug_websocket?, :channel => subscription_channel)
+      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: @manager.class.debug_websocket?, channel: subscription_channel)
     end
 
     def publish_rake_event(data)
       @client.publish(rake_actor_id(data), data)
     end
-
 
     def rake_actor_id(data)
       data['action'].present? && data['action'] == 'count' ? "rake_worker_#{@job_id}_count" : "rake_worker_#{@job_id}"
@@ -70,7 +69,7 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_after_succesfull_subscription
-        async.execute_deploy
+      async.execute_deploy
     end
 
     def rake_tasks
@@ -78,7 +77,7 @@ module CapistranoMulticonfigParallel
     end
 
     def dry_run_tasks
-         @dry_run_tasks ||= []
+      @dry_run_tasks ||= []
     end
 
     def cd_working_directory
@@ -116,13 +115,13 @@ module CapistranoMulticonfigParallel
     end
 
     def check_gitflow
-      return if dry_running? ||  @env_name != 'staging' || !@manager.can_tag_staging? || !executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
+      return if dry_running? || @env_name != 'staging' || !@manager.can_tag_staging? || !executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
       @manager.dispatch_new_job(@job.merge('env' => 'production'))
     end
 
     def handle_subscription(message)
-        @executing_dry_run = message['action'] == 'count' ? true : false
-        @manager.jobs[@job_id]['job_argv'] = @job_argv
+      @executing_dry_run = message['action'] == 'count' ? true : false
+      @manager.jobs[@job_id]['job_argv'] = @job_argv
       if message_is_about_a_task?(message)
         check_gitflow
         save_tasks_to_be_executed(message)
@@ -130,16 +129,16 @@ module CapistranoMulticonfigParallel
         debug("worker #{@job_id} state is #{@machine.state}") if debug_enabled?
         task_approval(message)
       elsif message_is_for_stdout?(message)
-       result =   Celluloid::Actor[:terminal_server].show_confirmation(message['question'],message['default'])
-       publish_rake_event(message.merge('action' => "stdin",'result' => result, "client_action" => "stdin"))
+        result = Celluloid::Actor[:terminal_server].show_confirmation(message['question'], message['default'])
+        publish_rake_event(message.merge('action' => 'stdin', 'result' => result, 'client_action' => 'stdin'))
       else
         debug("worker #{@job_id} could not handle  #{message}") if debug_enabled?
       end
     end
 
-      def message_is_for_stdout?(message)
+    def message_is_for_stdout?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['action'] == 'stdout'
-    end
+  end
 
     def message_is_about_a_task?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['task'].present?
@@ -162,7 +161,7 @@ module CapistranoMulticonfigParallel
     def save_tasks_to_be_executed(message)
       debug("worler #{@job_id} current invocation chain : #{rake_tasks.inspect}") if debug_enabled?
       rake_tasks << message['task'] if rake_tasks.last != message['task']
-      dry_run_tasks << message['task'] if dry_running? &&  dry_run_tasks.last != message['task']
+      dry_run_tasks << message['task'] if dry_running? && dry_run_tasks.last != message['task']
     end
 
     def update_machine_state(name)
@@ -193,7 +192,7 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_action
-       "#{@action_name}[#{@task_arguments.join(',')}]"
+      "#{@action_name}[#{@task_arguments.join(',')}]"
     end
 
     def setup_task_arguments(*args)
@@ -201,14 +200,14 @@ module CapistranoMulticonfigParallel
       array_options = []
       @env_options.each do |key, value|
         array_options << "#{key}=#{value}" if value.present?
-        end
+      end
       array_options << '--trace' if debug_enabled?
       args.each do |arg|
         array_options << arg
       end
-      @job_argv= array_options.clone
+      @job_argv = array_options.clone
       array_options.unshift("#{worker_action}")
-       array_options.unshift("#{worker_stage}")
+      array_options.unshift("#{worker_stage}")
       setup_command_line(*array_options)
     end
 
@@ -233,17 +232,17 @@ module CapistranoMulticonfigParallel
     def finish_worker
       @manager.mark_completed_remaining_tasks(Actor.current)
       @manager.jobs[@job_id]['worker_action'] = 'finished'
-      @manager.workers_terminated.signal('completed')  if @manager.all_workers_finished?
+      @manager.workers_terminated.signal('completed') if @manager.all_workers_finished?
     end
 
     def worker_finshed?
-       @manager.jobs[@job_id]['worker_action'] == 'finished'
+      @manager.jobs[@job_id]['worker_action'] == 'finished'
     end
 
     def notify_finished(exit_status)
       if exit_status.exitstatus != 0
         debug("worker #{job_id} tries to terminate") if debug_enabled?
-        raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task  failed with exit status #{exit_status.inspect} ")  # force worker to rollback
+        raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task  failed with exit status #{exit_status.inspect} ") # force worker to rollback
       else
         update_machine_state('FINISHED')
         debug("worker #{job_id} notifies manager has finished") if debug_enabled?
