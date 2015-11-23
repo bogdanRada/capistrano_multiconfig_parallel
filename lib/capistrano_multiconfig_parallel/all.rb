@@ -13,11 +13,11 @@ require 'right_popen'
 require 'colorize'
 require 'logger'
 require 'terminal-table'
-require 'colorize'
+
 require 'celluloid_pubsub'
 require 'capistrano/all'
 require 'fileutils'
-require 'logger'
+
 require 'pp'
 require 'devnull'
 require 'inquirer'

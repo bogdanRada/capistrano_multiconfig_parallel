@@ -20,15 +20,17 @@ module CapistranoMulticonfigParallel
 
     def notify_time_change(topic, message)
       return unless topic == CapistranoMulticonfigParallel::TerminalTable::TOPIC
-      default_headings = ['Job ID', 'App/Stage', 'Action', 'ENV Variables', 'Current Task']
+      default_headings = ['Job ID', 'Job UUID' 'App/Stage', 'Action', 'ENV Variables', 'Current Task']
       # if CapistranoMulticonfigParallel.show_task_progress
       #   default_headings << 'Total'
       #   default_headings << 'Progress'
       # end
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_headings)
       if @manager.jobs.present? && message_valid?(message)
+        count = 0
         @manager.jobs.each do |job_id, _job|
-          add_job_to_table(table, job_id)
+          count += 1
+          add_job_to_table(table, job_id, count)
         end
       end
       show_terminal_screen(table)
@@ -100,11 +102,12 @@ module CapistranoMulticonfigParallel
       }
     end
 
-    def add_job_to_table(table, job_id)
+    def add_job_to_table(table, job_id, count)
       worker = @manager.get_worker_for_job(job_id)
       details = get_worker_details(job_id, worker)
 
-      row = [{ value: job_id.to_s },
+      row = [{ value: count.to_s },
+              { value: job_id.to_s },
              { value: details['full_stage'] },
              { value: details['action_name'] },
              { value: details['env_options'] },

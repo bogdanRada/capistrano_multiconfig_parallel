@@ -49,14 +49,38 @@ module CapistranoMulticonfigParallel
       run
     end
 
+
+
     def initialize_data
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
       @stage = @stage.present? ? @stage : @default_stage
-      @name, @args = @cap_app.parse_task_string(@top_level_tasks.second)
+      @name, @args = parse_task_string(@top_level_tasks.second)
       @argv = @cap_app.handle_options.delete_if { |arg| arg == @stage || arg == @name || arg == @top_level_tasks.first }
       @argv = multi_fetch_argv(@argv)
       @original_argv = @argv.clone
+    end
+
+
+    def parse_task_string(string) # :nodoc:
+      /^([^\[]+)(?:\[(.*)\])$/ =~ string.to_s
+
+      name           = $1
+      remaining_args = $2
+
+      return string, [] unless name
+      return name,   [] if     remaining_args.empty?
+
+      args = []
+
+      begin
+        /((?:[^\\,]|\\.)*?)\s*(?:,\s*(.*))?$/ =~ remaining_args
+
+        remaining_args = $2
+        args << $1.gsub(/\\(.)/, '\1')
+      end while remaining_args
+
+      return name, args
     end
 
     def verify_options_custom_command(options)

@@ -99,7 +99,7 @@ module CapistranoMulticonfigParallel
       root = Pathname.new(FileUtils.pwd)
       root = root.parent unless root.directory?
       root = root.parent until root.children.find { |f| f.file? && f.basename.to_s.downcase == 'capfile' }.present? || root.root?
-      raise "Can't detect Rails application root" if root.root?
+      raise "Can't detect Capfile in the  application root" if root.root?
       root
     end
   end
