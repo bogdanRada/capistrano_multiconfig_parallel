@@ -20,7 +20,7 @@ module CapistranoMulticonfigParallel
 
     def notify_time_change(topic, message)
       return unless topic == CapistranoMulticonfigParallel::TerminalTable::TOPIC
-      default_headings = ['Job ID', 'Job UUID' 'App/Stage', 'Action', 'ENV Variables', 'Current Task']
+      default_headings = ['Job ID', 'Job UUID', 'App/Stage', 'Action', 'ENV Variables', 'Current Task']
       # if CapistranoMulticonfigParallel.show_task_progress
       #   default_headings << 'Total'
       #   default_headings << 'Progress'
