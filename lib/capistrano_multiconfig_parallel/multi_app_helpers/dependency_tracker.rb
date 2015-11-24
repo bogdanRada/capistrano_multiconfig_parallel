@@ -11,7 +11,8 @@ module CapistranoMulticonfigParallel
 
     def fetch_apps_needed_for_deployment(application, action)
       applications = []
-      if @job_manager.custom_command? && @job_manager.multi_apps?
+      return applications unless @job_manager.multi_apps?
+      if @job_manager.custom_command?
         apps_selected = all_websites_return_applications_selected
         applications = get_applications_to_deploy(action, apps_selected)
       elsif CapistranoMulticonfigParallel.configuration.application_dependencies.present?
@@ -27,7 +28,7 @@ module CapistranoMulticonfigParallel
       applications
     end
 
-  private
+    private
 
     def application_dependencies
       deps = CapistranoMulticonfigParallel.configuration.application_dependencies

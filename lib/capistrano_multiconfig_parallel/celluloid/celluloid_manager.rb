@@ -121,16 +121,15 @@ module CapistranoMulticonfigParallel
     end
 
     def syncronized_confirmation?
-      (!@job_manager.executes_deploy_stages?) ||
-        (@job_manager.executes_deploy_stages? && !@job_manager.can_tag_staging? && @job_manager.confirmation_applies_to_all_workers?)
+       !@job_manager.can_tag_staging?
     end
 
     def apply_confirmation_for_worker(worker)
-      worker.alive? && CapistranoMulticonfigParallel.configuration.apply_stage_confirmation.include?(worker.env_name)
+      worker.alive? && CapistranoMulticonfigParallel.configuration.apply_stage_confirmation.include?(worker.env_name) && apply_confirmations?
     end
 
     def setup_worker_conditions(worker)
-      return if !apply_confirmation_for_worker(worker) || !apply_confirmations?
+      return if !apply_confirmation_for_worker(worker)
       hash_conditions = {}
       CapistranoMulticonfigParallel.configuration.task_confirmations.each do |task|
         hash_conditions[task] = { condition: Celluloid::Condition.new, status: 'unconfirmed' }
@@ -139,7 +138,7 @@ module CapistranoMulticonfigParallel
     end
 
     def mark_completed_remaining_tasks(worker)
-      return if !apply_confirmation_for_worker(worker) || !apply_confirmations?
+      return if !apply_confirmation_for_worker(worker)
       CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, _index|
         fake_result = proc { |sum| sum }
         task_confirmation = @job_to_condition[worker.job_id][task]
@@ -151,7 +150,7 @@ module CapistranoMulticonfigParallel
     end
 
     def wait_task_confirmations_worker(worker)
-      return if !apply_confirmations? || !apply_confirmation_for_worker(worker) || syncronized_confirmation?
+      return if  !apply_confirmation_for_worker(worker) || !syncronized_confirmation?
       CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, _index|
         result = wait_condition_for_task(worker.job_id, task)
         confirm_task_approval(result, task, worker) if result.present?
@@ -164,7 +163,7 @@ module CapistranoMulticonfigParallel
 
     def wait_task_confirmations
       stage_apply = CapistranoMulticonfigParallel.configuration.apply_stage_confirmation.include?(@job_manager.stage)
-      return if !apply_confirmations? || !stage_apply || !syncronized_confirmation?
+      return if !stage_apply || !syncronized_confirmation?
       CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, _index|
         results = []
         @jobs.pmap do |job_id, _job|

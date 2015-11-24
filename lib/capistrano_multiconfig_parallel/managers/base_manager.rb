@@ -1,5 +1,6 @@
 require_relative './standard_deploy'
 require_relative '../celluloid/celluloid_manager'
+require_relative '../multi_app_helpers/dependency_tracker'
 module CapistranoMulticonfigParallel
   # finds app dependencies, shows menu and delegates jobs to celluloid manager
   # rubocop:disable ClassLength
@@ -19,14 +20,38 @@ module CapistranoMulticonfigParallel
     def run
       options = {}
       if custom_command?
+        options = verify_options_custom_command(options)
         run_custom_command(options)
       else
-        options = verify_options_custom_command(options)
-        run_normal_command(options)
+        collect_jobs(options)
       end
       process_jobs
     end
 
+
+    def run_custom_command(options)
+      stages = fetch_multi_stages
+      return if stages.blank?
+      stages = check_multi_stages(stages)
+      stages.each do |stage|
+        collect_jobs(options.merge('stage' => stage))
+      end
+    end
+
+    def deploy_multiple_apps(applications, options)
+      options = options.stringify_keys
+      return unless applications.present?
+      applications.each do |app|
+        deploy_app(options.merge('app' => app))
+      end
+    end
+
+
+    def backup_the_branch
+      return if custom_command? || @argv['BRANCH'].blank?
+      @branch_backup = @argv['BRANCH'].to_s
+      @argv['BRANCH'] = nil
+    end
     def can_start?
       @top_level_tasks.size > 1 && (stages.include?(@top_level_tasks.first) || custom_command?) && ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
     end
@@ -108,7 +133,10 @@ module CapistranoMulticonfigParallel
     def collect_jobs(options = {}, &block)
       options = prepare_options(options)
       options = options.stringify_keys
-      block.call(options) if block_given?
+      apps = @dependency_tracker.fetch_apps_needed_for_deployment(options['app'], options['action'])
+      backup_the_branch if multi_apps?
+      deploy_multiple_apps(apps, options)
+      deploy_app(options)
     rescue => e
       raise [e, e.backtrace].inspect
     end
@@ -124,9 +152,9 @@ module CapistranoMulticonfigParallel
 
     def tag_staging_exists? # check exists task from capistrano-gitflow
       check_giflow_tasks(
-        CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK,
-        CapistranoMulticonfigParallel::GITFLOW_CALCULATE_TAG_TASK,
-        CapistranoMulticonfigParallel::GITFLOW_VERIFY_UPTODATE_TASK
+      CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK,
+      CapistranoMulticonfigParallel::GITFLOW_CALCULATE_TAG_TASK,
+      CapistranoMulticonfigParallel::GITFLOW_VERIFY_UPTODATE_TASK
       )
     rescue
       return false
@@ -178,11 +206,8 @@ module CapistranoMulticonfigParallel
       @jobs.map { |job| job['env'] }
     end
 
-    def confirmation_applies_to_all_workers?
-      CapistranoMulticonfigParallel.configuration.apply_stage_confirmation.all? { |e| worker_environments.include?(e) }
-    end
 
-  private
+    private
 
     def call_task_deploy_app(options = {})
       options = options.stringify_keys

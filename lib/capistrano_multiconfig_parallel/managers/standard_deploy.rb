@@ -7,8 +7,8 @@ module CapistranoMulticonfigParallel
     attr_accessor :app, :stage, :action, :task_arguments, :env_options
     def initialize(options)
       @app = options.fetch('app', '')
-      @stage = options.fetch('env', 'development')
-      @action = options.fetch('action', 'deploy')
+      @stage = options.fetch('env', '')
+      @action = options.fetch('action', '')
       @task_arguments = options.fetch('task_arguments:', [])
       @env_options = options.fetch('env_options', {})
       execute_standard_deploy

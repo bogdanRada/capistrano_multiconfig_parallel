@@ -10,7 +10,7 @@ module CapistranoMulticonfigParallel
     end
 
     def top_level
-      job_manager = multi_manager_class.new(self, top_level_tasks, stages)
+      job_manager = CapistranoMulticonfigParallel::BaseManager.new(self, top_level_tasks, stages)
       if job_manager.can_start? && !options.show_prereqs && !options.show_tasks
         job_manager.start
       else
@@ -22,8 +22,5 @@ module CapistranoMulticonfigParallel
       stages.find { |stage| stage.include?(':') }.present?
     end
 
-    def multi_manager_class
-      multi_apps? ? CapistranoMulticonfigParallel::MultiAppManager : CapistranoMulticonfigParallel::SingleAppManager
-    end
   end
 end
