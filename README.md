@@ -74,10 +74,8 @@ development_stages:
   - development
   - webdev
 
-syncronize_confirmation: true
 apply_stage_confirmation:
   - production  
-task_confirmation_active: false  
 task_confirmations:
   - deploy:symlink:release
 
@@ -105,17 +103,9 @@ Available command line options when executing a command
 
 	-	if option is present and has value an ARRAY of STRINGS, each of them will be used as a development stage
 
--	--syncronize_confirmation
-
-	-	if option is present and has value TRUE, all workers will be synchronized to wait for same task from the \***task_confirmations** Array before they execute it
-
 -	--apply_stage_confirmation
 
 	-	If option is present and has value an ARRAY of STRING, each string should be the name of a stage. The confirmations will only be applied if the workers are executing tasks to one of that stage.
-
--	--task_confirmation_active
-
-	-	if option is present and has value TRUE, will enable user confirmation dialogs before executing each task from option **--task_confirmations**
 
 -	--task_confirmations:
 

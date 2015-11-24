@@ -88,7 +88,7 @@ module CapistranoMulticonfigParallel
       end
 
       def check_configuration(c)
-        %w(multi_debug multi_secvential task_confirmation_active track_dependencies websocket_server.enable_debug syncronize_confirmation).each do |prop|
+        %w(multi_debug multi_secvential track_dependencies websocket_server.enable_debug).each do |prop|
           c.send("#{prop}=", c[prop.to_sym]) if check_boolean(c, prop.to_sym)
         end
         %w(task_confirmations development_stages apply_stage_confirmation).each do |prop|

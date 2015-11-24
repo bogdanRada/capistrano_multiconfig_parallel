@@ -36,22 +36,6 @@ default_config:
     default:
       - deploy:symlink:release
 
-  - name: 'task_confirmation_active'
-    type: ':boolean'
-    description: >-
-      Requires a confirmation from user before executing the task.
-      This will syncronize all workers to wait before executing that task, then a confirmation will be displayed,
-      and when user will confirm , all workers will resume their operation.
-      CAP_VALUE can be true or false
-    default: false
-
-  - name: 'syncronize_confirmation'
-    type: ':boolean'
-    description: >-
-      All workers will be synchronized to wait for same task
-      from the ***task_confirmations** 'Array' before they execute it
-      CAP_VALUE can be true or false
-    default: TRUE
 
   - name: 'apply_stage_confirmation'
     type: 'Array'
