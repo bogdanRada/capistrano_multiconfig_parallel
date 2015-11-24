@@ -25,12 +25,6 @@ module CapistranoMulticonfigParallel
         @config.resolve!
       end
 
-      def default_config
-        @default_config ||= Configliere::Param.new
-        @default_config.read File.join(internal_config_directory, 'default.yml')
-        @default_config.resolve!
-      end
-
       def config_file
         File.join(CapistranoMulticonfigParallel.detect_root.to_s, 'config', 'multi_cap.yml')
       end
@@ -40,83 +34,17 @@ module CapistranoMulticonfigParallel
       end
 
       def command_line_params
-        [
-          {
-            name: 'multi_debug',
-            type: :boolean,
-            description: 'if option is present and has value TRUE , will enable debugging of workers',
-            default: default_config[:multi_debug]
-          },
-          {
-            name: 'multi_secvential',
-            type: :boolean,
-            description: "If parallel executing does not work for you, you can use this option so that
-                                \t each process is executed normally and ouputted to the screen.
-                                \t However this means that all other tasks will have to wait for each other to finish before starting ",
-            default: default_config[:multi_secvential]
-          },
-          {
-            name: 'websocket_server.enable_debug',
-            type: :boolean,
-            description: "if option is present and has value TRUE
-                                \t will enable debugging of websocket communication between the workers",
-            default: default_config[:websocket_server][:enable_debug]
-          },
-          {
-            name: 'development_stages',
-            type: Array,
-            description: "if option is present and has value an ARRAY of STRINGS,
-                                \t each of them will be used as a development stage",
-            default: default_config[:development_stages]
-          },
-          {
-            name: 'task_confirmations',
-            type: Array,
-            description: "if option is present and has value TRUE, will enable user confirmation dialogs
-                                 \t before executing each task from option  **--task_confirmations**",
-            default: default_config[:task_confirmations]
-          },
-          {
-            name: 'task_confirmation_active',
-            type: :boolean,
-            description: "if option is present and has value an ARRAY of Strings, and --task_confirmation_active is TRUE ,
-                                \t then will require a confirmation from user before executing the task.
-                                \t This will syncronize all workers to wait before executing that task, then a confirmation will be displayed,
-                                \t and when user will confirm , all workers will resume their operation",
-            default: default_config[:task_confirmation_active]
-          },
-          {
-            name: 'syncronize_confirmation',
-            type: :boolean,
-            description: "if option is present and has value TRUE, all workers will be synchronized to wait for same task
-                                \t from the ***task_confirmations** Array before they execute it ",
-            default: default_config[:syncronize_confirmation]
-          },
-          {
-            name: 'apply_stage_confirmation',
-            type: Array,
-            description: "if option is present and has value TRUE, all workers will be synchronized to wait for same task
-                                \t from the ***task_confirmations** Array before they execute it ",
-            default: default_config[:apply_stage_confirmation]
-          },
-          {
-            name: 'track_dependencies',
-            type: :boolean,
-            description: "This should be useed only for Caphub-like applications ,
-                                \t in order to deploy dependencies of an application in parallel.
-                                \t This is used only in combination with option **--application_dependencies** which is described
-                                \t at section **[2.) Multiple applications](#multiple_apps)**",
-            default: default_config[:track_dependencies]
-          },
-          {
-            name: 'application_dependencies',
-            type: Array,
-            description: "This is an array of hashes. Each hash has only the keys
-                                \t 'app' ( app name), 'priority' and 'dependencies'
-                                \t ( an array of app names that this app is dependent to) ",
-            default: default_config[:application_dependencies]
-          }
-        ]
+        @default_config ||= Configliere::Param.new
+        @default_config.read File.join(internal_config_directory, 'default.yml')
+        @default_config.resolve!
+        @default_config[:default_config].map do |item|
+          item[:type] = change_config_type(item[:type])
+          item
+        end
+      end
+
+      def change_config_type(type)
+        type.include?(':') ? type.delete(':').to_s.to_sym : type.to_s.constantize
       end
 
       def capistrano_options
@@ -124,7 +52,7 @@ module CapistranoMulticonfigParallel
           [
             "--#{param[:name]}[=CAP_VALUE]",
             "--#{param[:name]}",
-            "[MULTI_CAP] #{param[:description]}",
+            "[MULTI_CAP] #{param[:description]}. By default #{param[:default]}",
             lambda do |_value|
             end
           ]

@@ -1,19 +1,79 @@
-multi_debug: true
-multi_progress: false
-multi_secvential: false
-websocket_server:
-  enable_debug: false
-  
-development_stages: 
-  - development
-  - webdev
+default_config:
+  - name: 'multi_debug'
+    type: ':boolean'
+    description: >-
+      Enable debugging of workers, CAP_VALUE can be true or false
+    default: TRUE
 
-syncronize_confirmation: true  
-apply_stage_confirmation:
-  - production
-task_confirmation_active: false  
-task_confirmations: 
-  - deploy:symlink:release
+  - name: 'multi_secvential'
+    type: ':boolean'
+    description: >-
+      Forces execution of jobs in sequence, CAP_VALUE can be true or false
+    default: false
 
-track_dependencies: false
-application_dependencies: []
+  - name: 'websocket_server.enable_debug'
+    type: ':boolean'
+    description: >-
+      Enables debugging of websocket communication between the workers,
+      CAP_VALUE can be true or false
+    default: false
+
+  - name: 'development_stages'
+    type: 'Array'
+    description: >-
+      Each of the items is used to recognize it as a development stage,
+      CAP_VALUE can Array of String
+    default:
+      - development
+      - webdev
+
+  - name: 'task_confirmations'
+    type: 'Array'
+    description: >-
+      Enable user confirmation dialogs before executing each task
+      from option  **--task_confirmations**
+      CAP_VALUE can be Array of strings ( task names with scope)
+    default:
+      - deploy:symlink:release
+
+  - name: 'task_confirmation_active'
+    type: ':boolean'
+    description: >-
+      Requires a confirmation from user before executing the task.
+      This will syncronize all workers to wait before executing that task, then a confirmation will be displayed,
+      and when user will confirm , all workers will resume their operation.
+      CAP_VALUE can be true or false
+    default: false
+
+  - name: 'syncronize_confirmation'
+    type: ':boolean'
+    description: >-
+      All workers will be synchronized to wait for same task
+      from the ***task_confirmations** 'Array' before they execute it
+      CAP_VALUE can be true or false
+    default: TRUE
+
+  - name: 'apply_stage_confirmation'
+    type: 'Array'
+    description: >-
+      Defines the stages for which option **--syncronize_confirmation** applies.
+      CAP_VALUE can be an Array of strings (stages)
+    default:
+      - production
+
+  - name: 'track_dependencies'
+    type: ':boolean'
+    description: >-
+      This should be useed only for Caphub-like applications ,
+      in order to deploy dependencies of an application in parallel.
+      This is used only in combination with option **--application_dependencies**
+      CAP_VALUE can be true or false
+    default: false
+
+  - name: 'application_dependencies'
+    type: 'Array'
+    description: >-
+      This is an 'Array' of hashes. Each hash has only the keys
+      'app' ( app name), 'priority' and 'dependencies'
+      ( an 'Array' of app names that this app is dependent to)
+    default: []
