@@ -115,7 +115,7 @@ module CapistranoMulticonfigParallel
 
     def process_jobs
       return unless @jobs.present?
-      if CapistranoMulticonfigParallel.execute_in_sequence
+      if configuration.multi_secvential.to_s.downcase == 'true'
         @jobs.each { |job| CapistranoMulticonfigParallel::StandardDeploy.new(job) }
       else
         run_async_jobs
@@ -209,7 +209,7 @@ module CapistranoMulticonfigParallel
     end
 
     def wait_jobs_termination
-      return if CapistranoMulticonfigParallel.execute_in_sequence
+      return if configuration.multi_secvential.to_s.downcase == 'true'
       result = @condition.wait
       return unless result.present?
       @manager.terminate

@@ -109,7 +109,6 @@ module CapistranoMulticonfigParallel
 
       def check_additional_config(c)
         CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true if c[:multi_debug].to_s.downcase == 'true'
-        CapistranoMulticonfigParallel.execute_in_sequence = true if c[:multi_secvential].to_s.downcase == 'true'
       end
     end
   end

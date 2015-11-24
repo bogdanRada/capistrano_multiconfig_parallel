@@ -14,7 +14,6 @@ module CapistranoMulticonfigParallel
     end
 
     def run_custom_command(options)
-      CapistranoMulticonfigParallel.interactive_menu = true
       stages = fetch_multi_stages
       return if stages.blank?
       stages = check_multi_stages(stages)
