@@ -112,7 +112,7 @@ Available command line options when executing a command
 
 -	--application_dependencies
 
-	-	This should be used only for Caphub-like applications , in order to deploy dependencies of an application in parallel and is described at section **[2.) Multiple applications](#multiple_apps)**
+	-	This should be used only for Caphub-like applications , in order to deploy dependencies of an application in parallel and is described at section **[2.) Multiple applications](#2-multiple-apps--like-caphub-)**
 
 Usage Instructions
 ==================
