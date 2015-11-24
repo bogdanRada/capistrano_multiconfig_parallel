@@ -38,13 +38,13 @@ module CapistranoMulticonfigParallel
         @default_config.read File.join(internal_config_directory, 'default.yml')
         @default_config.resolve!
         @default_config[:default_config].map do |item|
-          item[:type] = change_config_type(item[:type])
+          item[:type] = change_config_type(item[:type].to_s)
           item
         end
       end
 
       def change_config_type(type)
-        type.include?(':') ? type.delete(':').to_s.to_sym : type.to_s.constantize
+        type.include?(':') ? type.delete(':').to_sym : type.constantize
       end
 
       def capistrano_options
