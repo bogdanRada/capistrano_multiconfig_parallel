@@ -14,7 +14,7 @@ module CapistranoMulticonfigParallel
       if @job_manager.custom_command? && @job_manager.multi_apps?
         apps_selected = all_websites_return_applications_selected
         applications = get_applications_to_deploy(action, apps_selected)
-      elsif CapistranoMulticonfigParallel.configuration.track_dependencies
+      elsif CapistranoMulticonfigParallel.configuration.application_dependencies.present?
         if application.present?
           applications = get_applications_to_deploy(action, [application.camelcase])
           applications = applications.delete_if { |hash| hash['app'] == application }
@@ -30,7 +30,7 @@ module CapistranoMulticonfigParallel
   private
 
     def application_dependencies
-      deps = CapistranoMulticonfigParallel.configuration.track_dependencies ? CapistranoMulticonfigParallel.configuration.application_dependencies : []
+      deps = CapistranoMulticonfigParallel.configuration.application_dependencies
       deps.present? && deps.is_a?(Array) ? deps.map(&:stringify_keys) : []
     end
 

@@ -45,14 +45,6 @@ default_config:
     default:
       - production
 
-  - name: 'track_dependencies'
-    type: ':boolean'
-    description: >-
-      This should be useed only for Caphub-like applications ,
-      in order to deploy dependencies of an application in parallel.
-      This is used only in combination with option **--application_dependencies**
-      CAP_VALUE can be true or false
-    default: false
 
   - name: 'application_dependencies'
     type: 'Array'

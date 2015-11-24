@@ -78,23 +78,32 @@ module CapistranoMulticonfigParallel
         raise ArgumentError, "invalid configuration for #{wrong.inspect}" if wrong.present?
       end
 
+      def verify_app_dependencies(stages)
+        applications = stages.map { |stage| stage.split(':').reverse[1] }
+        wrong = configuration.application_dependencies.find do |hash|
+          !applications.include?(hash[:app]) || (hash[:dependencies].present? && hash[:dependencies].find { |val| !applications.include?(val) })
+        end
+        raise ArgumentError, "invalid configuration for #{wrong.inspect}" if wrong.present?
+      end
+
       def check_boolean(c, prop)
         #   return unless c[prop].present?
         raise ArgumentError, "the property `#{prop}` must be boolean" unless [true, false, 'true', 'false'].include?(c[prop].to_s.downcase)
       end
 
-      def configuration_valid?
+      def configuration_valid?(stages)
         configuration
+        verify_app_dependencies(stages) if configuration.application_dependencies.present?
       end
 
       def check_configuration(c)
-        %w(multi_debug multi_secvential track_dependencies websocket_server.enable_debug).each do |prop|
+        %w(multi_debug multi_secvential websocket_server.enable_debug).each do |prop|
           c.send("#{prop}=", c[prop.to_sym]) if check_boolean(c, prop.to_sym)
         end
         %w(task_confirmations development_stages apply_stage_confirmation).each do |prop|
           c.send("#{prop}=", c[prop.to_sym]) if verify_array_of_strings(c, prop.to_sym)
         end
-        c.application_dependencies = c[:application_dependencies] if c[:track_dependencies].to_s.downcase == 'true' && verify_application_dependencies(c[:application_dependencies])
+        c.application_dependencies = c[:application_dependencies] if verify_application_dependencies(c[:application_dependencies])
         check_additional_config(c)
       end
 

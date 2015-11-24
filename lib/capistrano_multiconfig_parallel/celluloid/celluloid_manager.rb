@@ -116,10 +116,9 @@ module CapistranoMulticonfigParallel
     end
 
     def apply_confirmations?
-     confirmations =   CapistranoMulticonfigParallel.configuration.task_confirmations
+      confirmations = CapistranoMulticonfigParallel.configuration.task_confirmations
       confirmations.is_a?(Array) && confirmations.present?
     end
-
 
     def syncronized_confirmation?
       (!@job_manager.executes_deploy_stages?) ||

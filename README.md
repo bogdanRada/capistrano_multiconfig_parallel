@@ -79,7 +79,6 @@ apply_stage_confirmation:
 task_confirmations:
   - deploy:symlink:release
 
-track_dependencies: false
 application_dependencies: []
 ---
 ```
@@ -111,9 +110,9 @@ Available command line options when executing a command
 
 	-	if option is present and has value an ARRAY of Strings, and --task_confirmation_active is TRUE , then will require a confirmation from user before executing the task. This will syncronize all workers to wait before executing that task, then a confirmation will be displayed, and when user will confirm , all workers will resume their operation.
 
--	--track_dependencies
+-	--application_dependencies
 
-	-	This should be useed only for Caphub-like applications , in order to deploy dependencies of an application in parallel. This is used only in combination with option **--application_dependencies** which is described at section **[2.) Multiple applications](#multiple_apps)**
+	-	This should be used only for Caphub-like applications , in order to deploy dependencies of an application in parallel and is described at section **[2.) Multiple applications](#multiple_apps)**
 
 Usage Instructions
 ==================
@@ -171,7 +170,6 @@ Configuration for this types of application is more complicated
 
 ```yaml
 ---
-track_dependencies: true
 application_dependencies:
     - app: foo'
       priority: 1
@@ -189,8 +187,6 @@ application_dependencies:
 ```
 
 The "development_stages" options is used so that the gem can know if sandboxes are allowed for those environments.
-
-If you want to deploy an application with dependencies you can use the option "track_dependencies". If that options has value "true" , it will ask the user before deploying a application if he needs the dependencies deployed too
 
 The dependencies are being kept in the option "application_dependencies" This is an array of hashes. Each hash has only the keys "app" ( app name), "priority" and "dependencies" ( an array of app names that this app is dependent to)
 

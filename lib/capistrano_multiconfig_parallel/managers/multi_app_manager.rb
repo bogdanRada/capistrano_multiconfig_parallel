@@ -6,47 +6,15 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Logger
 
-    def initialize(cap_app, top_level_tasks, stages)
-      super(cap_app, top_level_tasks, stages)
-      @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(Actor.current)
-    end
-
-    def check_before_starting
-      verify_app_dependencies(@stages) if configuration.present? && configuration.track_dependencies.to_s.downcase == 'true'
-      super
-    end
-
-    def verify_app_dependencies(stages)
-      applications = stages.map { |stage| stage.split(':').reverse[1] }
-      wrong = configuration.application_dependencies.find do |hash|
-        !applications.include?(hash[:app]) || (hash[:dependencies].present? && hash[:dependencies].find { |val| !applications.include?(val) })
+    def run_normal_command(options)
+      multi_collect_and_run_jobs(options) do |apps, new_options|
+        deploy_multiple_apps(apps, new_options)
+        deploy_app(new_options) if !custom_command? && new_options['app'].present?
       end
-      raise ArgumentError, "invalid configuration for #{wrong.inspect}" if wrong.present?
-    end
-
-    def run
-      options = {}
-      if custom_command?
-        run_custom_command(options)
-      else
-        menu_deploy_interactive(options)
-      end
-      process_jobs
     end
 
     def run_custom_command(options)
-      return unless custom_command?
       CapistranoMulticonfigParallel.interactive_menu = true
-      options = verify_options_custom_command(options)
-      action_name = @name
-      if action_name == custom_commands[:stages]
-        multi_stage_deploy(options)
-      else
-        raise "Custom command #{@name} not available for multi apps"
-      end
-    end
-
-    def multi_stage_deploy(options)
       stages = fetch_multi_stages
       return if stages.blank?
       stages = check_multi_stages(stages)
@@ -56,13 +24,6 @@ module CapistranoMulticonfigParallel
             deploy_app(new_options.merge('app' => app, 'stage' => stage))
           end
         end if apps.present?
-      end
-    end
-
-    def menu_deploy_interactive(options)
-      multi_collect_and_run_jobs(options) do |apps, new_options|
-        deploy_multiple_apps(apps, new_options)
-        deploy_app(new_options) if !custom_command? && new_options['app'].present?
       end
     end
 

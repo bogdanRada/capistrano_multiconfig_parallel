@@ -14,7 +14,17 @@ module CapistranoMulticonfigParallel
       @top_level_tasks = top_level_tasks
       @stages = stages
       @jobs = []
-      CapistranoMulticonfigParallel.enable_logging
+    end
+
+    def run
+      options = {}
+      if custom_command?
+        run_custom_command(options)
+      else
+        options = verify_options_custom_command(options)
+        run_normal_command(options)
+      end
+      process_jobs
     end
 
     def can_start?
@@ -87,7 +97,9 @@ module CapistranoMulticonfigParallel
     end
 
     def check_before_starting
-      CapistranoMulticonfigParallel.configuration_valid?
+      CapistranoMulticonfigParallel.configuration_valid?(@stages)
+      CapistranoMulticonfigParallel.enable_logging
+      @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(Actor.current)
       @default_stage = CapistranoMulticonfigParallel.configuration.development_stages.present? ? CapistranoMulticonfigParallel.configuration.development_stages.first : 'development'
       @condition = Celluloid::Condition.new
       @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
@@ -95,6 +107,7 @@ module CapistranoMulticonfigParallel
 
     def collect_jobs(options = {}, &block)
       options = prepare_options(options)
+      options = options.stringify_keys
       block.call(options) if block_given?
     rescue => e
       raise [e, e.backtrace].inspect

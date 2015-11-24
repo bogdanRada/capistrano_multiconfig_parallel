@@ -54,7 +54,6 @@ module CapistranoMulticonfigParallel
     end
 
     def enable_logging
-      CapistranoMulticonfigParallel.configuration_valid?
       FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
       if CapistranoMulticonfigParallel::CelluloidManager.debug_enabled.to_s.downcase == 'true'
         FileUtils.touch(main_log_file) unless File.file?(main_log_file)
