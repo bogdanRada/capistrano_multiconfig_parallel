@@ -49,8 +49,6 @@ module CapistranoMulticonfigParallel
       run
     end
 
-
-
     def initialize_data
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
@@ -61,26 +59,26 @@ module CapistranoMulticonfigParallel
       @original_argv = @argv.clone
     end
 
-
     def parse_task_string(string) # :nodoc:
       /^([^\[]+)(?:\[(.*)\])$/ =~ string.to_s
 
-      name           = $1
-      remaining_args = $2
+      name           = Regexp.last_match(1)
+      remaining_args = Regexp.last_match(2)
 
       return string, [] unless name
       return name,   [] if     remaining_args.empty?
 
       args = []
 
-      begin
+      loop do
         /((?:[^\\,]|\\.)*?)\s*(?:,\s*(.*))?$/ =~ remaining_args
 
-        remaining_args = $2
-        args << $1.gsub(/\\(.)/, '\1')
-      end while remaining_args
+        remaining_args = Regexp.last_match(2)
+        args << Regexp.last_match(1).gsub(/\\(.)/, '\1')
+        break if   remaining_args.blank?
+      end
 
-      return name, args
+      [name, args]
     end
 
     def verify_options_custom_command(options)
@@ -105,7 +103,7 @@ module CapistranoMulticonfigParallel
     def process_jobs
       return unless @jobs.present?
       if CapistranoMulticonfigParallel.execute_in_sequence
-        @jobs.each { |job| CapistranoMulticonfigParallel::StandardDeploy.execute_standard_deploy(job) }
+        @jobs.each { |job| CapistranoMulticonfigParallel::StandardDeploy.new(job) }
       else
         run_async_jobs
       end

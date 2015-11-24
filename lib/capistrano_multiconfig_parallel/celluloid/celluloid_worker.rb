@@ -86,7 +86,7 @@ module CapistranoMulticonfigParallel
 
     def generate_command
       <<-CMD
-           #{cd_working_directory} && RAILS_ENV=#{@env_name} bundle exec multi_cap #{@task_argv.join(' ')}
+      #{cd_working_directory} && RAILS_ENV=#{@env_name} bundle exec multi_cap #{@task_argv.join(' ')}
       CMD
     end
 
@@ -138,7 +138,7 @@ module CapistranoMulticonfigParallel
 
     def message_is_for_stdout?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['action'] == 'stdout'
-  end
+    end
 
     def message_is_about_a_task?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['task'].present?

@@ -3,6 +3,7 @@ require_relative '../celluloid/rake_worker'
 require_relative './input_stream'
 require_relative './output_stream'
 module CapistranoMulticonfigParallel
+  # class used to handle the rake worker and sets all the hooks before and after running the worker
   class RakeHookActor
     attr_accessor :task, :env
     def initialize(env, task)

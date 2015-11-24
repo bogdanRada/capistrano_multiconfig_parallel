@@ -38,7 +38,6 @@ module CapistranoMulticonfigParallel
       @worker_supervisor.supervise_as(:web_server, CapistranoMulticonfigParallel::WebServer, self.class.websocket_config)
     end
 
-
     def self.debug_enabled?
       debug_enabled
     end
@@ -50,12 +49,9 @@ module CapistranoMulticonfigParallel
     def self.websocket_config
       config = CapistranoMulticonfigParallel.configuration[:websocket_server]
       config.present? && config.is_a?(Hash) ? config.stringify_keys : {}
-      config['enable_debug'] =  config.fetch('enable_debug', '').to_s == 'true'
+      config['enable_debug'] = config.fetch('enable_debug', '').to_s == 'true'
       config
     end
-
-
-
 
     def generate_job_id(job)
       primary_key = SecureRandom.random_number(500)
@@ -64,7 +60,6 @@ module CapistranoMulticonfigParallel
       @jobs[primary_key]
       job['id']
     end
-
 
     # call to send an actor
     # a job
@@ -117,7 +112,7 @@ module CapistranoMulticonfigParallel
         sleep(0.1) # keep current thread alive
       end
       debug("all jobs have completed #{condition}") if self.class.debug_enabled?
-      Celluloid::Actor[:terminal_server].async.notify_time_change(CapistranoMulticonfigParallel::TerminalTable::TOPIC, type: 'output') if Celluloid::Actor[:terminal_server].alive?
+      Celluloid::Actor[:terminal_server].async.notify_time_change(CapistranoMulticonfigParallel::TerminalTable.topic, type: 'output') if Celluloid::Actor[:terminal_server].alive?
     end
 
     def apply_confirmations?
@@ -130,7 +125,7 @@ module CapistranoMulticonfigParallel
 
     def syncronized_confirmation?
       (syncronization_required? && !@job_manager.executes_deploy_stages?) ||
-      (syncronization_required? && @job_manager.executes_deploy_stages? && !@job_manager.can_tag_staging? && @job_manager.confirmation_applies_to_all_workers?)
+        (syncronization_required? && @job_manager.executes_deploy_stages? && !@job_manager.can_tag_staging? && @job_manager.confirmation_applies_to_all_workers?)
     end
 
     def apply_confirmation_for_worker(worker)
@@ -203,10 +198,10 @@ module CapistranoMulticonfigParallel
       @jobs.pmap do |job_id, job|
         worker = get_worker_for_job(job_id)
         worker.publish_rake_event('approved' => 'yes',
-        'action' => 'invoke',
-        'job_id' => job['id'],
-        'task' => task
-        )
+                                  'action' => 'invoke',
+                                  'job_id' => job['id'],
+                                  'task' => task
+                                 )
       end
     end
 
@@ -225,7 +220,7 @@ module CapistranoMulticonfigParallel
 
     def can_tag_staging?
       @job_manager.can_tag_staging? &&
-      @jobs.find { |_job_id, job| job['env'] == 'production' }.blank?
+        @jobs.find { |_job_id, job| job['env'] == 'production' }.blank?
     end
 
     def dispatch_new_job(job)

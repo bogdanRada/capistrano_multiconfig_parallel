@@ -1,11 +1,11 @@
 module CapistranoMulticonfigParallel
-  # rubocop:disable ClassLength
-  class WebServer  < CelluloidPubsub::WebServer
-
+  # class used to start the web server for websockets
+  class WebServer < CelluloidPubsub::WebServer
     def initialize(*args)
       super(*args)
-    rescue
-      #fails silently
+    rescue => exc
+      CapistranoMulticonfigParallel.log_message(exc)
+      # fails silently
     end
   end
 end

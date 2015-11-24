@@ -1,4 +1,5 @@
 module CapistranoMulticonfigParallel
+  # class used to hook into the input stream
   class InputStream
     def self.hook(actor, stringio)
       $stdin = new($stdin, actor, stringio)

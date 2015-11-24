@@ -6,7 +6,10 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Notifications
     include Celluloid::Logger
-    TOPIC = 'sshkit_terminal'
+
+    def self.topic
+      'sshkit_terminal'
+    end
 
     def initialize(manager, job_manager)
       @manager = manager
@@ -15,11 +18,11 @@ module CapistranoMulticonfigParallel
     end
 
     def run
-      subscribe(CapistranoMulticonfigParallel::TerminalTable::TOPIC, :notify_time_change)
+      subscribe(CapistranoMulticonfigParallel::TerminalTable.topic, :notify_time_change)
     end
 
     def notify_time_change(topic, message)
-      return unless topic == CapistranoMulticonfigParallel::TerminalTable::TOPIC
+      return unless topic == CapistranoMulticonfigParallel::TerminalTable.topic
       default_headings = ['Job ID', 'Job UUID', 'App/Stage', 'Action', 'ENV Variables', 'Current Task']
       # if CapistranoMulticonfigParallel.show_task_progress
       #   default_headings << 'Total'
@@ -107,7 +110,7 @@ module CapistranoMulticonfigParallel
       details = get_worker_details(job_id, worker)
 
       row = [{ value: count.to_s },
-              { value: job_id.to_s },
+             { value: job_id.to_s },
              { value: details['full_stage'] },
              { value: details['action_name'] },
              { value: details['env_options'] },
@@ -142,7 +145,7 @@ module CapistranoMulticonfigParallel
       total_tasks = worker_dry_running?(worker) ? nil : tasks.size
       task_index = worker_dry_running?(worker) ? 0 : tasks.index(current_task.to_s).to_i + 1
       percent = percent_of(task_index, total_tasks)
-      result  = worker_dry_running?(worker) ? 'Please wait.. building the progress bars' : "Progress [#{sprintf('%.2f', percent)}%]  (executed #{task_index} of #{total_tasks})"
+      result  = worker_dry_running?(worker) ? 'Please wait.. building the progress bars' : "Progress [#{format('%.2f', percent)}%]  (executed #{task_index} of #{total_tasks})"
       if worker.alive?
         worker.crashed? ? result.red : result.green
       else

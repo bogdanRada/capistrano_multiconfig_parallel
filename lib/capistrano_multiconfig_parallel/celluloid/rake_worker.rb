@@ -14,7 +14,7 @@ module CapistranoMulticonfigParallel
       default_settings
       custom_attributes
       initialize_subscription
-   end
+    end
 
     def custom_attributes
       @publisher_channel = "worker_#{@job_id}"
@@ -25,7 +25,7 @@ module CapistranoMulticonfigParallel
     def publish_new_work(env, new_options = {})
       work(env, @options.merge(new_options))
       publish_to_worker(task_data)
-     end
+    end
 
     def wait_execution(name = task_name, time = 0.1)
       #    info "Before waiting #{name}"

@@ -108,7 +108,5 @@ module CapistranoMulticonfigParallel
         return applications_to_deploy
       end
     end
-
-
   end
 end

@@ -1,4 +1,5 @@
 module CapistranoMulticonfigParallel
+  # class used to hook into the output stream
   class OutputStream
     def self.hook(stringio)
       $stdout = new($stdout, stringio)
@@ -27,6 +28,6 @@ module CapistranoMulticonfigParallel
 
     def method_missing(name, *args, &block)
       @real.send name, *args, &block
-   end
-end
+    end
+  end
 end

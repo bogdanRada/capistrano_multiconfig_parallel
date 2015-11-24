@@ -3,6 +3,8 @@ AllCops:
     - capistrano_multiconfig_parallel.gemspec
     - bin/**/*
     - Guardfile
+    - vendor/**/*
+    - Rakefile
 
 Documentation:
   Enabled: true
@@ -65,4 +67,3 @@ Style/ExtraSpacing:
 
 Style/FileName:
   Enabled: false
-
