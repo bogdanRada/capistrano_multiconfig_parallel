@@ -3,7 +3,7 @@ require_relative '../celluloid/rake_worker'
 require_relative './input_stream'
 require_relative './output_stream'
 module CapistranoMulticonfigParallel
-  class ExtensionHelper
+  class RakeHookActor
     attr_accessor :task, :env
     def initialize(env, task)
       @env = env

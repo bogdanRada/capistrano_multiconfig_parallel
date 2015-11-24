@@ -1,9 +1,9 @@
-require_relative './extension_helper'
+require_relative './rake_hook_actor'
 Rake::Task.class_eval do
   alias_method :original_execute, :execute
 
   def execute(*args)
-    rake = CapistranoMulticonfigParallel::ExtensionHelper.new(ENV, self)
+    rake = CapistranoMulticonfigParallel::RakeHookActor.new(ENV, self)
     rake.work do
       original_execute(*args)
     end

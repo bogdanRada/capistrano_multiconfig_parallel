@@ -9,6 +9,26 @@ module CapistranoMulticonfigParallel
       @job_manager = job_manager
     end
 
+    def fetch_apps_needed_for_deployment(application, action)
+      applications = []
+      if @job_manager.custom_command? && @job_manager.multi_apps?
+        apps_selected = all_websites_return_applications_selected
+        applications = get_applications_to_deploy(action, apps_selected)
+      elsif CapistranoMulticonfigParallel.configuration.track_dependencies
+        if application.present?
+          applications = get_applications_to_deploy(action, [application.camelcase])
+          applications = applications.delete_if { |hash| hash['app'] == application }
+        else
+          applications = []
+        end
+      else
+        applications = []
+      end
+      applications
+    end
+
+  private
+
     def application_dependencies
       deps = CapistranoMulticonfigParallel.configuration.track_dependencies ? CapistranoMulticonfigParallel.configuration.application_dependencies : []
       deps.present? && deps.is_a?(Array) ? deps.map(&:stringify_keys) : []
@@ -89,22 +109,6 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def fetch_apps_needed_for_deployment(application, action)
-      applications = []
-      if @job_manager.custom_command? && @job_manager.multi_apps?
-        apps_selected = all_websites_return_applications_selected
-        applications = get_applications_to_deploy(action, apps_selected)
-      elsif CapistranoMulticonfigParallel.configuration.track_dependencies
-        if application.present?
-          applications = get_applications_to_deploy(action, [application.camelcase])
-          applications = applications.delete_if { |hash| hash['app'] == application }
-        else
-          applications = []
-        end
-      else
-        applications = []
-      end
-      applications
-    end
+
   end
 end
