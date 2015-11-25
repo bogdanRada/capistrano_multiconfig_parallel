@@ -59,9 +59,8 @@ module CapistranoMulticonfigParallel
         end
       end
 
-      def verify_array_of_strings(c, prop)
-        value = c[prop]
-        return unless value.present?
+      def verify_array_of_strings(value)
+        return true if value.blank?
         value.reject(&:blank?)
         raise ArgumentError, 'the array must contain only task names' if value.find { |row| !row.is_a?(String) }
       end
@@ -87,8 +86,7 @@ module CapistranoMulticonfigParallel
       end
 
       def check_boolean(c, prop)
-        #   return unless c[prop].present?
-        raise ArgumentError, "the property `#{prop}` must be boolean" unless [true, false, 'true', 'false'].include?(c[prop].to_s.downcase)
+        raise ArgumentError, "the property `#{prop}` must be boolean" unless %w(true false).include?(c[prop].to_s.downcase)
       end
 
       def configuration_valid?(stages)
@@ -101,13 +99,9 @@ module CapistranoMulticonfigParallel
           c.send("#{prop}=", c[prop.to_sym]) if check_boolean(c, prop.to_sym)
         end
         %w(task_confirmations development_stages apply_stage_confirmation).each do |prop|
-          c.send("#{prop}=", c[prop.to_sym]) if verify_array_of_strings(c, prop.to_sym)
+          c.send("#{prop}=", c[prop.to_sym]) if c[prop.to_sym].is_a?(Array) && verify_array_of_strings(c[prop.to_sym])
         end
-        c.application_dependencies = c[:application_dependencies] if verify_application_dependencies(c[:application_dependencies])
-        check_additional_config(c)
-      end
-
-      def check_additional_config(c)
+        c.application_dependencies = c[:application_dependencies] if c[:application_dependencies].is_a?(Array) && verify_application_dependencies(c[:application_dependencies])
         CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true if c[:multi_debug].to_s.downcase == 'true'
       end
     end

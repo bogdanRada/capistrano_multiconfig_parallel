@@ -149,7 +149,7 @@ module CapistranoMulticonfigParallel
     end
 
     def task_approval(message)
-        job_conditions = @manager.job_to_condition[@job_id]
+      job_conditions = @manager.job_to_condition[@job_id]
       if job_conditions.present? && CapistranoMulticonfigParallel.configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
         task_confirmation = job_conditions[message['task']]
         task_confirmation[:status] = 'confirmed'

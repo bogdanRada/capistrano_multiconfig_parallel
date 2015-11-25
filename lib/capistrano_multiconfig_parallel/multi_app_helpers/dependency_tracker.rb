@@ -28,7 +28,7 @@ module CapistranoMulticonfigParallel
       applications
     end
 
-    private
+  private
 
     def application_dependencies
       deps = CapistranoMulticonfigParallel.configuration.application_dependencies

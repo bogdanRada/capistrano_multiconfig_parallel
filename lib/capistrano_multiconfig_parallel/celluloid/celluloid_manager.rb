@@ -121,7 +121,7 @@ module CapistranoMulticonfigParallel
     end
 
     def syncronized_confirmation?
-       !@job_manager.can_tag_staging?
+      !@job_manager.can_tag_staging?
     end
 
     def apply_confirmation_for_worker(worker)
@@ -129,7 +129,7 @@ module CapistranoMulticonfigParallel
     end
 
     def setup_worker_conditions(worker)
-      return if !apply_confirmation_for_worker(worker)
+      return unless apply_confirmation_for_worker(worker)
       hash_conditions = {}
       CapistranoMulticonfigParallel.configuration.task_confirmations.each do |task|
         hash_conditions[task] = { condition: Celluloid::Condition.new, status: 'unconfirmed' }
@@ -138,7 +138,7 @@ module CapistranoMulticonfigParallel
     end
 
     def mark_completed_remaining_tasks(worker)
-      return if !apply_confirmation_for_worker(worker)
+      return unless apply_confirmation_for_worker(worker)
       CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, _index|
         fake_result = proc { |sum| sum }
         task_confirmation = @job_to_condition[worker.job_id][task]
@@ -150,7 +150,7 @@ module CapistranoMulticonfigParallel
     end
 
     def wait_task_confirmations_worker(worker)
-      return if  !apply_confirmation_for_worker(worker) || !syncronized_confirmation?
+      return if !apply_confirmation_for_worker(worker) || !syncronized_confirmation?
       CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, _index|
         result = wait_condition_for_task(worker.job_id, task)
         confirm_task_approval(result, task, worker) if result.present?
