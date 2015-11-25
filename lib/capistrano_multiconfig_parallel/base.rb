@@ -1,7 +1,6 @@
 # base module that has the statis methods that this gem is using
 module CapistranoMulticonfigParallel
   include CapistranoMulticonfigParallel::Configuration
-  include Helper
 
   ENV_KEY_JOB_ID = 'multi_cap_job_id'
   MULTI_KEY = 'multi'
@@ -95,9 +94,6 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def using_cap3?
-      verify_gem_version('capistrano', '3', operator: '>=')
-    end
 
     def try_detect_capfile
       root = Pathname.new(FileUtils.pwd)
