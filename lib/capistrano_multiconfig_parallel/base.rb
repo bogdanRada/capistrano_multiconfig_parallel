@@ -94,7 +94,6 @@ module CapistranoMulticonfigParallel
       end
     end
 
-
     def try_detect_capfile
       root = Pathname.new(FileUtils.pwd)
       root = root.parent unless root.directory?

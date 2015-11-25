@@ -1,5 +1,6 @@
 module CapistranoMulticonfigParallel
   # class that handles the rake task and waits for approval from the celluloid worker
+  # rubocop:disable ClassLength
   class RakeWorker
     include Celluloid
     include Celluloid::Logger

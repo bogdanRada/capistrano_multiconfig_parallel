@@ -17,14 +17,24 @@ module CapistranoMulticonfigParallel
     end
 
     def fetch_stages
+      fetch_stages_paths do |paths|
+        paths.reject! { |path| check_stage_path(paths, path) }.sort
+      end
+    end
+
+    def check_stage_path(paths, path)
+      paths.any? { |another| another != path && another.start_with?(path + ':') }
+    end
+
+    def stages_paths
       stages_root = 'config/deploy'
       Dir["#{stages_root}/**/*.rb"].map do |file|
         file.slice(stages_root.size + 1..-4).tr('/', ':')
-      end.tap do |paths|
-        paths.reject! do |path|
-          paths.any? { |another| another != path && another.start_with?(path + ':') }
-        end
-      end.sort
+      end
+    end
+
+    def fetch_stages_paths
+      stages_paths.tap { |paths| yield paths if block_given? }
     end
 
     def run
@@ -280,8 +290,7 @@ module CapistranoMulticonfigParallel
         task_arguments: options['task_arguments'],
         env_options: job_env_options
       }
-      job = job.stringify_keys
-      @jobs << job
+      @jobs << job.stringify_keys
     end
 
     def prepare_options(options)
