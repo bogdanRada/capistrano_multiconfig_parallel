@@ -1,4 +1,3 @@
-require 'open3'
 module CapistranoMulticonfigParallel
   # class used to display the progress of each worker on terminal screen using a table
   # rubocop:disable ClassLength
