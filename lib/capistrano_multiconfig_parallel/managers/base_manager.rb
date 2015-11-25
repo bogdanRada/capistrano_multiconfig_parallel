@@ -42,8 +42,8 @@ module CapistranoMulticonfigParallel
       custom_stages = fetch_multi_stages
       return if custom_stages.blank?
       custom_stages = check_multi_stages(custom_stages)
-      custom_stages.each do |_stage|
-        collect_jobs(options.merge('stage' => custom_stages))
+      custom_stages.each do |stage|
+        collect_jobs(options.merge('stage' => stage))
       end
     end
 
@@ -62,11 +62,15 @@ module CapistranoMulticonfigParallel
     end
 
     def can_start?
-      @top_level_tasks.size > 1 && (@stages.include?(@top_level_tasks.first) || custom_command?) && ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
+      @top_level_tasks.size >= 1 && (@stages.include?(@top_level_tasks.first) || custom_command?) && ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
     end
 
     def custom_command?
-      @top_level_tasks.first == 'ensure_stage' && !@stages.include?(@top_level_tasks.second) && !@stages.include?(@top_level_tasks.first) && custom_commands.values.include?(@top_level_tasks.second)
+      if multi_apps?
+        !@stages.include?(@top_level_tasks.first) && custom_commands.values.include?(@top_level_tasks.first)
+      else
+        !@stages.include?(@top_level_tasks.second) && @stages.include?(@top_level_tasks.first) && custom_commands.values.include?(@top_level_tasks.second)
+      end
     end
 
     def custom_commands
@@ -151,9 +155,9 @@ module CapistranoMulticonfigParallel
       apps = @dependency_tracker.fetch_apps_needed_for_deployment(options['app'], options['action'])
       backup_the_branch if multi_apps?
       deploy_multiple_apps(apps, options)
-      deploy_app(options)
+      deploy_app(options) unless custom_command?
     rescue => e
-      CapistranoMulticonfigParallel::Base.log_message(e)
+      CapistranoMulticonfigParallel.log_message(e)
     end
 
     def process_jobs

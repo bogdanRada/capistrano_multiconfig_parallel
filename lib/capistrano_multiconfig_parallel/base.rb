@@ -1,6 +1,7 @@
 # base module that has the statis methods that this gem is using
 module CapistranoMulticonfigParallel
   include CapistranoMulticonfigParallel::Configuration
+  include Helper
 
   ENV_KEY_JOB_ID = 'multi_cap_job_id'
   MULTI_KEY = 'multi'
@@ -75,9 +76,9 @@ module CapistranoMulticonfigParallel
       err_backtrace = message.respond_to?(:backtrace) ? message.backtrace.join("\n\n") : ''
       if err_backtrace.present?
         logger.debug(
-          class_name: message.class,
-          message: error_message,
-          backtrace: err_backtrace
+        class_name: message.class,
+        message: error_message,
+        backtrace: err_backtrace
         )
       else
         logger.debug(message)
@@ -92,6 +93,10 @@ module CapistranoMulticonfigParallel
       else
         try_detect_capfile
       end
+    end
+
+    def using_cap3?
+      verify_gem_version('capistrano', '3', operator: '>=')
     end
 
     def try_detect_capfile
