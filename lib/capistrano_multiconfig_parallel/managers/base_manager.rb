@@ -155,7 +155,7 @@ module CapistranoMulticonfigParallel
       apps = @dependency_tracker.fetch_apps_needed_for_deployment(options['app'], options['action'])
       backup_the_branch if multi_apps?
       deploy_multiple_apps(apps, options)
-      deploy_app(options) unless custom_command?
+      deploy_app(options) if !custom_command? || !multi_apps?
     rescue => e
       CapistranoMulticonfigParallel.log_message(e)
     end
