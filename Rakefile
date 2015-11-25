@@ -45,12 +45,12 @@ task default: [:all]
 desc 'Test the plugin under all supported Rails versions.'
 task :all do |_t|
   if ENV['TRAVIS']
-    exec(' bundle exec phare &&  bundle exec rake  spec && bundle exec rake coveralls:push')
+    exec(' bundle exec rubocop . &&  bundle exec reek .  &&  bundle exec rake  spec && bundle exec rake coveralls:push')
   else
-    exec('bundle exec rubocop -a . && bundle exec phare && bundle exec rake spec')
+    exec('bundle exec rubocop -a . && bundle exec rubocop . && bundle exec reek . && bundle exec rake spec')
   end
 end
 
 task :docs do
-  exec(' bundle exec rubocop -a .  && bundle exec phare  && bundle exec inch --pedantic && bundle exec yard')
+  exec('bundle exec rubocop -a . && bundle exec rubocop . && bundle exec reek . && bundle exec inch --pedantic && bundle exec yard')
 end

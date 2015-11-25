@@ -132,19 +132,18 @@ module CapistranoMulticonfigParallel
       system('cls') || system('clear') || puts("\e[H\e[2J")
     end
 
-    def worker_dry_running?(worker)
-      worker.alive? && worker.dry_running?
-    end
-
     def worker_progress(_details, worker)
       return worker_state(worker) unless worker.alive?
-      return if worker.executing_dry_run.nil?
-      tasks = worker.alive? ? worker.dry_run_tasks : []
+      tasks = worker.alive? ? worker.invocation_chain : []
       current_task = worker.alive? ? worker.machine.state.to_s : ''
-      total_tasks = worker_dry_running?(worker) ? nil : tasks.size
-      task_index = worker_dry_running?(worker) ? 0 : tasks.index(current_task.to_s).to_i + 1
+      show_worker_percent(worker, tasks, current_task)
+    end
+
+    def show_worker_percent(worker, tasks, current_task)
+      total_tasks = worker.alive? ? tasks.size : nil
+      task_index = worker.alive? ? tasks.index(current_task.to_s).to_i + 1 : 0
       percent = percent_of(task_index, total_tasks)
-      result  = worker_dry_running?(worker) ? 'Please wait.. building the progress bars' : "Progress [#{format('%.2f', percent)}%]  (executed #{task_index} of #{total_tasks})"
+      result  = "Progress [#{format('%.2f', percent)}%]  (executed #{task_index} of #{total_tasks})"
       if worker.alive?
         worker.crashed? ? result.red : result.green
       else

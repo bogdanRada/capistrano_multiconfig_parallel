@@ -65,16 +65,19 @@ module CapistranoMulticonfigParallel
         raise ArgumentError, 'the array must contain only task names' if value.find { |row| !row.is_a?(String) }
       end
 
-      def verify_application_dependencies(value)
+      def verify_application_dependencies(c, prop, props)
+        value = c[prop.to_sym]
+        return unless value.is_a?(Array)
         value.reject { |val| val.blank? || !val.is_a?(Hash) }
-        wrong = value.find do|hash|
-          !Set[:app, :priority, :dependencies].subset?(hash.keys.to_set) ||
-          hash[:app].blank? ||
-          hash[:priority].blank?
-          !hash[:priority].is_a?(Numeric) ||
-          !hash[:dependencies].is_a?(Array)
-        end
+        wrong = check_array_of_hash(value, props.map(&:to_sym))
         raise ArgumentError, "invalid configuration for #{wrong.inspect}" if wrong.present?
+      end
+
+      def check_array_of_hash(value, props)
+        value.find do|hash|
+          !Set.new(props).subset?(hash.keys.to_set) ||
+            hash.values.find(&:blank?).present?
+        end
       end
 
       def verify_app_dependencies(stages)
@@ -94,14 +97,22 @@ module CapistranoMulticonfigParallel
         verify_app_dependencies(stages) if configuration.application_dependencies.present?
       end
 
-      def check_configuration(c)
-        %w(multi_debug multi_secvential websocket_server.enable_debug).each do |prop|
+      def check_boolean_props(c, props)
+        props.each do |prop|
           c.send("#{prop}=", c[prop.to_sym]) if check_boolean(c, prop.to_sym)
         end
-        %w(task_confirmations development_stages apply_stage_confirmation).each do |prop|
+      end
+
+      def check_array_props(c, props)
+        props.each do |prop|
           c.send("#{prop}=", c[prop.to_sym]) if c[prop.to_sym].is_a?(Array) && verify_array_of_strings(c[prop.to_sym])
         end
-        c.application_dependencies = c[:application_dependencies] if c[:application_dependencies].is_a?(Array) && verify_application_dependencies(c[:application_dependencies])
+      end
+
+      def check_configuration(c)
+        check_boolean_props(c, %w(multi_debug multi_secvential websocket_server.enable_debug))
+        check_array_props(c, %w(task_confirmations development_stages apply_stage_confirmation))
+        verify_application_dependencies(c, 'application_dependencies', %w(app priority dependencies))
         CapistranoMulticonfigParallel::CelluloidManager.debug_enabled = true if c[:multi_debug].to_s.downcase == 'true'
       end
     end

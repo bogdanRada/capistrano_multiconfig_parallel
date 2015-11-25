@@ -32,7 +32,7 @@ module CapistranoMulticonfigParallel
     def set_worker_log
       FileUtils.mkdir_p(CapistranoMulticonfigParallel.log_directory) unless File.directory?(CapistranoMulticonfigParallel.log_directory)
       @filename = File.join(CapistranoMulticonfigParallel.log_directory, "worker_#{@actor.job_id}.log")
-      FileUtils.rm_rf(@filename) if File.file?(@filename) && !@actor.crashed? && (@options[:dry_run] || @actor.executed_dry_run != true)
+      FileUtils.rm_rf(@filename) if File.file?(@filename) && !@actor.crashed?
       @worker_log = ::Logger.new(@filename)
       @worker_log.level = ::Logger::Severity::DEBUG
       @worker_log.formatter = proc do |severity, datetime, progname, msg|
@@ -47,14 +47,9 @@ module CapistranoMulticonfigParallel
     end
 
     def check_exit_status
-      return unless @exit_status.present?
-      if @exit_status.exitstatus == 0 && @options[:dry_run]
-        debug("worker #{@actor.job_id} starts execute deploy") if @debug_enabled
-        @actor.async.execute_deploy
-      elsif !@actor.worker_finshed?
-        debug("worker #{@actor.job_id} startsnotify finished") if @debug_enabled
-        @actor.notify_finished(@exit_status)
-      end
+      return if @exit_status.blank? || !@actor.worker_finshed?
+      debug("worker #{@actor.job_id} startsnotify finished") if @debug_enabled
+      @actor.notify_finished(@exit_status)
     end
 
     def start_async_deploy(cmd, options)

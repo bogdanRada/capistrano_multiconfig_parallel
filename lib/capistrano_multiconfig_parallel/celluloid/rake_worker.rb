@@ -73,14 +73,15 @@ module CapistranoMulticonfigParallel
     end
 
     def on_message(message)
+      return unless message.present?
       debug("Rake worker #{@job_id} received after parse #{message}") # if debug_enabled?
       if @client.succesfull_subscription?(message)
         debug("Rake worker #{@job_id} received  parse #{message}") if debug_enabled?
         @successfull_subscription = true
         publish_to_worker(task_data)
-      elsif message.present? && message['task'].present?
+      elsif message['task'].present?
         task_approval(message)
-      elsif message.present? && message['action'].present? && message['action'] == 'stdin'
+      elsif message['action'].present? && message['action'] == 'stdin'
         stdin_approval(message)
       else
         warn "unknown action: #{message.inspect}" if debug_enabled?

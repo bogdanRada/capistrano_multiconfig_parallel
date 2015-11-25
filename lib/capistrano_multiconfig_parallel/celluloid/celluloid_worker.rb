@@ -22,15 +22,14 @@ module CapistranoMulticonfigParallel
     include Celluloid::Logger
     class TaskFailed < StandardError; end
 
-    attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv, :execute_deploy, :executed_dry_run,
+    attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv,
                   :rake_tasks, :current_task_number, # tracking tasks
                   :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-                  :job_termination_condition, :worker_state, :executing_dry_run, :job_argv, :dry_run_tasks
+                  :job_termination_condition, :worker_state, :invocation_chain
 
     def work(job, manager)
       @job = job
       @worker_state = 'started'
-      @executing_dry_run = nil
       @manager = manager
       @job_confirmation_conditions = []
       process_job(job) if job.present?
@@ -76,8 +75,8 @@ module CapistranoMulticonfigParallel
       @rake_tasks ||= []
     end
 
-    def dry_run_tasks
-      @dry_run_tasks ||= []
+    def invocation_chain
+      @invocation_chain ||= []
     end
 
     def cd_working_directory
@@ -91,7 +90,6 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_deploy
-      @execute_deploy = true
       debug("invocation chain #{@job_id} is : #{@rake_tasks.inspect}") if debug_enabled?
       check_child_proces
       setup_task_arguments
@@ -115,13 +113,11 @@ module CapistranoMulticonfigParallel
     end
 
     def check_gitflow
-      return if dry_running? || @env_name != 'staging' || !@manager.can_tag_staging? || !executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
+      return if @env_name != 'staging' || !@manager.can_tag_staging? || !executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
       @manager.dispatch_new_job(@job.merge('env' => 'production'))
     end
 
     def handle_subscription(message)
-      @executing_dry_run = message['action'] == 'count' ? true : false
-      @manager.jobs[@job_id]['job_argv'] = @job_argv
       if message_is_about_a_task?(message)
         check_gitflow
         save_tasks_to_be_executed(message)
@@ -162,7 +158,7 @@ module CapistranoMulticonfigParallel
     def save_tasks_to_be_executed(message)
       debug("worler #{@job_id} current invocation chain : #{rake_tasks.inspect}") if debug_enabled?
       rake_tasks << message['task'] if rake_tasks.last != message['task']
-      dry_run_tasks << message['task'] if dry_running? && dry_run_tasks.last != message['task']
+      invocation_chain << message['task'] if invocation_chain.last != message['task']
     end
 
     def update_machine_state(name)
@@ -178,14 +174,6 @@ module CapistranoMulticonfigParallel
         @task_argv << option
       end
       @task_argv
-    end
-
-    def dry_run_command
-      '--dry-run'
-    end
-
-    def dry_running?
-      @task_argv.include?(dry_run_command) == true
     end
 
     def worker_stage
@@ -206,7 +194,7 @@ module CapistranoMulticonfigParallel
       args.each do |arg|
         array_options << arg
       end
-      @job_argv = array_options.clone
+      @manager.jobs[@job_id]['job_argv'] = array_options.clone
       array_options.unshift("#{worker_action}")
       array_options.unshift("#{worker_stage}")
       setup_command_line(*array_options)

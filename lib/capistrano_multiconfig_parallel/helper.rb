@@ -1,8 +1,8 @@
 # module used for feching gem information
 module Helper
-  # function that makes the methods incapsulated as utility functions
+# function that makes the methods incapsulated as utility functions
 
-  module_function
+module_function
 
   def find_loaded_gem_property(gem_name, property)
     gem_spec = Gem.loaded_specs.values.find { |repo| repo.name == gem_name }
@@ -15,7 +15,7 @@ module Helper
   end
 
   def get_parsed_version(version, options)
-    parsing_options = {optional_fields: [:tiny]}.merge(options.fetch("unparse", {}))
+    parsing_options = { optional_fields: [:tiny] }.merge(options.fetch('unparse', {}))
     Versionomy.parse(version).unparse(parsing_options)
   rescue Versionomy::Errors::ParseError
     nil
@@ -27,5 +27,4 @@ module Helper
     gem_version = fetch_gem_version(gem_name, options)
     gem_version.blank? ? false : gem_version.send(options.fetch('operator', '<='), version)
   end
-
 end
