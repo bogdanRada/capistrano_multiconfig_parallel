@@ -46,7 +46,7 @@ Rubinius and Jruby support temporarily dropped due to Rails 4 incompatibility.
 Installation Instructions
 -------------------------
 
-Add the following to your Gemfile:
+Add the following to your Gemfile after requiring **capistrano** and **capistrano-multiconfig**:
 
 ```ruby
   gem "capistrano_multiconfig_parallel"
