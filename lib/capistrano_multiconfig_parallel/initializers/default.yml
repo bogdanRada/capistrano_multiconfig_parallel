@@ -1,18 +1,18 @@
 default_config:
   - name: 'multi_debug'
-    type: ':boolean'
+    type: 'boolean'
     description: >-
       Enable debugging of workers, CAP_VALUE can be true or false
     default: TRUE
 
   - name: 'multi_secvential'
-    type: ':boolean'
+    type: 'boolean'
     description: >-
       Forces execution of jobs in sequence, CAP_VALUE can be true or false
     default: false
 
   - name: 'websocket_server.enable_debug'
-    type: ':boolean'
+    type: 'boolean'
     description: >-
       Enables debugging of websocket communication between the workers,
       CAP_VALUE can be true or false

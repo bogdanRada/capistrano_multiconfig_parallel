@@ -1,6 +1,7 @@
 # base module that has the statis methods that this gem is using
 module CapistranoMulticonfigParallel
   include CapistranoMulticonfigParallel::Configuration
+  include Helper
 
   ENV_KEY_JOB_ID = 'multi_cap_job_id'
   MULTI_KEY = 'multi'
@@ -57,10 +58,8 @@ module CapistranoMulticonfigParallel
       FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
       if CapistranoMulticonfigParallel::CelluloidManager.debug_enabled.to_s.downcase == 'true'
         FileUtils.touch(main_log_file) unless File.file?(main_log_file)
-        if ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
-          log_file = File.open(main_log_file, 'w')
-          log_file.sync = true
-        end
+        log_file = File.open(main_log_file, 'w')
+        log_file.sync = true
         self.logger = ::Logger.new(main_log_file)
       else
         self.logger = ::Logger.new(DevNull.new)
@@ -75,14 +74,15 @@ module CapistranoMulticonfigParallel
       err_backtrace = message.respond_to?(:backtrace) ? message.backtrace.join("\n\n") : ''
       if err_backtrace.present?
         logger.debug(
-          class_name: message.class,
-          message: error_message,
-          backtrace: err_backtrace
+        class_name: message.class,
+        message: error_message,
+        backtrace: err_backtrace
         )
       else
         logger.debug(message)
       end
     end
+
 
     def detect_root
       if ENV['MULTI_CAP_ROOT']
@@ -98,7 +98,7 @@ module CapistranoMulticonfigParallel
       root = Pathname.new(FileUtils.pwd)
       root = root.parent unless root.directory?
       root = root.parent until root.children.find { |f| f.file? && f.basename.to_s.downcase == 'capfile' }.present? || root.root?
-      raise "Can't detect Capfile in the  application root" if root.root?
+      raise "Can't detect Capfile in the  application root".red if root.root?
       root
     end
   end

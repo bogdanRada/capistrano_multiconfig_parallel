@@ -68,8 +68,8 @@ module CapistranoMulticonfigParallel
 
     def check_app_dependency_unique(applications_selected, apps_dependencies, applications_to_deploy, action)
       return applications_to_deploy if applications_selected.blank? || apps_dependencies.blank? || (apps_dependencies.map { |app| app['app'] } - applications_to_deploy.map { |app| app['app'] }).blank?
-      set :apps_dependency_confirmation, CapistranoMulticonfigParallel.ask_confirm("Do you want to  #{action} all dependencies also ?", 'Y/N')
-      applications_to_deploy = applications_to_deploy.concat(apps_dependencies) if fetch(:apps_dependency_confirmation).present? && fetch(:apps_dependency_confirmation).downcase == 'y'
+      apps_dependency_confirmation = CapistranoMulticonfigParallel.ask_confirm("Do you want to  #{action} all dependencies also ?", 'Y/N')
+      applications_to_deploy = applications_to_deploy.concat(apps_dependencies) if apps_dependency_confirmation.present? && apps_dependency_confirmation.downcase == 'y'
       applications_to_deploy
     end
 
@@ -102,10 +102,10 @@ module CapistranoMulticonfigParallel
 
     def print_frameworks_used(app_names, applications_to_deploy, action)
       app_names.each { |app| puts "#{app}" }
-      set :apps_deploy_confirmation, CapistranoMulticonfigParallel.ask_confirm("Are you sure you want to #{action} these apps?", 'Y/N')
-      if fetch(:apps_deploy_confirmation).blank? || (fetch(:apps_deploy_confirmation).present? && fetch(:apps_deploy_confirmation).downcase != 'y')
+      apps_deploy_confirmation = CapistranoMulticonfigParallel.ask_confirm("Are you sure you want to #{action} these apps?", 'Y/N')
+      if apps_deploy_confirmation.blank? || (apps_deploy_confirmation.present? && apps_deploy_confirmation.downcase != 'y')
         return []
-      elsif fetch(:apps_deploy_confirmation).present? && fetch(:apps_deploy_confirmation).downcase == 'y'
+      elsif apps_deploy_confirmation.present? && apps_deploy_confirmation.downcase == 'y'
         return applications_to_deploy
       end
     end

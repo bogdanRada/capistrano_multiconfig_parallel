@@ -18,6 +18,7 @@ require 'celluloid_pubsub'
 require 'capistrano/all'
 require 'fileutils'
 
+require 'configliere'
 require 'pp'
 require 'devnull'
 require 'inquirer'
@@ -28,10 +29,24 @@ Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 
 Gem.find_files('capistrano_multiconfig_parallel/initializers/**/*.rb').each { |path| require path }
 Gem.find_files('capistrano_multiconfig_parallel/helpers/**/*.rb').each { |path| require path }
-Gem.find_files('capistrano_multiconfig_parallel/managers/**/*.rb').each { |path| require path }
 Gem.find_files('capistrano_multiconfig_parallel/celluloid/**/*.rb').each { |path| require path }
 
 require_relative './version'
 require_relative './configuration'
 require_relative './base'
 require_relative './application'
+
+# Signal.trap("TERM") do
+#   puts'aa'
+# CapistranoMulticonfigParallel::Application.terminate
+# end
+#
+# Signal.trap('USR1') do
+#   puts'aaaa3'
+#   CapistranoMulticonfigParallel::Application.terminate
+# end
+#
+# Signal.trap('USR2') do
+#   puts'aaaa3'
+#   CapistranoMulticonfigParallel::Application.terminate
+# end

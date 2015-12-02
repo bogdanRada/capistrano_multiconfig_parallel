@@ -8,15 +8,16 @@ module CapistranoMulticonfigParallel
 
       def configuration
         @config ||= Configliere::Param.new
-        @config.use :commandline
         command_line_params.each do |param|
-          @config.define param[:name], type: param[:type], description: param[:description], default: param[:default]
+          param_type = change_config_type(param['type'].to_s)
+          @config.define param['name'], type: param_type, description: param['description'], default: param['default']
         end
 
         ARGV.clear
+
         CapistranoMulticonfigParallel.original_args.each { |a| ARGV << a }
         @config.read config_file if File.file?(config_file)
-        @config.merge(Settings.use(:commandline).resolve!)
+        @config.use :commandline
 
         @config.use :config_block
         @config.finally do |c|
@@ -34,30 +35,14 @@ module CapistranoMulticonfigParallel
       end
 
       def command_line_params
-        @default_config ||= Configliere::Param.new
-        @default_config.read File.join(internal_config_directory, 'default.yml')
-        @default_config.resolve!
-        @default_config[:default_config].map do |item|
-          item[:type] = change_config_type(item[:type].to_s)
-          item
-        end
+        @default_config ||= YAML.load_file(File.join(internal_config_directory, 'default.yml'))['default_config']
+        @default_config
       end
 
       def change_config_type(type)
-        type.include?(':') ? type.delete(':').to_sym : type.constantize
+        ['boolean'].include?(type) ? type.delete(':').to_sym : type.constantize
       end
 
-      def capistrano_options
-        command_line_params.map do |param|
-          [
-            "--#{param[:name]}[=CAP_VALUE]",
-            "--#{param[:name]}",
-            "[MULTI_CAP] #{param[:description]}. By default #{param[:default]}",
-            lambda do |_value|
-            end
-          ]
-        end
-      end
 
       def verify_array_of_strings(value)
         return true if value.blank?
@@ -80,13 +65,7 @@ module CapistranoMulticonfigParallel
         end
       end
 
-      def verify_app_dependencies(stages)
-        applications = stages.map { |stage| stage.split(':').reverse[1] }
-        wrong = configuration.application_dependencies.find do |hash|
-          !applications.include?(hash[:app]) || (hash[:dependencies].present? && hash[:dependencies].find { |val| !applications.include?(val) })
-        end
-        raise ArgumentError, "invalid configuration for #{wrong.inspect}" if wrong.present?
-      end
+
 
       def check_boolean(c, prop)
         raise ArgumentError, "the property `#{prop}` must be boolean" unless %w(true false).include?(c[prop].to_s.downcase)
@@ -94,7 +73,6 @@ module CapistranoMulticonfigParallel
 
       def configuration_valid?(stages)
         configuration
-        verify_app_dependencies(stages) if configuration.application_dependencies.present?
       end
 
       def check_boolean_props(c, props)

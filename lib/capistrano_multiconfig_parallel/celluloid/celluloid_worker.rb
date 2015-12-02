@@ -83,6 +83,12 @@ module CapistranoMulticonfigParallel
       "cd #{CapistranoMulticonfigParallel.detect_root}"
     end
 
+    # def generate_command_new
+    #   <<-CMD
+    #     bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env { %x[cd #{cd_working_directory} && bundle install && RAILS_ENV=#{@env_name} bundle exec cap #{@task_argv.join(' ')}] } "
+    #   CMD
+    # end
+
     def generate_command
       <<-CMD
       #{cd_working_directory} && RAILS_ENV=#{@env_name} bundle exec multi_cap #{@task_argv.join(' ')}

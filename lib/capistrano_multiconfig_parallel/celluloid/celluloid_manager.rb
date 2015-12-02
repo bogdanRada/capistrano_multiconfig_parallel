@@ -54,10 +54,7 @@ module CapistranoMulticonfigParallel
     end
 
     def generate_job_id(job)
-      primary_key = SecureRandom.random_number(500)
-      job['id'] = primary_key
-      @jobs[primary_key] = job
-      @jobs[primary_key]
+      @jobs[job['id']] = job
       job['id']
     end
 
@@ -181,8 +178,8 @@ module CapistranoMulticonfigParallel
       message = "Do you want  to continue the deployment and execute #{task.upcase}"
       message += " for JOB #{worker.job_id}" if worker.present?
       message += '?'
-      set :apps_symlink_confirmation, Celluloid::Actor[:terminal_server].show_confirmation(message, 'Y/N')
-      until fetch(:apps_symlink_confirmation).present?
+      apps_symlink_confirmation = Celluloid::Actor[:terminal_server].show_confirmation(message, 'Y/N')
+      until apps_symlink_confirmation.present?
         sleep(0.1) # keep current thread alive
       end
     end

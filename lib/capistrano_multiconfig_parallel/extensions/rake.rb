@@ -1,4 +1,4 @@
-require_relative './rake_hook_actor'
+require_relative '../helpers/rake_hook_actor'
 Rake::Task.class_eval do
   alias_method :original_execute, :execute
 

@@ -108,7 +108,7 @@ Available command line options when executing a command
 
 -	--task_confirmations:
 
-	-	if option is present and has value an ARRAY of Strings, and --task_confirmation_active is TRUE , then will require a confirmation from user before executing the task. This will syncronize all workers to wait before executing that task, then a confirmation will be displayed, and when user will confirm , all workers will resume their operation.
+	-	if option is present and has value an ARRAY of Strings (Task Names), then will require a confirmation from user before executing the task. This will syncronize all workers to wait before executing that task, then a confirmation will be displayed, and when user will confirm , all workers will resume their operation.
 
 -	--application_dependencies
 
