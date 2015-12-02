@@ -10,7 +10,7 @@ module CapistranoMulticonfigParallel
 
     cattr_accessor :debug_enabled
 
-    attr_accessor :jobs, :job_to_worker, :worker_to_job, :actor_system, :job_to_condition, :mutex, :registration_complete, :workers_terminated
+    attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated
 
     attr_reader :worker_supervisor, :workers
     trap_exit :worker_died
@@ -21,7 +21,6 @@ module CapistranoMulticonfigParallel
       @job_manager = job_manager
       @registration_complete = false
       # Get a handle on the SupervisionGroup::Member
-      @actor_system = Celluloid.boot
       @mutex = Mutex.new
       # http://rubydoc.info/gems/celluloid/Celluloid/SupervisionGroup/Member
       @workers = @worker_supervisor.pool(CapistranoMulticonfigParallel::CelluloidWorker, as: :workers, size: 10)

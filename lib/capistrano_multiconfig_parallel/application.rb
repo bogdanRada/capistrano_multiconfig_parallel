@@ -8,11 +8,11 @@ module CapistranoMulticonfigParallel
     attr_accessor :stages,:stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
 
     def initialize
+      Celluloid.boot
       @stages = fetch_stages
       @stage_apps =  multi_apps? ? @stages.map { |stage| stage.split(':').reverse[1] }.uniq : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
       @jobs = []
-      CapistranoMulticonfigParallel.configuration_valid?(@stages)
     end
 
 
@@ -78,9 +78,6 @@ module CapistranoMulticonfigParallel
       @argv['BRANCH'] = nil
     end
 
-    def can_start?
-      @top_level_tasks.size >= 1 && (@stages.include?(@top_level_tasks.first) || custom_command?) && @argv[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
-    end
 
     def custom_command?
       if multi_apps?

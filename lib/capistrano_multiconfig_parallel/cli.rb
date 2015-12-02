@@ -7,8 +7,9 @@ module CapistranoMulticonfigParallel
     def self.start
       CapistranoMulticonfigParallel.check_terminal_tty
       CapistranoMulticonfigParallel.original_args = ARGV.dup
+      CapistranoMulticonfigParallel.configuration_valid?
       job_manager = CapistranoMulticonfigParallel::Application.new
-      if job_manager.can_start?
+      if job_manager.argv[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
         job_manager.start
       else
         Capistrano::Application.new.run

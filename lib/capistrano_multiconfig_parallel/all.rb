@@ -35,18 +35,3 @@ require_relative './version'
 require_relative './configuration'
 require_relative './base'
 require_relative './application'
-
-# Signal.trap("TERM") do
-#   puts'aa'
-# CapistranoMulticonfigParallel::Application.terminate
-# end
-#
-# Signal.trap('USR1') do
-#   puts'aaaa3'
-#   CapistranoMulticonfigParallel::Application.terminate
-# end
-#
-# Signal.trap('USR2') do
-#   puts'aaaa3'
-#   CapistranoMulticonfigParallel::Application.terminate
-# end

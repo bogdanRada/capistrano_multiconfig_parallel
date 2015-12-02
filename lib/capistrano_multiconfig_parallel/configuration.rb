@@ -7,23 +7,30 @@ module CapistranoMulticonfigParallel
       attr_accessor :configuration
 
       def configuration
-        @config ||= Configliere::Param.new
+        @config ||= fetch_configuration
+        @config
+      end
+
+
+      def fetch_configuration
+        @fetched_config = Configliere::Param.new
         command_line_params.each do |param|
           param_type = change_config_type(param['type'].to_s)
-          @config.define param['name'], type: param_type, description: param['description'], default: param['default']
+          @fetched_config.define param['name'], type: param_type, description: param['description'], default: param['default']
         end
 
         ARGV.clear
 
         CapistranoMulticonfigParallel.original_args.each { |a| ARGV << a }
-        @config.read config_file if File.file?(config_file)
-        @config.use :commandline
+        @fetched_config.read config_file if File.file?(config_file)
+        @fetched_config.use :commandline
 
-        @config.use :config_block
-        @config.finally do |c|
+        @fetched_config.use :config_block
+        @fetched_config.finally do |c|
           check_configuration(c)
         end
-        @config.resolve!
+        @fetched_config.process_argv!
+        @fetched_config.resolve!
       end
 
       def config_file
@@ -71,7 +78,7 @@ module CapistranoMulticonfigParallel
         raise ArgumentError, "the property `#{prop}` must be boolean" unless %w(true false).include?(c[prop].to_s.downcase)
       end
 
-      def configuration_valid?(stages)
+      def configuration_valid?
         configuration
       end
 
