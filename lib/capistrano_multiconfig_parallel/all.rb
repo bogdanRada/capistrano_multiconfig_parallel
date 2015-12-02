@@ -32,6 +32,5 @@ Gem.find_files('capistrano_multiconfig_parallel/helpers/**/*.rb').each { |path| 
 Gem.find_files('capistrano_multiconfig_parallel/celluloid/**/*.rb').each { |path| require path }
 
 require_relative './version'
-require_relative './configuration'
 require_relative './base'
 require_relative './application'

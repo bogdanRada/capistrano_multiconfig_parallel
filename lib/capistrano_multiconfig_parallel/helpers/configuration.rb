@@ -3,7 +3,7 @@ module CapistranoMulticonfigParallel
   module Configuration
     extend ActiveSupport::Concern
 
-    class_methods do
+    included do
       attr_accessor :configuration
 
       def configuration
