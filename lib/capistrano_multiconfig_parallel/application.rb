@@ -33,7 +33,8 @@ module CapistranoMulticonfigParallel
 
     def fetch_stages
       fetch_stages_paths do |paths|
-        paths.reject! { |path| check_stage_path(paths, path) }.sort
+        paths.reject! { |path| check_stage_path(paths, path) }
+        paths.sort if paths.present?
       end
     end
 
