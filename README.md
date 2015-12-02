@@ -22,17 +22,17 @@ Requirements
 
 1.	[Ruby 1.9.x or Ruby 2.x.x](http://www.ruby-lang.org)
 2.	[ActiveSuport >= 4.2.0](https://rubygems.org/gems/activesupport)
-3.	[celluloid-pmap >= 0.2.0](https://github.com/jwo/celluloid-pmap)
+3.	[celluloid-pmap >= 0.2.2](https://github.com/jwo/celluloid-pmap)
 4.	[composable_state_machine >= 1.0.2](https://github.com/swoop-inc/composable_state_machine)
-5.	[terminal-table >= 1.4.5](https://github.com/tj/terminal-table)
-6.	[colorize](https://github.com/fazibear/colorize)
-7.	[eventmachine >= 1.0.7](https://github.com/eventmachine/eventmachine)
+5.	[terminal-table >= 1.5.2](https://github.com/tj/terminal-table)
+6.	[colorize >= 0.7](https://github.com/fazibear/colorize)
+7.	[eventmachine >= 1.0.3](https://github.com/eventmachine/eventmachine)
 8.	[right_popen >= 1.1.3](https://github.com/rightscale/right_popen)
-9.	[capistrano-multiconfig >= 3.0.8](https://github.com/railsware/capistrano-multiconfig)
-10.	[capistrano >= 3.0](https://github.com/capistrano/capistrano/)
-11.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
-12.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
-13.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
+9.	[capistrano >= 3.0](https://github.com/capistrano/capistrano/)
+10.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
+11.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
+12.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
+13.	[versionomy >= 0.4.4](https://github.com/dazuma/versionomy)
 
 Compatibility
 -------------
