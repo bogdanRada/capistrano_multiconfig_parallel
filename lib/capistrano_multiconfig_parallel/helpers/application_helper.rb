@@ -4,8 +4,7 @@ module CapistranoMulticonfigParallel
   module ApplicationHelper
     include CapistranoMulticonfigParallel::CoreHelper
 
-    module_function
-
+  module_function
 
     def strip_characters_from_string(value)
       return unless value.present?

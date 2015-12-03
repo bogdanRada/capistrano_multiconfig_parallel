@@ -34,9 +34,6 @@ module CapistranoMulticonfigParallel
         @fetched_config.resolve!
       end
 
-
-
-
       def verify_array_of_strings(value)
         return true if value.blank?
         value.reject(&:blank?)
@@ -54,7 +51,7 @@ module CapistranoMulticonfigParallel
       def check_array_of_hash(value, props)
         value.find do|hash|
           !Set.new(props).subset?(hash.keys.to_set) ||
-          hash.values.find(&:blank?).present?
+            hash.values.find(&:blank?).present?
         end
       end
 
@@ -83,7 +80,6 @@ module CapistranoMulticonfigParallel
         check_array_props(c, %w(task_confirmations development_stages apply_stage_confirmation))
         verify_application_dependencies(c, 'application_dependencies', %w(app priority dependencies))
       end
-
     end
   end
 end

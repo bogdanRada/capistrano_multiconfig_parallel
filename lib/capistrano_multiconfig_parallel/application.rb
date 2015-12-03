@@ -62,7 +62,6 @@ module CapistranoMulticonfigParallel
       end
     end
 
-
     def multi_apps?
       @stages.find { |stage| stage.include?(':') }.present?
     end

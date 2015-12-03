@@ -30,7 +30,6 @@ module CapistranoMulticonfigParallel
       end
     end
 
-
     def process_finalizer
       @timer.cancel
       EM.stop if EM.reactor_running?

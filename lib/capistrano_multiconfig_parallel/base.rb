@@ -11,7 +11,7 @@ module CapistranoMulticonfigParallel
 
     def enable_logging
       enable_file_logging
-      Celluloid.logger = self.logger
+      Celluloid.logger = logger
       Celluloid.task_class = Celluloid::TaskThread
     end
 
@@ -41,7 +41,7 @@ module CapistranoMulticonfigParallel
       ['deploy_multi_stages']
     end
 
-    private
+  private
 
     def enable_file_logging
       if configuration.multi_debug.to_s.downcase == 'true'
@@ -58,7 +58,5 @@ module CapistranoMulticonfigParallel
       log_file = File.open(main_log_file, 'w')
       log_file.sync = true
     end
-
-
   end
 end

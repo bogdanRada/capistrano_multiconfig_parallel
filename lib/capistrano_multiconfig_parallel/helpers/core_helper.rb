@@ -1,8 +1,7 @@
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module CoreHelper
-
-    module_function
+  module_function
 
     def internal_config_directory
       File.join(root.to_s, 'capistrano_multiconfig_parallel', 'configuration')
@@ -20,7 +19,6 @@ module CapistranoMulticonfigParallel
     def find_env_multi_cap_root
       ENV['MULTI_CAP_ROOT']
     end
-
 
     def root
       File.expand_path(File.dirname(File.dirname(__dir__)))
@@ -41,7 +39,6 @@ module CapistranoMulticonfigParallel
     def app_debug_enabled?
       app_configuration.multi_debug.to_s.downcase == 'true'
     end
-
 
     def show_warning(message)
       warn message if app_debug_enabled?
@@ -81,19 +78,18 @@ module CapistranoMulticonfigParallel
 
     def log_error(message)
       log_to_file(
-      class_name: message.class,
-      message: message.respond_to?(:message) ? message.message : message.inspect,
-      backtrace: message.respond_to?(:backtrace) ? message.backtrace.join("\n\n") : ''
+        class_name: message.class,
+        message: message.respond_to?(:message) ? message.message : message.inspect,
+        backtrace: message.respond_to?(:backtrace) ? message.backtrace.join("\n\n") : ''
       )
     end
 
-
     def log_to_file(message, job_id = nil)
-      worker_log = job_id.present? ? set_worker_log(job_id) : app_logger
+      worker_log = job_id.present? ? find_worker_log(job_id) : app_logger
       worker_log.debug(message) if worker_log.present? && app_debug_enabled?
     end
 
-    def set_worker_log(job_id)
+    def find_worker_log(job_id)
       return if job_id.blank?
       FileUtils.mkdir_p(CapistranoMulticonfigParallel.log_directory) unless File.directory?(CapistranoMulticonfigParallel.log_directory)
       filename = File.join(CapistranoMulticonfigParallel.log_directory, "worker_#{job_id}.log")
@@ -105,6 +101,5 @@ module CapistranoMulticonfigParallel
       end
       worker_log
     end
-
   end
 end

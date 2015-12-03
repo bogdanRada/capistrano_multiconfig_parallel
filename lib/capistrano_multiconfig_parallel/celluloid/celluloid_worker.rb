@@ -27,7 +27,7 @@ module CapistranoMulticonfigParallel
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv,
                   :rake_tasks, :current_task_number, # tracking tasks
                   :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-                  :job_termination_condition, :worker_state, :invocation_chain,  :filename, :worker_log
+                  :job_termination_condition, :worker_state, :invocation_chain, :filename, :worker_log
 
     def work(job, manager)
       @job = job
@@ -132,10 +132,9 @@ module CapistranoMulticonfigParallel
         result = Celluloid::Actor[:terminal_server].show_confirmation(message['question'], message['default'])
         publish_rake_event(message.merge('action' => 'stdin', 'result' => result, 'client_action' => 'stdin'))
       else
-        log_to_file(message,@job_id)
+        log_to_file(message, @job_id)
       end
     end
-
 
     def message_is_for_stdout?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['action'] == 'stdout'
