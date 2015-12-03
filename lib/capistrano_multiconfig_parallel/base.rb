@@ -38,14 +38,7 @@ module CapistranoMulticonfigParallel
     end
 
     def custom_commands
-      {
-        'multi ' => {
-          stages: 'deploy_multi_stages'
-        },
-        'single' => {
-          stages: 'deploy_multi_stages'
-        }
-      }
+      ['deploy_multi_stages']
     end
 
     private

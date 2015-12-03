@@ -51,6 +51,10 @@ module CapistranoMulticonfigParallel
       CapistranoMulticonfigParallel.configuration
     end
 
+    def custom_commands
+      CapistranoMulticonfigParallel.custom_commands
+    end
+
     def app_logger
       CapistranoMulticonfigParallel.logger
     end

@@ -56,16 +56,12 @@ module CapistranoMulticonfigParallel
 
     def custom_command?
       if multi_apps?
-        !@stages.include?(@top_level_tasks.first) && custom_commands.values.include?(@top_level_tasks.first)
+        !@stages.include?(@top_level_tasks.first) && custom_commands.include?(@top_level_tasks.first)
       else
-        !@stages.include?(@top_level_tasks.second) && @stages.include?(@top_level_tasks.first) && custom_commands.values.include?(@top_level_tasks.second)
+        !@stages.include?(@top_level_tasks.second) && @stages.include?(@top_level_tasks.first) && custom_commands.include?(@top_level_tasks.second)
       end
     end
 
-    def custom_commands
-      key = multi_apps? ? CapistranoMulticonfigParallel::MULTI_KEY : CapistranoMulticonfigParallel::SINGLE_KEY
-      CapistranoMulticonfigParallel::CUSTOM_COMMANDS[key]
-    end
 
     def multi_apps?
       @stages.find { |stage| stage.include?(':') }.present?
