@@ -112,6 +112,5 @@ module CapistranoMulticonfigParallel
       config['enable_debug'] = config.fetch('enable_debug', '').to_s == 'true'
       config
     end
-
   end
 end

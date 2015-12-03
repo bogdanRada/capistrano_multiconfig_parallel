@@ -37,8 +37,6 @@ module CapistranoMulticonfigParallel
       @worker_supervisor.supervise_as(:web_server, CapistranoMulticonfigParallel::WebServer, websocket_config)
     end
 
-  
-
     def generate_job_id(job)
       @jobs[job['id']] = job
       job['id']
