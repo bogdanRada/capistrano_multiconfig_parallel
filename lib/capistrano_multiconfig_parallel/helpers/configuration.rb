@@ -1,9 +1,9 @@
-require_relative './core_helper'
+require_relative './application_helper'
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module Configuration
     extend ActiveSupport::Concern
-    include CapistranoMulticonfigParallel::CoreHelper
+    include CapistranoMulticonfigParallel::ApplicationHelper
 
     included do
       attr_reader :configuration

@@ -70,7 +70,7 @@ module CapistranoMulticonfigParallel
     def register_worker_for_job(job, worker)
       job = job.stringify_keys
       if job['id'].blank?
-        celluloid_log("job id not found. delegating again the job #{job.inspect}")
+        log_to_file("job id not found. delegating again the job #{job.inspect}")
         delegate(job)
       else
         start_worker(job, worker)
@@ -81,7 +81,7 @@ module CapistranoMulticonfigParallel
       worker.job_id = job['id'] if worker.job_id.blank?
       @job_to_worker[job['id']] = worker
       @worker_to_job[worker.mailbox.address] = job
-      celluloid_log("worker #{worker.job_id} registed into manager")
+      log_to_file("worker #{worker.job_id} registed into manager")
       Actor.current.link worker
       worker.async.start_task unless syncronized_confirmation?
       @registration_complete = true if @job_manager.jobs.size == @job_to_worker.size
@@ -103,7 +103,7 @@ module CapistranoMulticonfigParallel
       until condition.present?
         sleep(0.1) # keep current thread alive
       end
-      celluloid_log("all jobs have completed #{condition}")
+      log_to_file("all jobs have completed #{condition}")
       Celluloid::Actor[:terminal_server].async.notify_time_change(CapistranoMulticonfigParallel::TerminalTable.topic, type: 'output') if Celluloid::Actor[:terminal_server].alive?
     end
 
@@ -265,11 +265,11 @@ module CapistranoMulticonfigParallel
 
     def worker_died(worker, reason)
       job = @worker_to_job[worker.mailbox.address]
-      celluloid_log("worker job #{job} with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}")
+      log_to_file("worker job #{job} with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}")
       @worker_to_job.delete(worker.mailbox.address)
       return if job.blank? || job_failed?(job)
       return unless job['action_name'] == 'deploy'
-      celluloid_log "restarting #{job} on new worker"
+      log_to_file "restarting #{job} on new worker"
       job = job.merge(:action => 'deploy:rollback', 'worker_action' => 'worker_died')
       delegate(job)
     end

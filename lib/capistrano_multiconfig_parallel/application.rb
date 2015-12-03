@@ -112,7 +112,7 @@ module CapistranoMulticonfigParallel
       deploy_multiple_apps(apps, options)
       deploy_app(options) if !custom_command? || !multi_apps?
     rescue => e
-      log_message(e)
+      log_error(e)
     end
 
     def process_jobs

@@ -52,7 +52,7 @@ module CapistranoMulticonfigParallel
 
     def initialize_subscription
       return if defined?(@client) && @client.present?
-      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: app_debug_enabled?, channel: @subscription_channel)
+      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: false, channel: @subscription_channel)
     end
 
     def task_name
@@ -85,7 +85,7 @@ module CapistranoMulticonfigParallel
     end
 
     def log_debug(action, message)
-      celluloid_log("Rake worker #{@job_id} received after #{action}: #{message}")
+      log_to_file("Rake worker #{@job_id} received after #{action}: #{message}")
     end
 
     def msg_for_stdin?(message)
@@ -129,7 +129,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_close(code, reason)
-      celluloid_log("websocket connection closed: #{code.inspect}, #{reason.inspect}")
+      log_to_file("websocket connection closed: #{code.inspect}, #{reason.inspect}")
       terminate
     end
 

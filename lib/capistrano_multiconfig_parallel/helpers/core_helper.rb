@@ -42,10 +42,6 @@ module CapistranoMulticonfigParallel
       app_configuration.multi_debug.to_s.downcase == 'true'
     end
 
-    def celluloid_log(_message, worker_log = nil)
-      worker_log.present? ? worker_log : Celluloid.logger
-      worker_log.debug("worker #{@job_id} received #{job.inspect}") if worker_log.present? && app_debug_enabled?
-    end
 
     def show_warning(message)
       warn message if app_debug_enabled?
@@ -79,13 +75,31 @@ module CapistranoMulticonfigParallel
       return nil
     end
 
-    def log_message(message)
-      return unless app_logger.present?
-      app_logger.debug(
+    def log_error(message)
+      log_to_file(
       class_name: message.class,
       message: message.respond_to?(:message) ? message.message : message.inspect,
       backtrace: message.respond_to?(:backtrace) ? message.backtrace.join("\n\n") : ''
       )
+    end
+
+
+    def log_to_file(message, job_id = nil)
+      worker_log = job_id.present? ? set_worker_log(job_id) : app_logger
+      worker_log.debug(message) if worker_log.present? && app_debug_enabled?
+    end
+
+    def set_worker_log(job_id)
+      return if job_id.blank?
+      FileUtils.mkdir_p(CapistranoMulticonfigParallel.log_directory) unless File.directory?(CapistranoMulticonfigParallel.log_directory)
+      filename = File.join(CapistranoMulticonfigParallel.log_directory, "worker_#{job_id}.log")
+      worker_log = ::Logger.new(filename)
+      worker_log.level = ::Logger::Severity::DEBUG
+      worker_log.formatter = proc do |severity, datetime, progname, msg|
+        date_format = datetime.strftime('%Y-%m-%d %H:%M:%S')
+        "[#{date_format}] #{severity}  (#{progname}): #{msg}\n"
+      end
+      worker_log
     end
 
   end

@@ -27,7 +27,7 @@ module CapistranoMulticonfigParallel
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv,
                   :rake_tasks, :current_task_number, # tracking tasks
                   :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-                  :job_termination_condition, :worker_state, :invocation_chain
+                  :job_termination_condition, :worker_state, :invocation_chain,  :filename, :worker_log
 
     def work(job, manager)
       @job = job
@@ -35,7 +35,7 @@ module CapistranoMulticonfigParallel
       @manager = manager
       @job_confirmation_conditions = []
       process_job(job) if job.present?
-      celluloid_log("worker #{@job_id} received #{job.inspect}")
+      log_to_file("worker #{@job_id} received #{job.inspect}")
       @subscription_channel = "worker_#{@job_id}"
       @machine = CapistranoMulticonfigParallel::StateMachine.new(job, Actor.current)
       manager.register_worker_for_job(job, Actor.current)
@@ -43,7 +43,7 @@ module CapistranoMulticonfigParallel
 
     def start_task
       @manager.setup_worker_conditions(Actor.current)
-      celluloid_log("exec worker #{@job_id} starts task with #{@job.inspect}")
+      log_to_file("exec worker #{@job_id} starts task with #{@job.inspect}")
       @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: @manager.debug_websocket?, channel: subscription_channel)
     end
 
@@ -56,7 +56,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_message(message)
-      celluloid_log("worker #{@job_id} received:  #{message.inspect}")
+      log_to_file("worker #{@job_id} received:  #{message.inspect}")
       if @client.succesfull_subscription?(message)
         @successfull_subscription = true
         execute_after_succesfull_subscription
@@ -94,10 +94,10 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_deploy
-      celluloid_log("invocation chain #{@job_id} is : #{@rake_tasks.inspect}")
+      log_to_file("invocation chain #{@job_id} is : #{@rake_tasks.inspect}")
       check_child_proces
       setup_task_arguments
-      celluloid_log("worker #{@job_id} executes: #{generate_command}")
+      log_to_file("worker #{@job_id} executes: #{generate_command}")
       @child_process.async.work(generate_command, actor: Actor.current, silent: true)
       @manager.wait_task_confirmations_worker(Actor.current)
     end
@@ -113,7 +113,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_close(code, reason)
-      celluloid_log("worker #{@job_id} websocket connection closed: #{code.inspect}, #{reason.inspect}")
+      log_to_file("worker #{@job_id} websocket connection closed: #{code.inspect}, #{reason.inspect}")
     end
 
     def check_gitflow
@@ -126,15 +126,16 @@ module CapistranoMulticonfigParallel
         check_gitflow
         save_tasks_to_be_executed(message)
         update_machine_state(message['task']) # if message['action'] == 'invoke'
-        celluloid_log("worker #{@job_id} state is #{@machine.state}")
+        log_to_file("worker #{@job_id} state is #{@machine.state}")
         task_approval(message)
       elsif message_is_for_stdout?(message)
         result = Celluloid::Actor[:terminal_server].show_confirmation(message['question'], message['default'])
         publish_rake_event(message.merge('action' => 'stdin', 'result' => result, 'client_action' => 'stdin'))
       else
-        celluloid_log("worker #{@job_id} could not handle  #{message}")
+        log_to_file(message,@job_id)
       end
     end
+
 
     def message_is_for_stdout?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['action'] == 'stdout'
@@ -160,13 +161,13 @@ module CapistranoMulticonfigParallel
     end
 
     def save_tasks_to_be_executed(message)
-      celluloid_log("worler #{@job_id} current invocation chain : #{rake_tasks.inspect}")
+      log_to_file("worler #{@job_id} current invocation chain : #{rake_tasks.inspect}")
       rake_tasks << message['task'] if rake_tasks.last != message['task']
       invocation_chain << message['task'] if invocation_chain.last != message['task']
     end
 
     def update_machine_state(name)
-      celluloid_log("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}")
+      log_to_file("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}")
       @machine.transitions.on(name.to_s, @machine.state => name.to_s)
       @machine.go_to_transition(name.to_s)
       raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task #{@action} failed ") if name == 'deploy:failed' # force worker to rollback
@@ -234,11 +235,11 @@ module CapistranoMulticonfigParallel
 
     def notify_finished(exit_status)
       if exit_status.exitstatus != 0
-        celluloid_log("worker #{job_id} tries to terminate")
+        log_to_file("worker #{job_id} tries to terminate")
         raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task  failed with exit status #{exit_status.inspect} ") # force worker to rollback
       else
         update_machine_state('FINISHED')
-        celluloid_log("worker #{job_id} notifies manager has finished")
+        log_to_file("worker #{job_id} notifies manager has finished")
         finish_worker
       end
     end

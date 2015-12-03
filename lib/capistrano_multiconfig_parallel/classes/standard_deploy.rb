@@ -43,7 +43,7 @@ module CapistranoMulticonfigParallel
       puts("\n\n\n Executing '#{command}' \n\n\n .")
       sh("#{command}")
     rescue => ex
-      log_message(ex)
+      log_error(ex)
       execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
     end
   end

@@ -7,24 +7,12 @@ module CapistranoMulticonfigParallel
 
   class << self
     attr_accessor :logger, :original_args
-
     include CapistranoMulticonfigParallel::Configuration
-    include CapistranoMulticonfigParallel::ApplicationHelper
 
     def enable_logging
       enable_file_logging
-      self.logger ||= ::Logger.new(DevNull.new)
-      Celluloid.logger = CapistranoMulticonfigParallel.logger
+      Celluloid.logger = self.logger
       Celluloid.task_class = Celluloid::TaskThread
-    end
-
-    def enable_file_logging
-      return if configuration.multi_debug.to_s.downcase != 'true'
-      FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
-      FileUtils.touch(main_log_file) unless File.file?(main_log_file)
-      log_file = File.open(main_log_file, 'w')
-      log_file.sync = true
-      self.logger = ::Logger.new(main_log_file)
     end
 
     def detect_root
@@ -59,5 +47,25 @@ module CapistranoMulticonfigParallel
         }
       }
     end
+
+    private
+
+    def enable_file_logging
+      if configuration.multi_debug.to_s.downcase == 'true'
+        enable_main_log_file
+        self.logger = ::Logger.new(main_log_file)
+      else
+        self.logger ||= ::Logger.new(DevNull.new)
+      end
+    end
+
+    def enable_main_log_file
+      FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
+      FileUtils.touch(main_log_file) unless File.file?(main_log_file)
+      log_file = File.open(main_log_file, 'w')
+      log_file.sync = true
+    end
+
+
   end
 end

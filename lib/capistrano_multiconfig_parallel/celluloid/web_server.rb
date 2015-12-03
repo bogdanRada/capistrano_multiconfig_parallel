@@ -6,7 +6,7 @@ module CapistranoMulticonfigParallel
     def initialize(*args)
       super(*args)
     rescue => exc
-      log_message(exc)
+      log_error(exc)
       # fails silently
     end
   end

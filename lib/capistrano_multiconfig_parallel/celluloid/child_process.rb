@@ -7,7 +7,7 @@ module CapistranoMulticonfigParallel
     include Celluloid::Logger
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_accessor :actor, :pid, :exit_status, :process, :filename, :worker_log, :job_id, :debug_enabled
+    attr_accessor :actor, :pid, :exit_status, :process, :job_id
 
     finalizer :process_finalizer
 
@@ -15,7 +15,6 @@ module CapistranoMulticonfigParallel
       @options = options
       @actor = @options.fetch(:actor, nil)
       @job_id = @actor.job_id
-      set_worker_log
       EM.run do
         EM.next_tick do
           start_async_deploy(cmd, options)
@@ -25,23 +24,12 @@ module CapistranoMulticonfigParallel
         end
       end
       EM.error_handler do|e|
-        celluloid_log("Error during event loop for worker #{@job_id}: #{e.inspect}", @worker_log)
-        celluloid_log(e.backtrace, @worker_log)
+        log_to_file("Error during event loop for worker #{@job_id}: #{e.inspect}", @job_id)
+        log_to_file(e.backtrace, @job_id)
         EM.stop
       end
     end
 
-    def set_worker_log
-      FileUtils.mkdir_p(CapistranoMulticonfigParallel.log_directory) unless File.directory?(CapistranoMulticonfigParallel.log_directory)
-      @filename = File.join(CapistranoMulticonfigParallel.log_directory, "worker_#{@actor.job_id}.log")
-      FileUtils.rm_rf(@filename) if File.file?(@filename) && !@actor.crashed?
-      @worker_log = ::Logger.new(@filename)
-      @worker_log.level = ::Logger::Severity::DEBUG
-      @worker_log.formatter = proc do |severity, datetime, progname, msg|
-        date_format = datetime.strftime('%Y-%m-%d %H:%M:%S')
-        "[#{date_format}] #{severity}  (#{progname}): #{msg}\n"
-      end
-    end
 
     def process_finalizer
       @timer.cancel
@@ -85,12 +73,12 @@ module CapistranoMulticonfigParallel
     end
 
     def on_exit(status)
-      @worker_log.debug "Child process for worker #{@job_id} on_exit  disconnected due to error #{status.inspect}" if @debug_enabled
+      log_to_file "Child process for worker #{@job_id} on_exit  disconnected due to error #{status.inspect}"
       @exit_status = status
     end
 
     def async_exception_handler(*data)
-      @worker_log.debug "Child process for worker #{@job_id} async_exception_handler  disconnected due to error #{data.inspect}" if @debug_enabled
+      log_to_file "Child process for worker #{@job_id} async_exception_handler  disconnected due to error #{data.inspect}"
       io_callback('stderr', data)
       @exit_status = 1
     end
@@ -100,7 +88,7 @@ module CapistranoMulticonfigParallel
     end
 
     def io_callback(io, data)
-      @worker_log.debug("#{io.upcase} ---- #{data}")
+      log_to_file("#{io.upcase} ---- #{data}", @job_id)
     end
   end
 end
