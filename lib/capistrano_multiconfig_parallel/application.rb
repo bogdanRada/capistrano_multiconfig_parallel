@@ -4,17 +4,17 @@ module CapistranoMulticonfigParallel
   class Application
     include Celluloid
     include Celluloid::Logger
+    include CapistranoMulticonfigParallel::StagesHelper
 
-    attr_accessor :stages,:stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
+    attr_reader :stages, :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
 
     def initialize
       Celluloid.boot
       @stages = fetch_stages
-      @stage_apps =  multi_apps? ? @stages.map { |stage| stage.split(':').reverse[1] }.uniq : []
+      @stage_apps = multi_apps? ? @stages.map { |stage| stage.split(':').reverse[1] }.uniq : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
       @jobs = []
     end
-
 
     def start
       verify_app_dependencies(@stages) if multi_apps? && configuration.application_dependencies.present?
@@ -23,37 +23,12 @@ module CapistranoMulticonfigParallel
       run
     end
 
-    def verify_app_dependencies(stages)
+    def verify_app_dependencies(_stages)
       wrong = configuration.application_dependencies.find do |hash|
         !@stage_apps.include?(hash[:app]) || (hash[:dependencies].present? && hash[:dependencies].find { |val| !@stage_apps.include?(val) })
       end
-      raise ArgumentError,"Invalid configuration for #{wrong.inspect}".red if wrong.present?
+      raise ArgumentError, "Invalid configuration for #{wrong.inspect}".red if wrong.present?
     end
-
-
-    def fetch_stages
-      fetch_stages_paths do |paths|
-        paths.reject! { |path| check_stage_path(paths, path) }
-        paths.sort if paths.present?
-      end
-    end
-
-    def check_stage_path(paths, path)
-      paths.any? { |another| another != path && another.start_with?(path + ':') }
-    end
-
-    def stages_paths
-      stages_root = 'config/deploy'
-      Dir["#{stages_root}/**/*.rb"].map do |file|
-        file.slice(stages_root.size + 1..-4).tr('/', ':')
-      end
-    end
-
-    def fetch_stages_paths
-      stages_paths.tap { |paths| yield paths if block_given? }
-    end
-
-
 
     def run_custom_command(options)
       custom_stages = fetch_multi_stages
@@ -78,7 +53,6 @@ module CapistranoMulticonfigParallel
       @argv['BRANCH'] = nil
     end
 
-
     def custom_command?
       if multi_apps?
         !@stages.include?(@top_level_tasks.first) && custom_commands.values.include?(@top_level_tasks.first)
@@ -99,7 +73,6 @@ module CapistranoMulticonfigParallel
     def configuration
       CapistranoMulticonfigParallel.configuration
     end
-
 
     def initialize_data
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
@@ -180,7 +153,6 @@ module CapistranoMulticonfigParallel
     def tag_staging_exists? # check exists task from capistrano-gitflow
       CapistranoMulticonfigParallel.find_loaded_gem('capistrano-gitflow').present?
     end
-
 
     def fetch_multi_stages
       custom_stages = @argv['STAGES'].blank? ? '' : @argv['STAGES']
@@ -267,6 +239,7 @@ module CapistranoMulticonfigParallel
       terminate
     end
 
+    # rubocop:disable CyclomaticComplexity
     def prepare_job(options)
       options = options.stringify_keys
       branch_name = options.fetch('branch', {})

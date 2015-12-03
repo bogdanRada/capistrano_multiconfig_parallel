@@ -4,7 +4,7 @@ module CapistranoMulticonfigParallel
   class StandardDeploy
     include FileUtils
 
-    attr_accessor :app, :stage, :action, :task_arguments, :env_options
+    attr_reader :app, :stage, :action, :task_arguments, :env_options
     def initialize(options)
       @app = options.fetch('app', '')
       @stage = options.fetch('env', '')

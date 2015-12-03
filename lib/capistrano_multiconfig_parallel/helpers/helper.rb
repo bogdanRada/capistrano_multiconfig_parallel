@@ -1,9 +1,9 @@
 module CapistranoMulticonfigParallel
+  # helper methods used for the base class
   module Helper
     extend ActiveSupport::Concern
 
     included do
-
       attr_accessor :logger, :original_args
 
       def root
@@ -58,15 +58,14 @@ module CapistranoMulticonfigParallel
         err_backtrace = message.respond_to?(:backtrace) ? message.backtrace.join("\n\n") : ''
         if err_backtrace.present?
           logger.debug(
-          class_name: message.class,
-          message: error_message,
-          backtrace: err_backtrace
+            class_name: message.class,
+            message: error_message,
+            backtrace: err_backtrace
           )
         else
           logger.debug(message)
         end
       end
-
 
       def detect_root
         if ENV['MULTI_CAP_ROOT']
@@ -87,11 +86,8 @@ module CapistranoMulticonfigParallel
       end
 
       def find_loaded_gem(name)
-        Gem.loaded_specs.values.detect{|repo| repo.name == name }
+        Gem.loaded_specs.values.find { |repo| repo.name == name }
       end
-
-
-
     end
   end
 end

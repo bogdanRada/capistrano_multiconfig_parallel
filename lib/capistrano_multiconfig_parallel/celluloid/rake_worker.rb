@@ -75,25 +75,34 @@ module CapistranoMulticonfigParallel
 
     def on_message(message)
       return unless message.present?
-      debug("Rake worker #{@job_id} received after parse #{message}") # if debug_enabled?
+      log_debug('on_message', message)
       if @client.succesfull_subscription?(message)
-        debug("Rake worker #{@job_id} received  parse #{message}") if debug_enabled?
-        @successfull_subscription = true
-        publish_to_worker(task_data)
-      elsif message['task'].present?
+        publish_subscription_successfull(message)
+      elsif msg_for_task?(message) || msg_for_stdin?(message)
         task_approval(message)
-      elsif message['action'].present? && message['action'] == 'stdin'
         stdin_approval(message)
       else
         warn "unknown action: #{message.inspect}" if debug_enabled?
       end
     end
 
+    def log_debug(action, message)
+      debug("Rake worker #{@job_id} received after #{action}: #{message}") if debug_enabled?
+    end
+
     def msg_for_stdin?(message)
       message['action'] == 'stdin'
     end
 
-    def publish_subscription_successfull
+    def msg_for_task?(message)
+      message['task'].present?
+    end
+
+    def publish_subscription_successfull(message)
+      return unless @client.succesfull_subscription?(message)
+      log_debug('publish_subscription_successfull', message)
+      @successfull_subscription = true
+      publish_to_worker(task_data)
     end
 
     def wait_for_stdin_input
@@ -104,7 +113,8 @@ module CapistranoMulticonfigParallel
     end
 
     def stdin_approval(message)
-      if @job_id.to_i == message['job_id'].to_i && message['result'].present? && message['action'] == 'stdin'
+      return unless msg_for_stdin?(message)
+      if @job_id.to_i == message['job_id'].to_i && message['result'].present?
         @stdin_result = message['result']
       else
         warn "unknown invocation #{message.inspect}" if debug_enabled?
@@ -112,6 +122,7 @@ module CapistranoMulticonfigParallel
     end
 
     def task_approval(message)
+      return unless msg_for_task?(message)
       if @job_id.to_i == message['job_id'].to_i && message['task'] == task_name && message['approved'] == 'yes'
         @task_approved = true
       else

@@ -11,7 +11,6 @@ module CapistranoMulticonfigParallel
         @config
       end
 
-
       def fetch_configuration
         @fetched_config = Configliere::Param.new
         command_line_params.each do |param|
@@ -38,7 +37,7 @@ module CapistranoMulticonfigParallel
       end
 
       def internal_config_directory
-        File.join(CapistranoMulticonfigParallel.root.to_s, 'capistrano_multiconfig_parallel', 'initializers')
+        File.join(CapistranoMulticonfigParallel.root.to_s, 'capistrano_multiconfig_parallel', 'configuration')
       end
 
       def command_line_params
@@ -49,7 +48,6 @@ module CapistranoMulticonfigParallel
       def change_config_type(type)
         ['boolean'].include?(type) ? type.delete(':').to_sym : type.constantize
       end
-
 
       def verify_array_of_strings(value)
         return true if value.blank?
@@ -71,8 +69,6 @@ module CapistranoMulticonfigParallel
             hash.values.find(&:blank?).present?
         end
       end
-
-
 
       def check_boolean(c, prop)
         raise ArgumentError, "the property `#{prop}` must be boolean" unless %w(true false).include?(c[prop].to_s.downcase)

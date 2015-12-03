@@ -1,6 +1,5 @@
 # base module that has the statis methods that this gem is using
 module CapistranoMulticonfigParallel
-
   ENV_KEY_JOB_ID = 'multi_cap_job_id'
   MULTI_KEY = 'multi'
   SINGLE_KEY = 'single'
