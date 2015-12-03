@@ -4,7 +4,7 @@ module CapistranoMulticonfigParallel
     extend ActiveSupport::Concern
 
     included do
-      attr_accessor :configuration
+      attr_reader :configuration
 
       def configuration
         @config ||= fetch_configuration
@@ -32,21 +32,9 @@ module CapistranoMulticonfigParallel
         @fetched_config.resolve!
       end
 
-      def config_file
-        File.join(CapistranoMulticonfigParallel.detect_root.to_s, 'config', 'multi_cap.yml')
-      end
-
-      def internal_config_directory
-        File.join(CapistranoMulticonfigParallel.root.to_s, 'capistrano_multiconfig_parallel', 'configuration')
-      end
-
       def command_line_params
         @default_config ||= YAML.load_file(File.join(internal_config_directory, 'default.yml'))['default_config']
         @default_config
-      end
-
-      def change_config_type(type)
-        ['boolean'].include?(type) ? type.delete(':').to_sym : type.constantize
       end
 
       def verify_array_of_strings(value)

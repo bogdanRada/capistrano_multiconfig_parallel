@@ -5,6 +5,7 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Logger
     include CapistranoMulticonfigParallel::StagesHelper
+    include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :stages, :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
 
@@ -17,13 +18,13 @@ module CapistranoMulticonfigParallel
     end
 
     def start
-      verify_app_dependencies(@stages) if multi_apps? && configuration.application_dependencies.present?
+      verify_app_dependencies if multi_apps? && configuration.application_dependencies.present?
       check_before_starting
       initialize_data
       run
     end
 
-    def verify_app_dependencies(_stages)
+    def verify_app_dependencies
       wrong = configuration.application_dependencies.find do |hash|
         !@stage_apps.include?(hash[:app]) || (hash[:dependencies].present? && hash[:dependencies].find { |val| !@stage_apps.include?(val) })
       end
@@ -94,28 +95,6 @@ module CapistranoMulticonfigParallel
       @top_level_tasks.push(Rake.application.default_task_name) if @top_level_tasks.blank?
     end
 
-    def parse_task_string(string) # :nodoc:
-      /^([^\[]+)(?:\[(.*)\])$/ =~ string.to_s
-
-      name           = Regexp.last_match(1)
-      remaining_args = Regexp.last_match(2)
-
-      return string, [] unless name
-      return name,   [] if     remaining_args.empty?
-
-      args = []
-
-      loop do
-        /((?:[^\\,]|\\.)*?)\s*(?:,\s*(.*))?$/ =~ remaining_args
-
-        remaining_args = Regexp.last_match(2)
-        args << Regexp.last_match(1).gsub(/\\(.)/, '\1')
-        break if   remaining_args.blank?
-      end
-
-      [name, args]
-    end
-
     def verify_options_custom_command(options)
       options[:action] = @argv['ACTION'].present? ? @argv['ACTION'] : 'deploy'
       options
@@ -156,7 +135,7 @@ module CapistranoMulticonfigParallel
 
     def fetch_multi_stages
       custom_stages = @argv['STAGES'].blank? ? '' : @argv['STAGES']
-      custom_stages = parse_inputted_value('value' => custom_stages).split(',').compact if custom_stages.present?
+      custom_stages = strip_characters_from_string(custom_stages).split(',').compact if custom_stages.present?
       custom_stages = custom_stages.present? ? custom_stages : [@default_stage]
       custom_stages
     end
@@ -275,24 +254,10 @@ module CapistranoMulticonfigParallel
       options
     end
 
-    def parse_inputted_value(options = {})
-      options = options.stringify_keys
-      value = options['value'].present? ? options['value'] : nil
-      if value.present?
-        branch = value.gsub("\r\n", '')
-        branch = branch.delete("\n") if branch.present?
-        branch = branch.gsub(/\s+/, ' ') if branch.present?
-        branch = branch.strip if branch.present?
-        return branch
-      else
-        return ''
-      end
-    end
-
     def fetch_app_additional_env_options(variable)
       options = {}
       return options if variable.blank?
-      env_options = parse_inputted_value('value' => variable)
+      env_options = strip_characters_from_string(variable)
       env_options = env_options.split(' ')
       options = multi_fetch_argv(env_options)
       options.stringify_keys!
@@ -310,7 +275,7 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_on_multiple_boxes(main_box_name, options)
-      boxes = parse_inputted_value('value' => main_box_name).split(',').compact
+      boxes = strip_characters_from_string(main_box_name).split(',').compact
       boxes.each do |box_name|
         options['env_options']['BOX'] = box_name
         prepare_job(options)
