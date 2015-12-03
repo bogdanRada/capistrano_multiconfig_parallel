@@ -44,7 +44,7 @@ module CapistranoMulticonfigParallel
     def start_task
       @manager.setup_worker_conditions(Actor.current)
       log_to_file("exec worker #{@job_id} starts task with #{@job.inspect}")
-      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: @manager.debug_websocket?, channel: subscription_channel)
+      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel)
     end
 
     def publish_rake_event(data)

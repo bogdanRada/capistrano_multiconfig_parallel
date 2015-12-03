@@ -52,7 +52,7 @@ module CapistranoMulticonfigParallel
 
     def initialize_subscription
       return if defined?(@client) && @client.present?
-      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: false, channel: @subscription_channel)
+      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: debug_websocket?, channel: @subscription_channel)
     end
 
     def task_name

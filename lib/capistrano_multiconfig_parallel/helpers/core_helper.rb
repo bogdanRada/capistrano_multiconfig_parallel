@@ -101,5 +101,17 @@ module CapistranoMulticonfigParallel
       end
       worker_log
     end
+
+    def debug_websocket?
+      websocket_config['enable_debug'].to_s == 'true'
+    end
+
+    def websocket_config
+      config = app_configuration[:websocket_server]
+      config.present? && config.is_a?(Hash) ? config.stringify_keys : {}
+      config['enable_debug'] = config.fetch('enable_debug', '').to_s == 'true'
+      config
+    end
+
   end
 end

@@ -37,16 +37,7 @@ module CapistranoMulticonfigParallel
       @worker_supervisor.supervise_as(:web_server, CapistranoMulticonfigParallel::WebServer, websocket_config)
     end
 
-    def debug_websocket?
-      websocket_config['enable_debug'].to_s == 'true'
-    end
-
-    def websocket_config
-      config = app_configuration[:websocket_server]
-      config.present? && config.is_a?(Hash) ? config.stringify_keys : {}
-      config['enable_debug'] = config.fetch('enable_debug', '').to_s == 'true'
-      config
-    end
+  
 
     def generate_job_id(job)
       @jobs[job['id']] = job
