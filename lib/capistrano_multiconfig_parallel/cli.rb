@@ -5,7 +5,6 @@ module CapistranoMulticonfigParallel
   class CLI
     class << self
       include CapistranoMulticonfigParallel::ApplicationHelper
-      include CapistranoMulticonfigParallel::CoreHelper
 
       # method used to start
       def start

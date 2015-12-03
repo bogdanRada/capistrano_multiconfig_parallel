@@ -10,7 +10,6 @@ module CapistranoMulticonfigParallel
 
     include CapistranoMulticonfigParallel::Configuration
     include CapistranoMulticonfigParallel::ApplicationHelper
-    include CapistranoMulticonfigParallel::CoreHelper
 
     def enable_logging
       enable_file_logging
@@ -26,6 +25,28 @@ module CapistranoMulticonfigParallel
       log_file = File.open(main_log_file, 'w')
       log_file.sync = true
       self.logger = ::Logger.new(main_log_file)
+    end
+
+    def detect_root
+      if find_env_multi_cap_root
+        Pathname.new(find_env_multi_cap_root)
+      elsif defined?(::Rails)
+        ::Rails.root
+      else
+        try_detect_capfile
+      end
+    end
+
+    def config_file
+      File.join(detect_root.to_s, 'config', 'multi_cap.yml')
+    end
+
+    def log_directory
+      File.join(detect_root.to_s, 'log')
+    end
+
+    def main_log_file
+      File.join(log_directory, 'multi_cap.log')
     end
 
     def custom_commands
