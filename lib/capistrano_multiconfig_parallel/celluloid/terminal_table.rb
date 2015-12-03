@@ -1,3 +1,4 @@
+require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class used to display the progress of each worker on terminal screen using a table
   # rubocop:disable ClassLength
@@ -5,7 +6,7 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Notifications
     include Celluloid::Logger
-
+    include CapistranoMulticonfigParallel::ApplicationHelper
     def self.topic
       'sshkit_terminal'
     end
@@ -44,7 +45,7 @@ module CapistranoMulticonfigParallel
 
     def show_confirmation(message, default)
       exclusive do
-        CapistranoMulticonfigParallel.ask_confirm(message, default)
+        ask_confirm(message, default)
       end
     end
 

@@ -1,5 +1,6 @@
 require_relative './child_process'
 require_relative './state_machine'
+require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # rubocop:disable ClassLength
   # worker that will spawn a child process in order to execute a capistrano job and monitor that process
@@ -20,6 +21,7 @@ module CapistranoMulticonfigParallel
     include Celluloid
     include Celluloid::Notifications
     include Celluloid::Logger
+    include CapistranoMulticonfigParallel::ApplicationHelper
     class TaskFailed < StandardError; end
 
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv,
@@ -33,20 +35,16 @@ module CapistranoMulticonfigParallel
       @manager = manager
       @job_confirmation_conditions = []
       process_job(job) if job.present?
-      debug("worker #{@job_id} received #{job.inspect}") if debug_enabled?
+      celluloid_log("worker #{@job_id} received #{job.inspect}")
       @subscription_channel = "worker_#{@job_id}"
       @machine = CapistranoMulticonfigParallel::StateMachine.new(job, Actor.current)
       manager.register_worker_for_job(job, Actor.current)
     end
 
-    def debug_enabled?
-      @manager.class.debug_enabled?
-    end
-
     def start_task
       @manager.setup_worker_conditions(Actor.current)
-      debug("exec worker #{@job_id} starts task with #{@job.inspect}") if debug_enabled?
-      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: @manager.class.debug_websocket?, channel: subscription_channel)
+      celluloid_log("exec worker #{@job_id} starts task with #{@job.inspect}")
+      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: @manager.debug_websocket?, channel: subscription_channel)
     end
 
     def publish_rake_event(data)
@@ -58,7 +56,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_message(message)
-      debug("worker #{@job_id} received:  #{message.inspect}") if debug_enabled?
+      celluloid_log("worker #{@job_id} received:  #{message.inspect}")
       if @client.succesfull_subscription?(message)
         @successfull_subscription = true
         execute_after_succesfull_subscription
@@ -96,10 +94,10 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_deploy
-      debug("invocation chain #{@job_id} is : #{@rake_tasks.inspect}") if debug_enabled?
+      celluloid_log("invocation chain #{@job_id} is : #{@rake_tasks.inspect}")
       check_child_proces
       setup_task_arguments
-      debug("worker #{@job_id} executes: #{generate_command}") if debug_enabled?
+      celluloid_log("worker #{@job_id} executes: #{generate_command}")
       @child_process.async.work(generate_command, actor: Actor.current, silent: true)
       @manager.wait_task_confirmations_worker(Actor.current)
     end
@@ -115,7 +113,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_close(code, reason)
-      debug("worker #{@job_id} websocket connection closed: #{code.inspect}, #{reason.inspect}") if debug_enabled?
+      celluloid_log("worker #{@job_id} websocket connection closed: #{code.inspect}, #{reason.inspect}")
     end
 
     def check_gitflow
@@ -128,13 +126,13 @@ module CapistranoMulticonfigParallel
         check_gitflow
         save_tasks_to_be_executed(message)
         update_machine_state(message['task']) # if message['action'] == 'invoke'
-        debug("worker #{@job_id} state is #{@machine.state}") if debug_enabled?
+        celluloid_log("worker #{@job_id} state is #{@machine.state}")
         task_approval(message)
       elsif message_is_for_stdout?(message)
         result = Celluloid::Actor[:terminal_server].show_confirmation(message['question'], message['default'])
         publish_rake_event(message.merge('action' => 'stdin', 'result' => result, 'client_action' => 'stdin'))
       else
-        debug("worker #{@job_id} could not handle  #{message}") if debug_enabled?
+        celluloid_log("worker #{@job_id} could not handle  #{message}")
       end
     end
 
@@ -152,7 +150,7 @@ module CapistranoMulticonfigParallel
 
     def task_approval(message)
       job_conditions = @manager.job_to_condition[@job_id]
-      if job_conditions.present? && CapistranoMulticonfigParallel.configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
+      if job_conditions.present? && app_configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
         task_confirmation = job_conditions[message['task']]
         task_confirmation[:status] = 'confirmed'
         task_confirmation[:condition].signal(message['task'])
@@ -162,13 +160,13 @@ module CapistranoMulticonfigParallel
     end
 
     def save_tasks_to_be_executed(message)
-      debug("worler #{@job_id} current invocation chain : #{rake_tasks.inspect}") if debug_enabled?
+      celluloid_log("worler #{@job_id} current invocation chain : #{rake_tasks.inspect}")
       rake_tasks << message['task'] if rake_tasks.last != message['task']
       invocation_chain << message['task'] if invocation_chain.last != message['task']
     end
 
     def update_machine_state(name)
-      debug("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}") if debug_enabled?
+      celluloid_log("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}")
       @machine.transitions.on(name.to_s, @machine.state => name.to_s)
       @machine.go_to_transition(name.to_s)
       raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task #{@action} failed ") if name == 'deploy:failed' # force worker to rollback
@@ -196,7 +194,7 @@ module CapistranoMulticonfigParallel
       @env_options.each do |key, value|
         array_options << "#{key}=#{value}" if value.present?
       end
-      array_options << '--trace' if debug_enabled?
+      array_options << '--trace' if app_debug_enabled?
       args.each do |arg|
         array_options << arg
       end
@@ -236,11 +234,11 @@ module CapistranoMulticonfigParallel
 
     def notify_finished(exit_status)
       if exit_status.exitstatus != 0
-        debug("worker #{job_id} tries to terminate") if debug_enabled?
+        celluloid_log("worker #{job_id} tries to terminate")
         raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task  failed with exit status #{exit_status.inspect} ") # force worker to rollback
       else
         update_machine_state('FINISHED')
-        debug("worker #{job_id} notifies manager has finished") if debug_enabled?
+        celluloid_log("worker #{job_id} notifies manager has finished")
         finish_worker
       end
     end

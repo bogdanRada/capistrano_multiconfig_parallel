@@ -4,6 +4,9 @@ module CapistranoMulticonfigParallel
   # this is the class that will be invoked from terminal , and willl use the invoke task as the primary function.
   class CLI
     class << self
+      include CapistranoMulticonfigParallel::ApplicationHelper
+      include CapistranoMulticonfigParallel::CoreHelper
+
       # method used to start
       def start
         verify_validation
@@ -26,7 +29,7 @@ module CapistranoMulticonfigParallel
       end
 
       def verify_validation
-        CapistranoMulticonfigParallel.check_terminal_tty
+        check_terminal_tty
         CapistranoMulticonfigParallel.original_args = ARGV.dup
         CapistranoMulticonfigParallel.configuration_valid?
       end

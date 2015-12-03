@@ -1,14 +1,14 @@
 require_relative './celluloid_worker'
 require_relative './terminal_table'
 require_relative './web_server'
+require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # rubocop:disable ClassLength
   class CelluloidManager
     include Celluloid
     include Celluloid::Notifications
     include Celluloid::Logger
-
-    cattr_accessor :debug_enabled
+    include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated
 
@@ -34,19 +34,15 @@ module CapistranoMulticonfigParallel
       @worker_to_job = {}
       @job_to_condition = {}
       @worker_supervisor.supervise_as(:terminal_server, CapistranoMulticonfigParallel::TerminalTable, Actor.current, @job_manager)
-      @worker_supervisor.supervise_as(:web_server, CapistranoMulticonfigParallel::WebServer, self.class.websocket_config)
+      @worker_supervisor.supervise_as(:web_server, CapistranoMulticonfigParallel::WebServer, websocket_config)
     end
 
-    def self.debug_enabled?
-      debug_enabled
-    end
-
-    def self.debug_websocket?
+    def debug_websocket?
       websocket_config['enable_debug'].to_s == 'true'
     end
 
-    def self.websocket_config
-      config = CapistranoMulticonfigParallel.configuration[:websocket_server]
+    def websocket_config
+      config = app_configuration[:websocket_server]
       config.present? && config.is_a?(Hash) ? config.stringify_keys : {}
       config['enable_debug'] = config.fetch('enable_debug', '').to_s == 'true'
       config
@@ -74,7 +70,7 @@ module CapistranoMulticonfigParallel
     def register_worker_for_job(job, worker)
       job = job.stringify_keys
       if job['id'].blank?
-        debug("job id not found. delegating again the job #{job.inspect}") if self.class.debug_enabled?
+        celluloid_log("job id not found. delegating again the job #{job.inspect}")
         delegate(job)
       else
         start_worker(job, worker)
@@ -85,7 +81,7 @@ module CapistranoMulticonfigParallel
       worker.job_id = job['id'] if worker.job_id.blank?
       @job_to_worker[job['id']] = worker
       @worker_to_job[worker.mailbox.address] = job
-      debug("worker #{worker.job_id} registed into manager") if self.class.debug_enabled?
+      celluloid_log("worker #{worker.job_id} registed into manager")
       Actor.current.link worker
       worker.async.start_task unless syncronized_confirmation?
       @registration_complete = true if @job_manager.jobs.size == @job_to_worker.size
@@ -107,12 +103,12 @@ module CapistranoMulticonfigParallel
       until condition.present?
         sleep(0.1) # keep current thread alive
       end
-      debug("all jobs have completed #{condition}") if self.class.debug_enabled?
+      celluloid_log("all jobs have completed #{condition}")
       Celluloid::Actor[:terminal_server].async.notify_time_change(CapistranoMulticonfigParallel::TerminalTable.topic, type: 'output') if Celluloid::Actor[:terminal_server].alive?
     end
 
     def apply_confirmations?
-      confirmations = CapistranoMulticonfigParallel.configuration.task_confirmations
+      confirmations = app_configuration.task_confirmations
       confirmations.is_a?(Array) && confirmations.present?
     end
 
@@ -121,13 +117,13 @@ module CapistranoMulticonfigParallel
     end
 
     def apply_confirmation_for_worker(worker)
-      worker.alive? && CapistranoMulticonfigParallel.configuration.apply_stage_confirmation.include?(worker.env_name) && apply_confirmations?
+      worker.alive? && app_configuration.apply_stage_confirmation.include?(worker.env_name) && apply_confirmations?
     end
 
     def setup_worker_conditions(worker)
       return unless apply_confirmation_for_worker(worker)
       hash_conditions = {}
-      CapistranoMulticonfigParallel.configuration.task_confirmations.each do |task|
+      app_configuration.task_confirmations.each do |task|
         hash_conditions[task] = { condition: Celluloid::Condition.new, status: 'unconfirmed' }
       end
       @job_to_condition[worker.job_id] = hash_conditions
@@ -135,7 +131,7 @@ module CapistranoMulticonfigParallel
 
     def mark_completed_remaining_tasks(worker)
       return unless apply_confirmation_for_worker(worker)
-      CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, _index|
+      app_configuration.task_confirmations.each_with_index do |task, _index|
         fake_result = proc { |sum| sum }
         task_confirmation = @job_to_condition[worker.job_id][task]
         if task_confirmation[:status] != 'confirmed'
@@ -147,7 +143,7 @@ module CapistranoMulticonfigParallel
 
     def wait_task_confirmations_worker(worker)
       return if !apply_confirmation_for_worker(worker) || !syncronized_confirmation?
-      CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, _index|
+      app_configuration.task_confirmations.each_with_index do |task, _index|
         result = wait_condition_for_task(worker.job_id, task)
         confirm_task_approval(result, task, worker) if result.present?
       end
@@ -158,9 +154,9 @@ module CapistranoMulticonfigParallel
     end
 
     def wait_task_confirmations
-      stage_apply = CapistranoMulticonfigParallel.configuration.apply_stage_confirmation.include?(@job_manager.stage)
+      stage_apply = app_configuration.apply_stage_confirmation.include?(@job_manager.stage)
       return if !stage_apply || !syncronized_confirmation?
-      CapistranoMulticonfigParallel.configuration.task_confirmations.each_with_index do |task, _index|
+      app_configuration.task_confirmations.each_with_index do |task, _index|
         results = []
         @jobs.pmap do |job_id, _job|
           result = wait_condition_for_task(job_id, task)
@@ -269,11 +265,11 @@ module CapistranoMulticonfigParallel
 
     def worker_died(worker, reason)
       job = @worker_to_job[worker.mailbox.address]
-      debug("worker job #{job} with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}") if self.class.debug_enabled?
+      celluloid_log("worker job #{job} with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}")
       @worker_to_job.delete(worker.mailbox.address)
       return if job.blank? || job_failed?(job)
       return unless job['action_name'] == 'deploy'
-      debug "restarting #{job} on new worker" if self.class.debug_enabled?
+      celluloid_log "restarting #{job} on new worker"
       job = job.merge(:action => 'deploy:rollback', 'worker_action' => 'worker_died')
       delegate(job)
     end

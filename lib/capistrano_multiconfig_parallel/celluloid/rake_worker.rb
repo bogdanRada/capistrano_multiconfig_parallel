@@ -1,9 +1,11 @@
+require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class that handles the rake task and waits for approval from the celluloid worker
   # rubocop:disable ClassLength
   class RakeWorker
     include Celluloid
     include Celluloid::Logger
+    include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_accessor :env, :client, :job_id, :action, :task,
                   :task_approved, :successfull_subscription,
@@ -50,11 +52,7 @@ module CapistranoMulticonfigParallel
 
     def initialize_subscription
       return if defined?(@client) && @client.present?
-      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: debug_enabled?, channel: @subscription_channel)
-    end
-
-    def debug_enabled?
-      CapistranoMulticonfigParallel::CelluloidManager.debug_websocket?
+      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: app_debug_enabled?, channel: @subscription_channel)
     end
 
     def task_name
@@ -82,12 +80,12 @@ module CapistranoMulticonfigParallel
         task_approval(message)
         stdin_approval(message)
       else
-        warn "unknown action: #{message.inspect}" if debug_enabled?
+        show_warning "unknown action: #{message.inspect}"
       end
     end
 
     def log_debug(action, message)
-      debug("Rake worker #{@job_id} received after #{action}: #{message}") if debug_enabled?
+      celluloid_log("Rake worker #{@job_id} received after #{action}: #{message}")
     end
 
     def msg_for_stdin?(message)
@@ -117,7 +115,7 @@ module CapistranoMulticonfigParallel
       if @job_id.to_i == message['job_id'].to_i && message['result'].present?
         @stdin_result = message['result']
       else
-        warn "unknown invocation #{message.inspect}" if debug_enabled?
+        show_warning "unknown invocation #{message.inspect}"
       end
     end
 
@@ -126,12 +124,12 @@ module CapistranoMulticonfigParallel
       if @job_id.to_i == message['job_id'].to_i && message['task'] == task_name && message['approved'] == 'yes'
         @task_approved = true
       else
-        warn "unknown invocation #{message.inspect}" if debug_enabled?
+        show_warning "unknown invocation #{message.inspect}"
       end
     end
 
     def on_close(code, reason)
-      debug("websocket connection closed: #{code.inspect}, #{reason.inspect}") if debug_enabled?
+      celluloid_log("websocket connection closed: #{code.inspect}, #{reason.inspect}")
       terminate
     end
 

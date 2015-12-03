@@ -18,14 +18,14 @@ module CapistranoMulticonfigParallel
     end
 
     def start
-      verify_app_dependencies if multi_apps? && configuration.application_dependencies.present?
+      verify_app_dependencies if multi_apps? && app_configuration.application_dependencies.present?
       check_before_starting
       initialize_data
       run
     end
 
     def verify_app_dependencies
-      wrong = configuration.application_dependencies.find do |hash|
+      wrong = app_configuration.application_dependencies.find do |hash|
         !@stage_apps.include?(hash[:app]) || (hash[:dependencies].present? && hash[:dependencies].find { |val| !@stage_apps.include?(val) })
       end
       raise ArgumentError, "Invalid configuration for #{wrong.inspect}".red if wrong.present?
@@ -71,10 +71,6 @@ module CapistranoMulticonfigParallel
       @stages.find { |stage| stage.include?(':') }.present?
     end
 
-    def configuration
-      CapistranoMulticonfigParallel.configuration
-    end
-
     def initialize_data
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
@@ -103,7 +99,7 @@ module CapistranoMulticonfigParallel
     def check_before_starting
       CapistranoMulticonfigParallel.enable_logging
       @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(Actor.current)
-      @default_stage = CapistranoMulticonfigParallel.configuration.development_stages.present? ? CapistranoMulticonfigParallel.configuration.development_stages.first : 'development'
+      @default_stage = app_configuration.development_stages.present? ? app_configuration.development_stages.first : 'development'
       @condition = Celluloid::Condition.new
       @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
     end
@@ -116,13 +112,13 @@ module CapistranoMulticonfigParallel
       deploy_multiple_apps(apps, options)
       deploy_app(options) if !custom_command? || !multi_apps?
     rescue => e
-      CapistranoMulticonfigParallel.log_message(e)
+      log_message(e)
     end
 
     def process_jobs
       return unless @jobs.present?
       FileUtils.rm Dir["#{CapistranoMulticonfigParallel.log_directory}/worker_*.log"]
-      if configuration.multi_secvential.to_s.downcase == 'true'
+      if app_configuration.multi_secvential.to_s.downcase == 'true'
         @jobs.each { |job| CapistranoMulticonfigParallel::StandardDeploy.new(job) }
       else
         run_async_jobs
@@ -130,7 +126,7 @@ module CapistranoMulticonfigParallel
     end
 
     def tag_staging_exists? # check exists task from capistrano-gitflow
-      CapistranoMulticonfigParallel.find_loaded_gem('capistrano-gitflow').present?
+      find_loaded_gem('capistrano-gitflow').present?
     end
 
     def fetch_multi_stages
@@ -167,7 +163,7 @@ module CapistranoMulticonfigParallel
       app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
       app_name = app_name.present? ? app_name : 'current application'
       message = "Please write additional ENV options for #{app_name} for #{app_message}"
-      app_additional_env_options = CapistranoMulticonfigParallel.ask_confirm(message, nil)
+      app_additional_env_options = ask_confirm(message, nil)
       fetch_app_additional_env_options(app_additional_env_options)
     end
 
@@ -190,7 +186,7 @@ module CapistranoMulticonfigParallel
       options = options.stringify_keys
       main_box_name = @argv['BOX'].blank? ? '' : @argv['BOX']
       stage = options.fetch('stage', @default_stage)
-      if CapistranoMulticonfigParallel.configuration.development_stages.include?(stage) && main_box_name.present? && /^[a-z0-9,]+/.match(main_box_name)
+      if app_configuration.development_stages.include?(stage) && main_box_name.present? && /^[a-z0-9,]+/.match(main_box_name)
         execute_on_multiple_boxes(main_box_name, options)
       else
         prepare_job(options)
@@ -211,7 +207,7 @@ module CapistranoMulticonfigParallel
     end
 
     def wait_jobs_termination
-      return if configuration.multi_secvential.to_s.downcase == 'true'
+      return if app_configuration.multi_secvential.to_s.downcase == 'true'
       result = @condition.wait
       return unless result.present?
       @manager.terminate

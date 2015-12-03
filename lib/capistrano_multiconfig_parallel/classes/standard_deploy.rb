@@ -1,8 +1,10 @@
 require 'fileutils'
+require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class used to find application dependencies
   class StandardDeploy
     include FileUtils
+    include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :app, :stage, :action, :task_arguments, :env_options
     def initialize(options)
@@ -40,9 +42,9 @@ module CapistranoMulticonfigParallel
       command = build_capistrano_task(action)
       puts("\n\n\n Executing '#{command}' \n\n\n .")
       sh("#{command}")
-      # rescue => ex
-      #   CapistranoMulticonfigParallel.log_message(ex)
-      #   execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
+    rescue => ex
+      log_message(ex)
+      execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
     end
   end
 end

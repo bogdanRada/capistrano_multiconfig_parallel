@@ -1,8 +1,11 @@
+require_relative '../helpers/application_helper'
+require_relative '../helpers/core_helper'
 module CapistranoMulticonfigParallel
   # class that is used to execute the capistrano tasks and it is invoked by the celluloid worker
   class ChildProcess
     include Celluloid
     include Celluloid::Logger
+    include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_accessor :actor, :pid, :exit_status, :process, :filename, :worker_log, :job_id, :debug_enabled
 
@@ -12,7 +15,6 @@ module CapistranoMulticonfigParallel
       @options = options
       @actor = @options.fetch(:actor, nil)
       @job_id = @actor.job_id
-      @debug_enabled = @actor.debug_enabled?
       set_worker_log
       EM.run do
         EM.next_tick do
@@ -23,8 +25,8 @@ module CapistranoMulticonfigParallel
         end
       end
       EM.error_handler do|e|
-        @worker_log.debug "Error during event loop for worker #{@job_id}: #{e.inspect}" if @debug_enabled
-        @worker_log.debug e.backtrace if @debug_enabled
+        celluloid_log("Error during event loop for worker #{@job_id}: #{e.inspect}", @worker_log)
+        celluloid_log(e.backtrace, @worker_log)
         EM.stop
       end
     end

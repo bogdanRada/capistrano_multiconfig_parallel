@@ -23,18 +23,26 @@ module CapistranoMulticonfigParallel
 
   private
 
+    def output_stream
+      CapistranoMulticonfigParallel::OutputStream
+    end
+
+    def input_stream
+      CapistranoMulticonfigParallel::InputStream
+    end
+
     def actor_execute_block(&block)
       stringio = StringIO.new
-      CapistranoMulticonfigParallel::OutputStream.hook(stringio)
-      CapistranoMulticonfigParallel::InputStream.hook(actor, stringio)
+      output_stream.hook(stringio)
+      input_stream.hook(actor, stringio)
       block.call
-      CapistranoMulticonfigParallel::InputStream.unhook
-      CapistranoMulticonfigParallel::OutputStream.unhook
+      input_stream.unhook
+      output_stream.unhook
     end
 
     def actor_start_working
       if actor.blank?
-        CapistranoMulticonfigParallel::RakeWorker.supervise_as rake_actor_id
+        supervise_actor
         actor.work(@env, actor_id: rake_actor_id, job_id: job_id, task: @task)
       else
         actor.publish_new_work(@env, task: @task)
@@ -42,9 +50,8 @@ module CapistranoMulticonfigParallel
     end
 
     def supervise_actor
-      CapistranoMulticonfigParallel::RakeWorker.supervise_as(rake_actor_id,
-                                                             actor_id: rake_actor_id,
-                                                             job_id: job_id) if actor.blank?
+      return unless actor.blank?
+      CapistranoMulticonfigParallel::RakeWorker.supervise_as(rake_actor_id)
     end
 
     def actor

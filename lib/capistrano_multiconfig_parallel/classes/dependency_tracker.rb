@@ -1,8 +1,9 @@
 require_relative './interactive_menu'
-
+require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class used to find application dependencies
   class DependencyTracker
+    include CapistranoMulticonfigParallel::ApplicationHelper
     attr_accessor :job_manager
 
     def initialize(job_manager)
@@ -15,7 +16,7 @@ module CapistranoMulticonfigParallel
       if @job_manager.custom_command?
         apps_selected = all_websites_return_applications_selected
         applications = get_applications_to_deploy(action, apps_selected)
-      elsif CapistranoMulticonfigParallel.configuration.application_dependencies.present?
+      elsif app_configuration.application_dependencies.present?
         if application.present?
           applications = get_applications_to_deploy(action, [application.camelcase])
           applications = applications.delete_if { |hash| hash['app'] == application }
@@ -31,7 +32,7 @@ module CapistranoMulticonfigParallel
   private
 
     def application_dependencies
-      deps = CapistranoMulticonfigParallel.configuration.application_dependencies
+      deps = app_configuration.application_dependencies
       deps.present? && deps.is_a?(Array) ? deps.map(&:stringify_keys) : []
     end
 
@@ -68,7 +69,7 @@ module CapistranoMulticonfigParallel
 
     def check_app_dependency_unique(applications_selected, apps_dependencies, applications_to_deploy, action)
       return applications_to_deploy if applications_selected.blank? || apps_dependencies.blank? || (apps_dependencies.map { |app| app['app'] } - applications_to_deploy.map { |app| app['app'] }).blank?
-      apps_dependency_confirmation = CapistranoMulticonfigParallel.ask_confirm("Do you want to  #{action} all dependencies also ?", 'Y/N')
+      apps_dependency_confirmation = ask_confirm("Do you want to  #{action} all dependencies also ?", 'Y/N')
       applications_to_deploy = applications_to_deploy.concat(apps_dependencies) if apps_dependency_confirmation.present? && apps_dependency_confirmation.downcase == 'y'
       applications_to_deploy
     end
@@ -102,7 +103,7 @@ module CapistranoMulticonfigParallel
 
     def print_frameworks_used(app_names, applications_to_deploy, action)
       app_names.each { |app| puts "#{app}" }
-      apps_deploy_confirmation = CapistranoMulticonfigParallel.ask_confirm("Are you sure you want to #{action} these apps?", 'Y/N')
+      apps_deploy_confirmation = ask_confirm("Are you sure you want to #{action} these apps?", 'Y/N')
       if apps_deploy_confirmation.blank? || (apps_deploy_confirmation.present? && apps_deploy_confirmation.downcase != 'y')
         return []
       elsif apps_deploy_confirmation.present? && apps_deploy_confirmation.downcase == 'y'
