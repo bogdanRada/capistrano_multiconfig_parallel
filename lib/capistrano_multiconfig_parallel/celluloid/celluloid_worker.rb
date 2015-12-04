@@ -169,7 +169,7 @@ module CapistranoMulticonfigParallel
       log_to_file("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}")
       @machine.transitions.on(name.to_s, @machine.state => name.to_s)
       @machine.go_to_transition(name.to_s)
-      raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task #{@action} failed ") if name == 'deploy:failed' # force worker to rollback
+      abort(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task #{@action} failed ") if name == 'deploy:failed' # force worker to rollback
     end
 
     def setup_command_line(*options)
@@ -235,7 +235,7 @@ module CapistranoMulticonfigParallel
     def notify_finished(exit_status)
       if exit_status.exitstatus != 0
         log_to_file("worker #{job_id} tries to terminate")
-        raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task  failed with exit status #{exit_status.inspect} ") # force worker to rollback
+        abort(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, "task  failed with exit status #{exit_status.inspect} ") # force worker to rollback
       else
         update_machine_state('FINISHED')
         log_to_file("worker #{job_id} notifies manager has finished")

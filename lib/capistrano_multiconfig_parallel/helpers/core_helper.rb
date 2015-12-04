@@ -1,5 +1,6 @@
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
+  # rubocop:disable ModuleLength
   module CoreHelper
   module_function
 
@@ -76,12 +77,14 @@ module CapistranoMulticonfigParallel
       return nil
     end
 
-    def log_error(message)
-      log_to_file(
-        class_name: message.class,
-        message: message.respond_to?(:message) ? message.message : message.inspect,
-        backtrace: message.respond_to?(:backtrace) ? message.backtrace.join("\n\n") : ''
-      )
+    def log_error(error)
+      log_to_file(format_error(error))
+    end
+
+    def format_error(error)
+      JSON.pretty_generate(class_name: error.class,
+                           message: error.respond_to?(:message) ? error.message : error.inspect,
+                           backtrace: error.respond_to?(:backtrace) ? error.backtrace.join("\n\n") : '')
     end
 
     def log_to_file(message, job_id = nil)
@@ -111,6 +114,24 @@ module CapistranoMulticonfigParallel
       config.present? && config.is_a?(Hash) ? config.stringify_keys : {}
       config['enable_debug'] = config.fetch('enable_debug', '').to_s == 'true'
       config
+    end
+
+    def execute_with_rescue(output = nil)
+      yield if block_given?
+    rescue Interrupt
+      rescue_interrupt
+    rescue => error
+      rescue_error(error, output)
+    end
+
+    def rescue_error(error, output = nil)
+      output.blank? ? log_error(error) : puts(format_error(error))
+      exit(1)
+    end
+
+    def rescue_interrupt
+      `stty icanon echo`
+      puts "\n Command was cancelled due to an Interrupt error."
     end
   end
 end

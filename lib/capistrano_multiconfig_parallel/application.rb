@@ -4,7 +4,6 @@ module CapistranoMulticonfigParallel
   class Application
     include Celluloid
     include Celluloid::Logger
-    include CapistranoMulticonfigParallel::StagesHelper
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :stages, :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
@@ -106,8 +105,6 @@ module CapistranoMulticonfigParallel
       backup_the_branch if multi_apps?
       deploy_multiple_apps(apps, options)
       deploy_app(options) if !custom_command? || !multi_apps?
-    rescue => e
-      log_error(e)
     end
 
     def process_jobs

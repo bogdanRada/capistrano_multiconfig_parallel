@@ -8,38 +8,21 @@ module CapistranoMulticonfigParallel
 
       # method used to start
       def start
-        verify_validation
-        start_work
-      rescue Interrupt
-        rescue_interrupt
-      rescue => error
-        rescue_error(error)
-      end
-
-      def rescue_interrupt
-        `stty icanon echo`
-        $stderr.puts 'Command cancelled.'
-      end
-
-      def rescue_error(error)
-        $stderr.puts error
-        $stderr.puts error.backtrace if error.respond_to?(:backtrace)
-        exit(1)
+        execute_with_rescue('stderr') do
+          verify_validation
+          job_manager = CapistranoMulticonfigParallel::Application.new
+          if job_manager.argv[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
+            job_manager.start
+          else
+            Capistrano::Application.new.run
+          end
+        end
       end
 
       def verify_validation
         check_terminal_tty
         CapistranoMulticonfigParallel.original_args = ARGV.dup
         CapistranoMulticonfigParallel.configuration_valid?
-      end
-
-      def start_work
-        job_manager = CapistranoMulticonfigParallel::Application.new
-        if job_manager.argv[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
-          job_manager.start
-        else
-          Capistrano::Application.new.run
-        end
       end
     end
   end

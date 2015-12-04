@@ -14,7 +14,6 @@ module CapistranoMulticonfigParallel
       if job_id.present?
         actor_start_working
         actor.wait_execution until actor.task_approved
-        return unless actor.task_approved
         actor_execute_block(&block)
       else
         block.call
@@ -31,13 +30,21 @@ module CapistranoMulticonfigParallel
       CapistranoMulticonfigParallel::InputStream
     end
 
-    def actor_execute_block(&block)
+    def before_hooks
       stringio = StringIO.new
       output_stream.hook(stringio)
       input_stream.hook(actor, stringio)
-      block.call
+    end
+
+    def after_hooks
       input_stream.unhook
       output_stream.unhook
+    end
+
+    def actor_execute_block(&block)
+      before_hooks
+      block.call
+      after_hooks
     end
 
     def actor_start_working
