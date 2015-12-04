@@ -11,17 +11,21 @@ module CapistranoMulticonfigParallel
 
     def enable_logging
       enable_file_logging
+      set_celluloid_exception_handling
+    end
+
+  private
+
+    def set_celluloid_exception_handling
       Celluloid.logger = logger
+      Celluloid.task_class = Celluloid::TaskThread
       Celluloid.exception_handler do |ex|
         unless ex.is_a?(Interrupt)
           puts format_error(ex)
           log_error(ex)
         end
       end
-      Celluloid.task_class = Celluloid::TaskThread
     end
-
-  private
 
     def enable_file_logging
       if configuration.multi_debug.to_s.downcase == 'true'

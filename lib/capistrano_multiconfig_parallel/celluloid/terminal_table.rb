@@ -108,12 +108,12 @@ module CapistranoMulticonfigParallel
       details = get_worker_details(job_id, worker)
 
       row = [{ value: count.to_s },
-        { value: job_id.to_s },
-        { value: details['full_stage'] },
-        { value: details['action_name'] },
-        { value: details['env_options'] },
-        { value: "#{details['state']}" }
-      ]
+             { value: job_id.to_s },
+             { value: details['full_stage'] },
+             { value: details['action_name'] },
+             { value: details['env_options'] },
+             { value: "#{details['state']}" }
+            ]
 
       #   if  worker.alive?
       #     row << { value: worker.rake_tasks.size }
