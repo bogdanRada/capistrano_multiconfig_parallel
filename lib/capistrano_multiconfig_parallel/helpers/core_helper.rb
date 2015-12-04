@@ -1,40 +1,10 @@
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
-  # rubocop:disable ModuleLength
   module CoreHelper
   module_function
 
-    def internal_config_directory
-      File.join(root.to_s, 'capistrano_multiconfig_parallel', 'configuration')
-    end
-
-    def internal_config_file
-      File.join(internal_config_directory, 'default.yml')
-    end
-
-    def default_internal_config
-      @default_config ||= YAML.load_file(internal_config_file)['default_config']
-      @default_config
-    end
-
-    def find_env_multi_cap_root
-      ENV['MULTI_CAP_ROOT']
-    end
-
-    def root
-      File.expand_path(File.dirname(File.dirname(__dir__)))
-    end
-
     def find_config_type(type)
       ['boolean'].include?(type.to_s) ? type.to_s.delete(':').to_sym : type.to_s.constantize
-    end
-
-    def try_detect_capfile
-      root = Pathname.new(FileUtils.pwd)
-      root = root.parent unless root.directory?
-      root = root.parent until root.children.find { |f| f.file? && f.basename.to_s.downcase == 'capfile' }.present? || root.root?
-      fail "Can't detect Capfile in the  application root".red if root.root?
-      root
     end
 
     def app_debug_enabled?
@@ -47,10 +17,6 @@ module CapistranoMulticonfigParallel
 
     def app_configuration
       CapistranoMulticonfigParallel.configuration
-    end
-
-    def custom_commands
-      CapistranoMulticonfigParallel.custom_commands
     end
 
     def app_logger
@@ -94,8 +60,8 @@ module CapistranoMulticonfigParallel
 
     def find_worker_log(job_id)
       return if job_id.blank?
-      FileUtils.mkdir_p(CapistranoMulticonfigParallel.log_directory) unless File.directory?(CapistranoMulticonfigParallel.log_directory)
-      filename = File.join(CapistranoMulticonfigParallel.log_directory, "worker_#{job_id}.log")
+      FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
+      filename = File.join(log_directory, "worker_#{job_id}.log")
       worker_log = ::Logger.new(filename)
       worker_log.level = ::Logger::Severity::DEBUG
       worker_log.formatter = proc do |severity, datetime, progname, msg|

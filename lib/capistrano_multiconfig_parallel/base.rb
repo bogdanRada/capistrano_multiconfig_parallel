@@ -21,32 +21,6 @@ module CapistranoMulticonfigParallel
       Celluloid.task_class = Celluloid::TaskThread
     end
 
-    def detect_root
-      if find_env_multi_cap_root
-        Pathname.new(find_env_multi_cap_root)
-      elsif defined?(::Rails)
-        ::Rails.root
-      else
-        try_detect_capfile
-      end
-    end
-
-    def config_file
-      File.join(detect_root.to_s, 'config', 'multi_cap.yml')
-    end
-
-    def log_directory
-      File.join(detect_root.to_s, 'log')
-    end
-
-    def main_log_file
-      File.join(log_directory, 'multi_cap.log')
-    end
-
-    def custom_commands
-      ['deploy_multi_stages']
-    end
-
   private
 
     def enable_file_logging
@@ -56,13 +30,6 @@ module CapistranoMulticonfigParallel
       else
         self.logger ||= ::Logger.new(DevNull.new)
       end
-    end
-
-    def enable_main_log_file
-      FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
-      FileUtils.touch(main_log_file) unless File.file?(main_log_file)
-      log_file = File.open(main_log_file, 'w')
-      log_file.sync = true
     end
   end
 end

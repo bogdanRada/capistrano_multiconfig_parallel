@@ -78,7 +78,7 @@ module CapistranoMulticonfigParallel
     end
 
     def cd_working_directory
-      "cd #{CapistranoMulticonfigParallel.detect_root}"
+      "cd #{detect_root}"
     end
 
     # def generate_command_new

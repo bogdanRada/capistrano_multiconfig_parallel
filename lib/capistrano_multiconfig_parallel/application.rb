@@ -109,7 +109,7 @@ module CapistranoMulticonfigParallel
 
     def process_jobs
       return unless @jobs.present?
-      FileUtils.rm Dir["#{CapistranoMulticonfigParallel.log_directory}/worker_*.log"]
+      FileUtils.rm Dir["#{log_directory}/worker_*.log"]
       if app_configuration.multi_secvential.to_s.downcase == 'true'
         @jobs.each { |job| CapistranoMulticonfigParallel::StandardDeploy.new(job) }
       else
