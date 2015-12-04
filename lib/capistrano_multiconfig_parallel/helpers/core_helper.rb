@@ -33,14 +33,20 @@ module CapistranoMulticonfigParallel
     end
 
     def ask_confirm(message, default)
-      `stty -raw echo`
-      check_terminal_tty
-      result = Ask.input message, default: default
-      $stdout.flush
-      `stty -raw echo`
-      return result
+      force_confirmation do
+        Ask.input message, default: default
+      end
     rescue
       return nil
+    end
+
+    def force_confirmation(&block)
+      `stty -raw echo`
+      check_terminal_tty
+      result = block.call
+      $stdout.flush
+      `stty -raw echo`
+      result
     end
 
     def log_error(error)
@@ -72,14 +78,15 @@ module CapistranoMulticonfigParallel
     end
 
     def debug_websocket?
-      websocket_config['enable_debug'].to_s == 'true'
+      websocket_server_config['enable_debug'].to_s == 'true'
+    end
+
+    def websocket_server_config
+      app_configuration.fetch(:websocket_server, {}).stringify_keys
     end
 
     def websocket_config
-      config = app_configuration[:websocket_server]
-      config.present? && config.is_a?(Hash) ? config.stringify_keys : {}
-      config['enable_debug'] = config.fetch('enable_debug', '').to_s == 'true'
-      config
+      websocket_server_config.merge('enable_debug' =>  debug_websocket?)
     end
 
     def execute_with_rescue(output = nil)

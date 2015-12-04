@@ -166,12 +166,13 @@ module CapistranoMulticonfigParallel
       until apps_symlink_confirmation.present?
         sleep(0.1) # keep current thread alive
       end
+      apps_symlink_confirmation
     end
 
     def confirm_task_approval(result, task, worker = nil)
       return unless result.present?
-      print_confirm_task_approvall(result, task, worker = nil)
-      return if fetch(:apps_symlink_confirmation).blank? || fetch(:apps_symlink_confirmation).downcase != 'y'
+      result = print_confirm_task_approvall(result, task, worker = nil)
+      return if result.blank? || result.downcase != 'y'
       @jobs.pmap do |job_id, job|
         worker = get_worker_for_job(job_id)
         worker.publish_rake_event('approved' => 'yes',
@@ -192,8 +193,8 @@ module CapistranoMulticonfigParallel
         end
       else
         return nil
-      end
     end
+      end
 
     def can_tag_staging?
       @job_manager.can_tag_staging? &&
