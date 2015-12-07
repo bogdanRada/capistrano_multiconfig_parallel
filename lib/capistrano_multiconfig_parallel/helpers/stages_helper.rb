@@ -12,7 +12,12 @@ module CapistranoMulticonfigParallel
     end
 
     def checks_paths(paths)
-      paths.reject! { |path| check_stage_path(paths, path) }.uniq.sort
+      paths.reject! { |path| check_stage_path(paths, path) }
+      sorted_paths(paths)
+    end
+
+    def sorted_paths(paths)
+      paths.present? ? paths.uniq.sort : paths
     end
 
     def check_stage_path(paths, path)

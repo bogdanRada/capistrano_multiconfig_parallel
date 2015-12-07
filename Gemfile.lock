@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    capistrano_multiconfig_parallel (0.19.0)
+    capistrano_multiconfig_parallel (0.19.1)
       activesupport (~> 4.0, >= 4.0)
       capistrano (~> 3.0, >= 3.0)
       celluloid-pmap (~> 0.2, >= 0.2.2)
