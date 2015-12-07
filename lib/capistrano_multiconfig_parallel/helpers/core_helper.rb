@@ -55,7 +55,7 @@ module CapistranoMulticonfigParallel
 
     def format_error(error)
       JSON.pretty_generate(class_name: error.class,
-                           message: error.respond_to?(:message) ? error.message : error.inspect,
+                           message: error.respond_to?(:message) ? "#{error.message}#{error.message.class}" : error.inspect,
                            backtrace: error.respond_to?(:backtrace) ? error.backtrace.join("\n\n") : '')
     end
 

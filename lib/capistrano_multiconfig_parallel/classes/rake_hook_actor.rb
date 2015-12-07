@@ -70,7 +70,7 @@ module CapistranoMulticonfigParallel
     end
 
     def rake_actor_id
-      @env['count_rake'].present? ? "rake_worker_#{job_id}_count" : "rake_worker_#{job_id}"
+      "rake_worker_#{job_id}"
     end
   end
 end

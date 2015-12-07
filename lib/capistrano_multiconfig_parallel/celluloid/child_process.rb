@@ -7,14 +7,16 @@ module CapistranoMulticonfigParallel
     include Celluloid::Logger
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_accessor :actor, :pid, :exit_status, :process, :job_id
+    attr_accessor :options, :actor, :job_id, :exit_status, :pid, :process, :job
 
-    finalizer :process_finalizer
+   finalizer :process_finalizer
 
-    def work(cmd, options = {})
+    def work(job, cmd, options = {})
       @options = options
+      @job = job
       @actor = @options.fetch(:actor, nil)
-      @job_id = @actor.job_id
+      @job_id = @job.id
+      @exit_status = nil
       EM.run do
         EM.next_tick do
           start_async_deploy(cmd, options)
@@ -31,14 +33,16 @@ module CapistranoMulticonfigParallel
     end
 
     def process_finalizer
-      @timer.cancel
       EM.stop if EM.reactor_running?
     end
 
     def check_exit_status
-      return if @exit_status.blank? || !@actor.worker_finshed?
-      debug("worker #{@actor.job_id} startsnotify finished") if @debug_enabled
-      @actor.notify_finished(@exit_status)
+      log_to_file("worker #{@job_id} checking exit status #{@exit_status.inspect}") if @exit_status.present?
+      return if @exit_status.blank?
+      @job.exit_status = @exit_status
+      log_to_file("worker #{@job_id} startsnotify finished")
+      @actor.async.notify_finished(@exit_status)
+      @timer.cancel
     end
 
     def start_async_deploy(cmd, options)
@@ -72,14 +76,16 @@ module CapistranoMulticonfigParallel
     end
 
     def on_exit(status)
-      log_to_file "Child process for worker #{@job_id} on_exit  disconnected due to error #{status.inspect}"
-      @exit_status = status
+      @exit_status = status.exitstatus
+      log_to_file "Child process for worker #{@job_id} on_exit  disconnected due to error #{status.inspect} and #{@exit_status.inspect}"
+      check_exit_status
     end
 
     def async_exception_handler(*data)
       log_to_file "Child process for worker #{@job_id} async_exception_handler  disconnected due to error #{data.inspect}"
       io_callback('stderr', data)
       @exit_status = 1
+      check_exit_status
     end
 
     def watch_handler(process)

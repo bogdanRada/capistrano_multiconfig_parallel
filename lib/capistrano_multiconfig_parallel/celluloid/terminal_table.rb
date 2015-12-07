@@ -27,17 +27,19 @@ module CapistranoMulticonfigParallel
       #   default_headings << 'Total'
       #   default_headings << 'Progress'
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_headings)
-      if @manager.jobs.present? && message_valid?(message)
+
+      if @manager.alive? && @manager.jobs.present? && message_valid?(message)
         count = 0
-        @manager.jobs.each do |job_id, _job|
+        last_job_id = @manager.jobs.keys.last.to_i
+        @manager.jobs.each do |job_id, job|
           count += 1
-          add_job_to_table(table, job_id, count)
+          add_job_to_table(table, job_id, job,  count, last_job_id)
         end
       end
       show_terminal_screen(table)
     rescue => ex
-      info "Terminal Table  client disconnected due to error #{ex.inspect}"
-      info ex.backtrace
+      log_to_file("Terminal Table  client disconnected due to error #{ex.inspect}")
+      log_to_file(ex.backtrace)
       terminate
     end
 
@@ -62,50 +64,35 @@ module CapistranoMulticonfigParallel
       @job_manager.condition.signal('completed') if @manager.all_workers_finished?
     end
 
-    def worker_state(worker)
+    def worker_state(worker, job)
       if worker.alive?
         state = worker.machine.state.to_s
-        worker.crashed? ? state.red : state.green
+        @manager.job_crashed?(job) ? state.red : state.green
       else
         'dead'.upcase.red
       end
     end
 
-    def worker_env_options(processed_job)
-      worker_optons = ''
-      processed_job['job_argv'].each do |elem|
-        worker_optons << "#{elem}\n"
-      end
-      worker_optons
-    end
 
-    def worker_action(processed_job)
-      processed_job['task_arguments'].present? ? "#{processed_job['action_name']}[#{processed_job['task_arguments'].join(',')}]" : processed_job['action_name']
-    end
-
-    def worker_stage(processed_job)
-      processed_job['app_name'].present? ? "#{processed_job['app_name']}\n#{processed_job['env_name']}" : "#{processed_job['env_name']}"
-    end
-
-    def get_worker_details(job_id, worker)
-      job = @manager.jobs[job_id]
-      processed_job = @manager.process_job(job)
-
+    def get_worker_details(job_id, job,  worker)
       {
         'job_id' => job_id,
-        'app_name' => processed_job['app_name'],
-        'env_name' => processed_job['env_name'],
-        'full_stage' => worker_stage(processed_job),
-        'action_name' => worker_action(processed_job),
-        'env_options' => worker_env_options(processed_job),
-        'task_arguments' => job['task_arguments'],
-        'state' => worker_state(worker)
+        'app_name' => job.app,
+        'env_name' => job.stage,
+        'full_stage' => job.job_stage,
+        'action_name' => job.capistrano_action,
+        'env_options' => job.setup_command_line_standard.join("\n"),
+        'task_arguments' => job.task_arguments,
+        'state' => worker_state(worker, job),
+        'processed_job' => job
       }
     end
 
-    def add_job_to_table(table, job_id, count)
+    def add_job_to_table(table, job_id, job, count, last_job_id)
+      return unless @manager.alive?
       worker = @manager.get_worker_for_job(job_id)
-      details = get_worker_details(job_id, worker)
+
+      details = get_worker_details(job_id, job, worker)
 
       row = [{ value: count.to_s },
              { value: job_id.to_s },
@@ -117,33 +104,33 @@ module CapistranoMulticonfigParallel
 
       #   if  worker.alive?
       #     row << { value: worker.rake_tasks.size }
-      #     row << { value: worker_progress(details, worker) }
+      #     row << { value: worker_progress(details['processed_job'], worker) }
       #   else
       #     row << { value: 0 }
       #     row << { value:  worker_state(worker) }
       #   end
       table.add_row(row)
-      table.add_separator if @manager.jobs.keys.last.to_i != job_id.to_i
+      table.add_separator if last_job_id != job_id.to_i
     end
 
     def terminal_clear
       system('cls') || system('clear') || puts("\e[H\e[2J")
     end
 
-    def worker_progress(_details, worker)
+    def worker_progress(processed_job, worker)
       return worker_state(worker) unless worker.alive?
       tasks = worker.alive? ? worker.invocation_chain : []
       current_task = worker.alive? ? worker.machine.state.to_s : ''
-      show_worker_percent(worker, tasks, current_task)
+      show_worker_percent(worker, tasks, current_task, processed_job)
     end
 
-    def show_worker_percent(worker, tasks, current_task)
+    def show_worker_percent(worker, tasks, current_task, processed_job)
       total_tasks = worker.alive? ? tasks.size : nil
       task_index = worker.alive? ? tasks.index(current_task.to_s).to_i + 1 : 0
       percent = percent_of(task_index, total_tasks)
       result  = "Progress [#{format('%.2f', percent)}%]  (executed #{task_index} of #{total_tasks})"
       if worker.alive?
-        worker.crashed? ? result.red : result.green
+          @manager.job_crashed?(processed_job) ? result.red : result.green
       else
         worker_state(worker)
       end

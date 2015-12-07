@@ -27,6 +27,7 @@ module CapistranoMulticonfigParallel
         applications = []
       end
       applications
+
     end
 
   private
@@ -36,15 +37,16 @@ module CapistranoMulticonfigParallel
       deps.present? && deps.is_a?(Array) ? deps.map(&:stringify_keys) : []
     end
 
-    def all_websites_return_applications_selected
+    def available_apps
       applications = application_dependencies.map { |hash| hash['app'].camelcase }
       applications << 'all_frameworks'
+      applications
+    end
+
+    def all_websites_return_applications_selected
       interactive_menu = CapistranoMulticonfigParallel::InteractiveMenu.new
-      applications_selected = interactive_menu.show_all_websites_interactive_menu(applications)
-      applications_selected = applications_selected.gsub("\r\n", '') if applications_selected.present?
-      applications_selected = applications_selected.delete("\n") if applications_selected.present?
-      applications_selected = applications_selected.split(',') if applications_selected.present?
-      applications_selected.present? ? applications_selected : []
+      applications_selected = interactive_menu.show_all_websites_interactive_menu(available_apps)
+      applications_selected.present? ?  applications_selected.split(',') : []
     end
 
     def add_dependency_app(app_to_deploy, apps_dependencies, applications_to_deploy)
