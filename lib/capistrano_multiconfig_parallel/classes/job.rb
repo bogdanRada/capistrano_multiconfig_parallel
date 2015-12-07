@@ -8,7 +8,7 @@ module CapistranoMulticonfigParallel
 
     attr_accessor :id, :app, :stage, :action, :task_arguments, :env_options, :status, :exit_status
     def initialize(options)
-      @id = SecureRandom.random_number(500)
+      @id = SecureRandom.uuid
       @app = options.fetch('app', '')
       @stage = options.fetch('stage', '')
       @action = options.fetch('action', '')
@@ -46,13 +46,13 @@ module CapistranoMulticonfigParallel
       args.each do |arg|
         array_options << arg if arg.present?
       end
-      array_options.join(" ")
+      array_options
     end
 
     def build_capistrano_task(action = nil, env = [])
       action = action.present? ? action : @action
-      environment_options = setup_command_line_standard(env)
-      "cd #{detect_root} && RAILS_ENV=#{@stage}  bundle exec cap #{job_stage} #{capistrano_action(action)}  #{environment_options}"
+      environment_options = setup_command_line_standard(env).join(" ")
+      "cd #{detect_root} && RAILS_ENV=#{@stage}  bundle exec multi_cap #{job_stage} #{capistrano_action(action)}  #{environment_options}"
     end
 
 

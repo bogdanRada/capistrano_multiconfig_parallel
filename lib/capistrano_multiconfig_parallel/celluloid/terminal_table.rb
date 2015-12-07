@@ -27,6 +27,7 @@ module CapistranoMulticonfigParallel
       #   default_headings << 'Total'
       #   default_headings << 'Progress'
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_headings)
+
       if @manager.alive? && @manager.jobs.present? && message_valid?(message)
         count = 0
         last_job_id = @manager.jobs.keys.last.to_i
@@ -37,8 +38,8 @@ module CapistranoMulticonfigParallel
       end
       show_terminal_screen(table)
     rescue => ex
-      info "Terminal Table  client disconnected due to error #{ex.inspect}"
-      info ex.backtrace
+      log_to_file("Terminal Table  client disconnected due to error #{ex.inspect}")
+      log_to_file(ex.backtrace)
       terminate
     end
 
@@ -63,45 +64,27 @@ module CapistranoMulticonfigParallel
       @job_manager.condition.signal('completed') if @manager.all_workers_finished?
     end
 
-    def worker_state(worker, processed_job)
+    def worker_state(worker, job)
       if worker.alive?
         state = worker.machine.state.to_s
-        @manager.job_crashed?(processed_job) ? state.red : state.green
+        @manager.job_crashed?(job) ? state.red : state.green
       else
         'dead'.upcase.red
       end
     end
 
-    def worker_env_options(processed_job)
-      worker_optons = ''
-      processed_job['job_argv'].each do |elem|
-        worker_optons << "#{elem}\n"
-      end
-      worker_optons
-    end
-
-    def worker_action(processed_job, options = {})
-      action_arguments = options.fetch("show_arguments", false) && processed_job['task_arguments'].present? ? "[#{processed_job['task_arguments'].join(',')}]" : ''
-      "#{processed_job['action_name']}#{action_arguments}"
-    end
-
-    def worker_stage(processed_job)
-      processed_job['app_name'].present? ? "#{processed_job['app_name']}\n#{processed_job['env_name']}" : "#{processed_job['env_name']}"
-    end
 
     def get_worker_details(job_id, job,  worker)
-      return unless @manager.alive?
-      processed_job = @manager.process_job(job)
       {
         'job_id' => job_id,
-        'app_name' => processed_job['app_name'],
-        'env_name' => processed_job['env_name'],
-        'full_stage' => worker_stage(processed_job),
-        'action_name' => worker_action(processed_job, 'show_arguments' => true),
-        'env_options' => worker_env_options(processed_job),
-        'task_arguments' => job['task_arguments'],
-        'state' => worker_state(worker, processed_job),
-        'processed_job' => processed_job
+        'app_name' => job.app,
+        'env_name' => job.stage,
+        'full_stage' => job.job_stage,
+        'action_name' => job.capistrano_action,
+        'env_options' => job.setup_command_line_standard.join("\n"),
+        'task_arguments' => job.task_arguments,
+        'state' => worker_state(worker, job),
+        'processed_job' => job
       }
     end
 
