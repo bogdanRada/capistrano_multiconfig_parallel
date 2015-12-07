@@ -43,7 +43,7 @@ module CapistranoMulticonfigParallel
       options = options.stringify_keys
       return unless applications.present?
       applications.each do |app|
-        deploy_app(options.merge('app' => app))
+        deploy_app(options.merge('app' => app['app']))
       end
     end
 
@@ -111,7 +111,7 @@ module CapistranoMulticonfigParallel
       return unless @jobs.present?
       FileUtils.rm Dir["#{log_directory}/worker_*.log"]
       if app_configuration.multi_secvential.to_s.downcase == 'true'
-        @jobs.each { |job| CapistranoMulticonfigParallel::StandardDeploy.new(job) }
+        @jobs.each { |job| job.execute_standard_deploy }
       else
         run_async_jobs
       end
@@ -142,11 +142,10 @@ module CapistranoMulticonfigParallel
 
     def deploy_app(options = {})
       options = options.stringify_keys
-      app = options['app'].is_a?(Hash) ? options['app'] : { 'app' => options['app'] }
       branch = @branch_backup.present? ? @branch_backup : @argv['BRANCH'].to_s
       call_task_deploy_app({
         branch: branch,
-        app: app,
+        app: options['app'],
         action: options['action']
       }.reverse_merge(options))
     end
@@ -210,8 +209,7 @@ module CapistranoMulticonfigParallel
     def prepare_job(options)
       options = options.stringify_keys
       branch_name = options.fetch('branch', {})
-      app = options.fetch('app', {})
-      app = app.fetch('app', '')
+      app = options.fetch('app', '')
       box = options['env_options']['BOX']
       message = box.present? ? "BOX #{box}:" : "stage #{options['stage']}:"
       env_opts = get_app_additional_env_options(app, message)
@@ -221,15 +219,11 @@ module CapistranoMulticonfigParallel
       env_options = branch_name.present? ? { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
       job_env_options = custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
 
-      job = {
-        id: SecureRandom.random_number(500),
-        app: app,
-        env: options['stage'],
+      job = CapistranoMulticonfigParallel::Job.new(options.merge(
         action: custom_command? && env_options['ACTION'].present? ? env_options['ACTION'] : options['action'],
-        task_arguments: options['task_arguments'],
         env_options: job_env_options
-      }
-      @jobs << job.stringify_keys
+      ))
+      @jobs << job
     end
 
     def prepare_options(options)

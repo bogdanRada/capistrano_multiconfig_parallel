@@ -1,6 +1,9 @@
+require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # methods used for the interactive menu where are listed all aplications
   class InteractiveMenu
+    include CapistranoMulticonfigParallel::ApplicationHelper
+
     def show_all_websites_interactive_menu(applications)
       msg = ''
       choices = []
@@ -15,7 +18,7 @@ module CapistranoMulticonfigParallel
         result += "#{option_name},"
       end
       print "#{msg}\n"
-      result
+      strip_characters_from_string(result)
     end
 
     def confirm_option_selected
