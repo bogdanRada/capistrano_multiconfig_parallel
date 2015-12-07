@@ -21,7 +21,7 @@ module CapistranoMulticonfigParallel
 
     def custom_attributes
       @publisher_channel = "worker_#{@job_id}"
-      @action =  'invoke'
+      @action = 'invoke'
       @task = @options['task']
     end
 

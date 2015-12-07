@@ -89,7 +89,7 @@ module CapistranoMulticonfigParallel
     end
 
     def apply_confirmation_for_job(job)
-       app_configuration.apply_stage_confirmation.include?(job.stage) && apply_confirmations?
+      app_configuration.apply_stage_confirmation.include?(job.stage) && apply_confirmations?
     end
 
     def setup_worker_conditions(job)
@@ -153,17 +153,17 @@ module CapistranoMulticonfigParallel
       apps_symlink_confirmation
     end
 
-    def confirm_task_approval(result, task, job = nil)
+    def confirm_task_approval(result, task, processed_job = nil)
       return unless result.present?
-      result = print_confirm_task_approvall(result, task, job)
+      result = print_confirm_task_approvall(result, task, processed_job)
       return if result.blank? || result.downcase != 'y'
       @jobs.pmap do |job_id, job|
         worker = get_worker_for_job(job_id)
         worker.publish_rake_event('approved' => 'yes',
-        'action' => 'invoke',
-        'job_id' => job.id,
-        'task' => task
-        )
+                                  'action' => 'invoke',
+                                  'job_id' => job.id,
+                                  'task' => task
+                                 )
       end
     end
 
@@ -182,7 +182,7 @@ module CapistranoMulticonfigParallel
 
     def can_tag_staging?
       @job_manager.can_tag_staging? &&
-      @jobs.find { |_job_id, job| job['env'] == 'production' }.blank?
+        @jobs.find { |_job_id, job| job['env'] == 'production' }.blank?
     end
 
     def dispatch_new_job(job, options = {})
@@ -224,7 +224,7 @@ module CapistranoMulticonfigParallel
       return unless job.action == 'deploy'
       log_to_file "restarting #{job} on new worker"
       job.status = 'worker_died'
-      dispatch_new_job(job, :action => 'deploy:rollback')
+      dispatch_new_job(job, action: 'deploy:rollback')
     end
   end
 end

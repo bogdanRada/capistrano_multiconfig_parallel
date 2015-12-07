@@ -33,7 +33,7 @@ module CapistranoMulticonfigParallel
         last_job_id = @manager.jobs.keys.last.to_i
         @manager.jobs.each do |job_id, job|
           count += 1
-          add_job_to_table(table, job_id, job,  count, last_job_id)
+          add_job_to_table(table, job_id, job, count, last_job_id)
         end
       end
       show_terminal_screen(table)
@@ -73,8 +73,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-
-    def get_worker_details(job_id, job,  worker)
+    def get_worker_details(job_id, job, worker)
       {
         'job_id' => job_id,
         'app_name' => job.app,
@@ -130,7 +129,7 @@ module CapistranoMulticonfigParallel
       percent = percent_of(task_index, total_tasks)
       result  = "Progress [#{format('%.2f', percent)}%]  (executed #{task_index} of #{total_tasks})"
       if worker.alive?
-          @manager.job_crashed?(processed_job) ? result.red : result.green
+        @manager.job_crashed?(processed_job) ? result.red : result.green
       else
         worker_state(worker)
       end

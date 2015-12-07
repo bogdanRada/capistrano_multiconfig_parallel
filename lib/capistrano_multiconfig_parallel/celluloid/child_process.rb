@@ -9,7 +9,7 @@ module CapistranoMulticonfigParallel
 
     attr_accessor :options, :actor, :job_id, :exit_status, :pid, :process, :job
 
-   finalizer :process_finalizer
+    finalizer :process_finalizer
 
     def work(job, cmd, options = {})
       @options = options

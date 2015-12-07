@@ -51,8 +51,8 @@ module CapistranoMulticonfigParallel
       @client.publish(rake_actor_id(data), data)
     end
 
-    def rake_actor_id(data)
-       "rake_worker_#{@job_id}"
+    def rake_actor_id(_data)
+      "rake_worker_#{@job_id}"
     end
 
     def on_message(message)
@@ -76,8 +76,6 @@ module CapistranoMulticonfigParallel
     def invocation_chain
       @invocation_chain ||= []
     end
-
-
 
     def execute_deploy
       log_to_file("invocation chain #{@job_id} is : #{@rake_tasks.inspect}")
@@ -103,7 +101,7 @@ module CapistranoMulticonfigParallel
 
     def check_gitflow
       return if @job.stage != 'staging' || !@manager.can_tag_staging? || !executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
-      @manager.dispatch_new_job(@job,'env' => 'production')
+      @manager.dispatch_new_job(@job, 'env' => 'production')
     end
 
     def handle_subscription(message)
@@ -157,7 +155,6 @@ module CapistranoMulticonfigParallel
       abort(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new("task #{@action} failed ")) if name == 'deploy:failed' # force worker to rollback
     end
 
-
     def send_msg(channel, message = nil)
       publish channel, message.present? && message.is_a?(Hash) ? { job_id: @job_id }.merge(message) : { job_id: @job_id, time: Time.now }
     end
@@ -167,7 +164,6 @@ module CapistranoMulticonfigParallel
       @job.status = 'finished'
       @manager.workers_terminated.signal('completed') if @manager.alive? && @manager.all_workers_finished?
     end
-
 
     def notify_finished(exit_status)
       if exit_status != 0

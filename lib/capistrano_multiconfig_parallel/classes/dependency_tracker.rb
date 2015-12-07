@@ -27,7 +27,6 @@ module CapistranoMulticonfigParallel
         applications = []
       end
       applications
-
     end
 
   private
@@ -46,7 +45,7 @@ module CapistranoMulticonfigParallel
     def all_websites_return_applications_selected
       interactive_menu = CapistranoMulticonfigParallel::InteractiveMenu.new
       applications_selected = interactive_menu.show_all_websites_interactive_menu(available_apps)
-      applications_selected.present? ?  applications_selected.split(',') : []
+      applications_selected.present? ? applications_selected.split(',') : []
     end
 
     def add_dependency_app(app_to_deploy, apps_dependencies, applications_to_deploy)

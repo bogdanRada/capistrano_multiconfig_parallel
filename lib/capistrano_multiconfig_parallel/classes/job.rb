@@ -51,10 +51,9 @@ module CapistranoMulticonfigParallel
 
     def build_capistrano_task(action = nil, env = [])
       action = action.present? ? action : @action
-      environment_options = setup_command_line_standard(env).join(" ")
+      environment_options = setup_command_line_standard(env).join(' ')
       "cd #{detect_root} && RAILS_ENV=#{@stage}  bundle exec multi_cap #{job_stage} #{capistrano_action(action)}  #{environment_options}"
     end
-
 
     def execute_standard_deploy(action = nil)
       command = build_capistrano_task(action)
@@ -66,8 +65,7 @@ module CapistranoMulticonfigParallel
     end
 
     def to_s
-      self.to_json
+      to_json
     end
-
   end
 end

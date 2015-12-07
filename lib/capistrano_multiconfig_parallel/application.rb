@@ -111,7 +111,7 @@ module CapistranoMulticonfigParallel
       return unless @jobs.present?
       FileUtils.rm Dir["#{log_directory}/worker_*.log"]
       if app_configuration.multi_secvential.to_s.downcase == 'true'
-        @jobs.each { |job| job.execute_standard_deploy }
+        @jobs.each(&:execute_standard_deploy)
       else
         run_async_jobs
       end
@@ -220,8 +220,8 @@ module CapistranoMulticonfigParallel
       job_env_options = custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
 
       job = CapistranoMulticonfigParallel::Job.new(options.merge(
-        action: custom_command? && env_options['ACTION'].present? ? env_options['ACTION'] : options['action'],
-        env_options: job_env_options
+                                                     action: custom_command? && env_options['ACTION'].present? ? env_options['ACTION'] : options['action'],
+                                                     env_options: job_env_options
       ))
       @jobs << job
     end
