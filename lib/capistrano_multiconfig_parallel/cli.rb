@@ -8,14 +8,14 @@ module CapistranoMulticonfigParallel
 
       # method used to start
       def start
-        execute_with_rescue('stderr') do
-          verify_validation
-          job_manager = CapistranoMulticonfigParallel::Application.new
-          if job_manager.argv[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
-            job_manager.start
-          else
-            Capistrano::Application.new.run
+        verify_validation
+        arguments = multi_fetch_argv(ARGV.dup)
+        if arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
+          execute_with_rescue('stderr') do
+            CapistranoMulticonfigParallel::Application.new.start
           end
+        else
+          Capistrano::Application.new.run
         end
       end
 

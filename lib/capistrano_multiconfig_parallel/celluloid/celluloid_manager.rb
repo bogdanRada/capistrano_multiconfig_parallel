@@ -197,28 +197,20 @@ module CapistranoMulticonfigParallel
       if job.present?
         if job.is_a?(CapistranoMulticonfigParallel::Job)
           actor = @job_to_worker[job.id]
-          status = actor.status
+          status = actor.job_status
         else
           actor = @job_to_worker[job]
-          status = actor.status
+          status = actor.job_status
         end
       end
       status
-    end
-
-    def job_crashed?(job)
-      job.action == 'deploy:rollback' || job.action == 'deploy:failed' || job_failed?(job)
-    end
-
-    def job_failed?(job)
-      job.status.present? && job.status == 'worker_died'
     end
 
     def worker_died(worker, reason)
       job = @worker_to_job[worker.mailbox.address]
       log_to_file("worker job #{job} with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}")
       @worker_to_job.delete(worker.mailbox.address)
-      return if job.blank? || job_crashed?(job)
+      return if job.blank? || job.crashed?
       return unless job.action == 'deploy'
       log_to_file "restarting #{job} on new worker"
       job.status = 'worker_died'

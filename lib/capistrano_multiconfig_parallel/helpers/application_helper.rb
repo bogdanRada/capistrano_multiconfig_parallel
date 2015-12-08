@@ -10,6 +10,16 @@ module CapistranoMulticonfigParallel
 
   module_function
 
+  def multi_fetch_argv(args)
+    options = {}
+    args.each do |arg|
+      if arg =~ /^(\w+)=(.*)$/m
+        options[Regexp.last_match(1)] = Regexp.last_match(2)
+      end
+    end
+    options
+  end
+
     def action_confirmed?(result)
       result.present? && result.downcase == 'y'
     end

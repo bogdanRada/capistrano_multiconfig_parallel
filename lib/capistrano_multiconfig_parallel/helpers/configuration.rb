@@ -80,7 +80,7 @@ module CapistranoMulticonfigParallel
       def get_prop_config(prop)
         config = @check_config
         if prop.include?('.')
-          multi_level_prop(config)
+          multi_level_prop(config, prop)
         else
           config[prop]
         end

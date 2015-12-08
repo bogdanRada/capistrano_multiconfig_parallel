@@ -1,4 +1,5 @@
 require_relative '../helpers/application_helper'
+require_relative './job_command'
 module CapistranoMulticonfigParallel
   # class used for defining the job class
   class Job
@@ -7,9 +8,9 @@ module CapistranoMulticonfigParallel
     attr_reader :options, :command
 
     delegate :build_capistrano_task,
-             :execute_standard_deploy,
-             :setup_command_line_standard,
-             to: :command
+    :execute_standard_deploy,
+    :setup_command_line_standard,
+    to: :command
 
     def initialize(options)
       @options = options
@@ -24,8 +25,16 @@ module CapistranoMulticonfigParallel
       @status ||= :unstarted
     end
 
+    def status=(value)
+      @status = value
+    end
+
     def exit_status
       @exit_status ||= nil
+    end
+
+    def exit_status=(value)
+      @exit_status = value
     end
 
     [
@@ -38,7 +47,7 @@ module CapistranoMulticonfigParallel
       define_method hash[:name] do
         value = @options.fetch(hash[:name], hash[:default])
         value["#{CapistranoMulticonfigParallel::ENV_KEY_JOB_ID}"] = id if hash[:name] == 'env_options'
-        verify_empty_option(value)
+        verify_empty_options(value)
       end
     end
 
@@ -46,8 +55,15 @@ module CapistranoMulticonfigParallel
       @status == 'finished'
     end
 
-    def to_s
-      to_json
+    def crashed?
+      crashing_actions = ['deploy:rollback', 'deploy:failed']
+      crashing_actions.include?(action) || crashing_actions.include?(status) || failed?
     end
+
+    def failed?
+      status.present? && status == 'worker_died'
+    end
+
+
   end
 end

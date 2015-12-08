@@ -246,15 +246,7 @@ module CapistranoMulticonfigParallel
       options
     end
 
-    def multi_fetch_argv(args)
-      options = {}
-      args.each do |arg|
-        if arg =~ /^(\w+)=(.*)$/m
-          options[Regexp.last_match(1)] = Regexp.last_match(2)
-        end
-      end
-      options
-    end
+  
 
     def execute_on_multiple_boxes(main_box_name, options)
       boxes = strip_characters_from_string(main_box_name).split(',').compact

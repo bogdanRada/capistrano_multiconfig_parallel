@@ -2,7 +2,7 @@ module CapistranoMulticonfigParallel
   # class that handles the states of the celluloid worker executing the child process in a fork process
   class StateMachine
     include ComposableStateMachine::CallbackRunner
-    attr_accessor :job, :actor, :initial_state, :state, :output
+    attr_accessor :job, :actor, :initial_state, :state
 
     def initialize(job, actor)
       @job = job
@@ -12,8 +12,9 @@ module CapistranoMulticonfigParallel
     end
 
     def go_to_transition(action)
-      transitions.on(action.to_s, state => action.to_s)
-      machine.trigger(action.to_s)
+      transitions.on(action, state.to_s => action)
+      @job.status = action
+      machine.trigger(action)
     end
 
     def machine

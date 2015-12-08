@@ -33,7 +33,7 @@ module CapistranoMulticonfigParallel
     end
 
     def application_dependencies
-      deps = app_configuration.application_dependencies.stringify_keys
+      deps = app_configuration.application_dependencies
       value_is_array?(deps) ? deps.map(&:stringify_keys) : []
     end
 
