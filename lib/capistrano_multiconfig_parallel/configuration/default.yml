@@ -28,8 +28,7 @@ default_config:
   - name: 'task_confirmations'
     type: 'Array'
     description: >-
-      Enable user confirmation dialogs before executing each task
-      from option  **--task_confirmations**
+      Enable user confirmation dialogs before executing each task from this list
     default:
       - deploy:symlink:release
 
@@ -37,7 +36,7 @@ default_config:
   - name: 'apply_stage_confirmation'
     type: 'Array'
     description: >-
-      Defines the stages for which option **--syncronize_confirmation** applies.
+      Defines the stages for which option **--task_confirmations** applies.
     default:
       - production
 
