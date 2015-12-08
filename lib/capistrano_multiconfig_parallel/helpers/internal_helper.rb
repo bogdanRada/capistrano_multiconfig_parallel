@@ -38,7 +38,7 @@ module CapistranoMulticonfigParallel
     end
 
     def sliced_default_config(hash)
-      hash.slice('type', 'description', 'default')
+      hash.slice('type', 'description', 'default', 'required')
     end
 
     def setup_default_configuration_types(hash)

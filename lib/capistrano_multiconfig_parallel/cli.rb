@@ -8,10 +8,10 @@ module CapistranoMulticonfigParallel
 
       # method used to start
       def start
-        verify_validation
         arguments = multi_fetch_argv(ARGV.dup)
         if arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
           execute_with_rescue('stderr') do
+            verify_validation
             CapistranoMulticonfigParallel::Application.new.start
           end
         else
