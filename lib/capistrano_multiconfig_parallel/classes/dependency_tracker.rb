@@ -33,7 +33,7 @@ module CapistranoMulticonfigParallel
     end
 
     def application_dependencies
-      deps = app_configuration.application_dependencies
+      deps = app_configuration.application_dependencies.stringify_keys
       value_is_array?(deps) ? deps.map(&:stringify_keys) : []
     end
 
@@ -43,15 +43,11 @@ module CapistranoMulticonfigParallel
       applications
     end
 
-    def add_dependency_app(app_to_deploy, _apps_dependencies, applications_to_deploy)
+    def add_dependency_app(app_to_deploy, apps_dependencies, applications_to_deploy)
       return unless app_to_deploy.present?
       applications_to_deploy << app_to_deploy
-      ddsadsa(app_to_deploy['dependencies'])
-    end
-
-    def dsdad(dependencies)
-      return unless dependencies.present?
-      dependencies.each do |dependency|
+      return unless app_to_deploy['dependencies'].present?
+      app_to_deploy['dependencies'].each do |dependency|
         dependency_app = application_dependencies.find { |hash| hash['app'] == dependency }
         apps_dependencies << dependency_app if dependency_app.present?
       end
@@ -70,7 +66,7 @@ module CapistranoMulticonfigParallel
     def check_app_dependency_unique(applications_selected, apps_dependencies, applications_to_deploy, action)
       return applications_to_deploy if applications_selected.blank? || apps_dependencies.blank? || (apps_dependencies.map { |app| app['app'] } - applications_to_deploy.map { |app| app['app'] }).blank?
       apps_dependency_confirmation = ask_confirm("Do you want to  #{action} all dependencies also ?", 'Y/N')
-      applications_to_deploy = applications_to_deploy.concat(apps_dependencies) if apps_dependency_confirmation.present? && apps_dependency_confirmation.downcase == 'y'
+      applications_to_deploy = applications_to_deploy.concat(apps_dependencies) if action_confirmed?(apps_dependency_confirmation)
       applications_to_deploy
     end
 
@@ -104,10 +100,10 @@ module CapistranoMulticonfigParallel
     def print_frameworks_used(app_names, applications_to_deploy, action)
       app_names.each { |app| puts "#{app}" }
       apps_deploy_confirmation = ask_confirm("Are you sure you want to #{action} these apps?", 'Y/N')
-      if apps_deploy_confirmation.blank? || (apps_deploy_confirmation.present? && apps_deploy_confirmation.downcase != 'y')
-        return []
-      elsif apps_deploy_confirmation.present? && apps_deploy_confirmation.downcase == 'y'
+      if action_confirmed?(apps_deploy_confirmation)
         return applications_to_deploy
+      else
+        return []
       end
     end
   end

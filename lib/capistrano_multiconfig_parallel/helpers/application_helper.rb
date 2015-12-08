@@ -10,6 +10,10 @@ module CapistranoMulticonfigParallel
 
   module_function
 
+    def action_confirmed?(result)
+      result.present? && result.downcase == 'y'
+    end
+
     def check_numeric(num)
       /^[0-9]+/.match(num.to_s)
     end

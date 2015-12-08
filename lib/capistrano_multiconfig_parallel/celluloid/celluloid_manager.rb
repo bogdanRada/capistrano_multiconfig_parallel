@@ -156,7 +156,7 @@ module CapistranoMulticonfigParallel
     def confirm_task_approval(result, task, processed_job = nil)
       return unless result.present?
       result = print_confirm_task_approvall(result, task, processed_job)
-      return if result.blank? || result.downcase != 'y'
+      return unless action_confirmed?(result)
       @jobs.pmap do |job_id, job|
         worker = get_worker_for_job(job_id)
         worker.publish_rake_event('approved' => 'yes',
