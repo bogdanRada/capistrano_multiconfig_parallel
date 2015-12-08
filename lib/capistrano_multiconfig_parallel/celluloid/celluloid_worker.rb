@@ -43,7 +43,7 @@ module CapistranoMulticonfigParallel
 
     def worker_state
       if Actor.current.alive?
-        status = job.status
+        status = @machine.state.to_s
         job.crashed? ? status.red : status.green
       else
         'dead'.upcase.red

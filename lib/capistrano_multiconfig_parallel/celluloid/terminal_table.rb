@@ -65,7 +65,7 @@ module CapistranoMulticonfigParallel
       worker = @manager.get_worker_for_job(job.id)
 
       row = [{ value: count.to_s },
-             { value: job_id.to_s },
+             { value: job.id.to_s },
              { value: job.job_stage },
              { value: job.capistrano_action },
              { value: job.setup_command_line_standard.join("\n") },
@@ -80,7 +80,7 @@ module CapistranoMulticonfigParallel
       #     row << { value:  worker_state(worker) }
       #   end
       table.add_row(row)
-      table.add_separator if last_job_id != job_id.to_i
+      table.add_separator if last_job_id != job.id.to_i
       table
     end
 

@@ -7,7 +7,9 @@ module CapistranoMulticonfigParallel
 
     attr_reader :options, :command
 
-    delegate :build_capistrano_task,
+    delegate :job_stage,
+    :capistrano_action,
+    :build_capistrano_task,
     :execute_standard_deploy,
     :setup_command_line_standard,
     to: :command
