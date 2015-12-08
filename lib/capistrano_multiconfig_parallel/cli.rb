@@ -23,7 +23,6 @@ module CapistranoMulticonfigParallel
           CapistranoMulticonfigParallel::Application.new.start
         end
       end
-
     end
   end
 end
