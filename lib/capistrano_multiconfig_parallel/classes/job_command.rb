@@ -7,7 +7,7 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :job
-    delegate :app, :stage, :action, :task_arguments, :env_options, to: :job
+    delegate :app, :stage, :action, :task_arguments, :environment_options, to: :job
 
     def initialize(job)
       @job = job
@@ -28,7 +28,7 @@ module CapistranoMulticonfigParallel
 
     def setup_env_options
       array_options = []
-      env_options.each do |key, value|
+      environment_options.each do |key, value|
         array_options << "#{key}=#{value}" if value.present? && !filtered_env_keys.include?(key)
       end
       array_options << '--trace' if app_debug_enabled?

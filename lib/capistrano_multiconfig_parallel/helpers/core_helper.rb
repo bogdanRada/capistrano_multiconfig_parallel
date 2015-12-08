@@ -3,11 +3,6 @@ module CapistranoMulticonfigParallel
   module CoreHelper
   module_function
 
-    def find_config_type(type)
-      type = type.to_s
-      ['boolean'].include?(type) ? type.delete(':').to_sym : type.constantize
-    end
-
     def app_debug_enabled?
       app_configuration.multi_debug.to_s.downcase == 'true'
     end

@@ -10,13 +10,14 @@ module CapistranoMulticonfigParallel
 
   module_function
 
-    def default_config_param(param)
-      {
-        name: param['name'],
-        type: find_config_type(param['type']),
-        description: param['description'],
-        default: param['default']
-      }
+    def verify_empty_options(options)
+      if options.is_a?(Hash)
+        options.reject { |_key, value| value.blank? }
+      elsif options.is_a?(Array)
+        options.reject(&:blank?)
+      else
+        options
+      end
     end
 
     def verify_array_of_strings(value)
@@ -60,7 +61,7 @@ module CapistranoMulticonfigParallel
       [name, args]
     end
 
-    def find_remaaining_args(remaining_args)
+    def find_remaining_args(remaining_args)
       args = []
       loop do
         /((?:[^\\,]|\\.)*?)\s*(?:,\s*(.*))?$/ =~ remaining_args

@@ -28,26 +28,18 @@ module CapistranoMulticonfigParallel
       @exit_status ||= nil
     end
 
-    def app
-      @options.fetch('app', '')
-    end
-
-    def stage
-      @options.fetch('stage', '')
-    end
-
-    def action
-      @options.fetch('action', '')
-    end
-
-    def task_arguments
-      @options.fetch('task_arguments', [])
-    end
-
-    def env_options
-      env_options = @options.fetch('env_options', {})
-      env_options["#{CapistranoMulticonfigParallel::ENV_KEY_JOB_ID}"] = @id
-      env_options.reject { |_key, value| value.blank? }
+    [
+      { name: 'app', default: '' },
+      { name: 'stage', default: '' },
+      { name: 'action', default: '' },
+      { name: 'task_arguments', default: [] },
+      { name: 'env_options', default: {} }
+    ].each do |hash|
+      define_method hash[:name] do
+        value = @options.fetch(hash[:name], hash[:default])
+        value["#{CapistranoMulticonfigParallel::ENV_KEY_JOB_ID}"] = id if hash[:name] == 'env_options'
+        verify_empty_option(value)
+      end
     end
 
     def finished?

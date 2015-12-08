@@ -12,8 +12,40 @@ module CapistranoMulticonfigParallel
     end
 
     def default_internal_config
-      @default_config ||= YAML.load_file(internal_config_file)['default_config']
+      @default_config ||= fetch_default_internal_config
       @default_config
+    end
+
+    def fetch_default_internal_config
+      config = YAML.load_file(internal_config_file)['default_config']
+      new_config = config.map do |hash|
+        setup_default_configuration_types(hash)
+      end
+      default_internal_configuration_params(new_config)
+    end
+
+    def default_internal_configuration_params(new_config)
+      array = []
+      new_config.each do |hash|
+        array << [hash['name'], sliced_default_config(hash)]
+      end
+      array
+    end
+
+    def sliced_default_config(hash)
+      hash.slice('type', 'description', 'default')
+    end
+
+    def setup_default_configuration_types(hash)
+      hash.each_with_object({}) do |memo, (key, value)|
+        memo[key] = (key == 'type') ? find_config_type(value) : value
+        memo
+      end
+    end
+
+    def find_config_type(type)
+      type = type.to_s
+      ['boolean'].include?(type) ? type.delete(':').to_sym : type.constantize
     end
 
     def find_env_multi_cap_root
@@ -33,7 +65,7 @@ module CapistranoMulticonfigParallel
     end
 
     def pwd_parent_dir
-      pwd_directory.parent unless pwd_directory.directory?
+      pwd_directory.directory? ? pwd_directory : pwd_directory.parent
     end
 
     def pwd_directory

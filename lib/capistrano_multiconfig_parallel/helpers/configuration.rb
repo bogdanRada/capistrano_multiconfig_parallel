@@ -20,8 +20,8 @@ module CapistranoMulticonfigParallel
       end
 
       def setup_default_config
-        default_internal_config.each do |param|
-          @fetched_config.define default_config_param(param)
+        default_internal_config.each do |array_param|
+          @fetched_config.define array_param[0], array_param[1].symbolize_keys
         end
       end
 

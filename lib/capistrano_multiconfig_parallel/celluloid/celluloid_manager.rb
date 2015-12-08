@@ -169,8 +169,7 @@ module CapistranoMulticonfigParallel
 
     def get_worker_for_job(job)
       if job.present?
-        if job.is_a?(Hash)
-          job = job.stringify_keys
+        if job.is_a?(CapistranoMulticonfigParallel::Job)
           @job_to_worker[job.id]
         else
           @job_to_worker[job]
@@ -196,8 +195,7 @@ module CapistranoMulticonfigParallel
     def get_job_status(job)
       status = nil
       if job.present?
-        if job.is_a?(Hash)
-          job = job.stringify_keys
+        if job.is_a?(CapistranoMulticonfigParallel::Job)
           actor = @job_to_worker[job.id]
           status = actor.status
         else
