@@ -17,7 +17,7 @@ module CapistranoMulticonfigParallel
       default_printing
       result = show_all_websites_interactive_menu
       print "#{@msg}\n"
-      strip_characters_from_string(result)
+      strip_characters_from_string(result).split(',')
     end
 
   private

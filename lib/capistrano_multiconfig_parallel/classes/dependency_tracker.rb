@@ -11,29 +11,30 @@ module CapistranoMulticonfigParallel
     end
 
     def fetch_apps_needed_for_deployment(application, action)
-      applications = []
-      return applications unless @job_manager.multi_apps?
+      return [] unless @job_manager.multi_apps?
       if @job_manager.custom_command?
-        apps_selected = all_websites_return_applications_selected
-        applications = get_applications_to_deploy(action, apps_selected)
-      elsif app_configuration.application_dependencies.present?
-        if application.present?
-          applications = get_applications_to_deploy(action, [application.camelcase])
-          applications = applications.delete_if { |hash| hash['app'] == application }
-        else
-          applications = []
-        end
+        show_interactive_menu(action)
       else
-        applications = []
+        fetch_application_dependencies(application, action)
       end
-      applications
     end
 
   private
 
+    def fetch_application_dependencies(application, action)
+      return [] if app_configuration.application_dependencies.blank? || application.blank?
+      applications = get_applications_to_deploy(action, [application.camelcase])
+      applications.delete_if { |hash| hash['app'] == application }
+    end
+
+    def show_interactive_menu(action)
+      apps_selected = CapistranoMulticonfigParallel::InteractiveMenu.new(available_apps).fetch_menu
+      get_applications_to_deploy(action, apps_selected)
+    end
+
     def application_dependencies
       deps = app_configuration.application_dependencies
-      deps.present? && deps.is_a?(Array) ? deps.map(&:stringify_keys) : []
+      value_is_array?(deps) ? deps.map(&:stringify_keys) : []
     end
 
     def available_apps
@@ -42,16 +43,15 @@ module CapistranoMulticonfigParallel
       applications
     end
 
-    def all_websites_return_applications_selected
-      applications_selected = CapistranoMulticonfigParallel::InteractiveMenu.new(available_apps).fetch_menu
-      applications_selected.present? ? applications_selected.split(',') : []
-    end
-
-    def add_dependency_app(app_to_deploy, apps_dependencies, applications_to_deploy)
+    def add_dependency_app(app_to_deploy, _apps_dependencies, applications_to_deploy)
       return unless app_to_deploy.present?
       applications_to_deploy << app_to_deploy
-      return unless app_to_deploy['dependencies'].present?
-      app_to_deploy['dependencies'].each do |dependency|
+      ddsadsa(app_to_deploy['dependencies'])
+    end
+
+    def dsdad(dependencies)
+      return unless dependencies.present?
+      dependencies.each do |dependency|
         dependency_app = application_dependencies.find { |hash| hash['app'] == dependency }
         apps_dependencies << dependency_app if dependency_app.present?
       end
