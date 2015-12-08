@@ -20,6 +20,8 @@ module CapistranoMulticonfigParallel
       strip_characters_from_string(result)
     end
 
+  private
+
     def default_printing
       print "\nYou selected"
       @msg = ' nothing'
