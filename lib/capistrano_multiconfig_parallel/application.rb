@@ -246,8 +246,6 @@ module CapistranoMulticonfigParallel
       options
     end
 
-  
-
     def execute_on_multiple_boxes(main_box_name, options)
       boxes = strip_characters_from_string(main_box_name).split(',').compact
       boxes.each do |box_name|

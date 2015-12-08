@@ -6,13 +6,14 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :options, :command
+    attr_writer :status, :exit_status
 
     delegate :job_stage,
-    :capistrano_action,
-    :build_capistrano_task,
-    :execute_standard_deploy,
-    :setup_command_line_standard,
-    to: :command
+             :capistrano_action,
+             :build_capistrano_task,
+             :execute_standard_deploy,
+             :setup_command_line_standard,
+             to: :command
 
     def initialize(options)
       @options = options
@@ -27,16 +28,8 @@ module CapistranoMulticonfigParallel
       @status ||= :unstarted
     end
 
-    def status=(value)
-      @status = value
-    end
-
     def exit_status
       @exit_status ||= nil
-    end
-
-    def exit_status=(value)
-      @exit_status = value
     end
 
     [
@@ -65,7 +58,5 @@ module CapistranoMulticonfigParallel
     def failed?
       status.present? && status == 'worker_died'
     end
-
-
   end
 end

@@ -7,7 +7,7 @@ module CapistranoMulticonfigParallel
     def initialize(job, actor)
       @job = job
       @actor = actor
-      @initial_state = :unstarted
+      @initial_state = @job.status
       machine
     end
 
