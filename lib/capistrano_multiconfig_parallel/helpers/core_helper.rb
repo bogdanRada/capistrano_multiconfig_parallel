@@ -112,7 +112,8 @@ module CapistranoMulticonfigParallel
     end
 
     def rescue_error(error, output = nil)
-      output.blank? ? log_error(error) : puts(format_error(error))
+      puts(format_error(error)) if output.present?
+      log_error(error)
       exit(1)
     end
 

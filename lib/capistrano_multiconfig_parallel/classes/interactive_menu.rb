@@ -17,7 +17,7 @@ module CapistranoMulticonfigParallel
       default_printing
       result = show_all_websites_interactive_menu
       print "#{@msg}\n"
-      strip_characters_from_string(result).split(',')
+      result.present? ? result.split(',') : []
     end
 
   private
@@ -33,7 +33,7 @@ module CapistranoMulticonfigParallel
         result += "#{option_name}," if choices[index].present?
         print_option_name(option_name, index)
       end
-      result
+      strip_characters_from_string(result)
     end
 
     def print_option_name(option_name, index)
@@ -43,7 +43,7 @@ module CapistranoMulticonfigParallel
     end
 
     def confirm_option_selected
-      print 'Enter a comma-separated list of option numbers or one single option number (again to uncheck, ENTER when done): '
+      print "Enter a comma-separated list of option numbers or one single option number (again to uncheck, ENTER when done): "
       $stdin.gets.squeeze(' ').strip
     end
 
