@@ -26,17 +26,19 @@ module CapistranoMulticonfigParallel
       "#{rake_action}#{argv}"
     end
 
-    def setup_env_options
+    def setup_env_options(options = {})
+      options.stringify_keys!
       array_options = []
       env_options.each do |key, value|
-        array_options << "#{key}=#{value}" if value.present? && !filtered_env_keys.include?(key)
+        array_options << "#{key}=#{value}" if value.present? && (!filtered_env_keys.include?(key) && !options.fetch('filtered_keys', []).include?(key.to_s))
       end
       array_options << '--trace' if app_debug_enabled?
       array_options
     end
 
     def setup_command_line_standard(*args)
-      array_options = setup_env_options
+      options = args.extract_options!
+      array_options = setup_env_options(options)
       args.each do |arg|
         array_options << arg if arg.present?
       end

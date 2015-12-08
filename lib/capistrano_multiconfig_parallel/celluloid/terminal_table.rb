@@ -60,6 +60,10 @@ module CapistranoMulticonfigParallel
       worker.alive? ? worker.worker_state : 'dead'.upcase.red
     end
 
+    def filtered_env_keys
+      %w(STAGES ACTION)
+    end
+
     def add_job_to_table(table, job, count, last_job_id)
       return unless @manager.alive?
       worker = @manager.get_worker_for_job(job.id)
@@ -68,7 +72,7 @@ module CapistranoMulticonfigParallel
              { value: job.id.to_s },
              { value: job.job_stage },
              { value: job.capistrano_action },
-             { value: job.setup_command_line_standard.join("\n") },
+             { value: job.setup_command_line_standard(:filtered_keys => [CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]).join("\n") },
              { value: worker_state(worker) }
             ]
 
