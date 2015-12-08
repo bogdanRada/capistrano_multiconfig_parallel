@@ -19,6 +19,11 @@ module CapistranoMulticonfigParallel
       CapistranoMulticonfigParallel.logger
     end
 
+    def verify_validation
+      CapistranoMulticonfigParallel.original_args = ARGV.dup
+      CapistranoMulticonfigParallel.configuration_valid?
+    end
+
     def check_terminal_tty
       $stdin.sync = true if $stdin.isatty
       $stdout.sync = true if $stdout.isatty
