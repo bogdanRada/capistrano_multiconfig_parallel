@@ -101,7 +101,8 @@ module CapistranoMulticonfigParallel
 
     def check_gitflow
       return if @job.stage != 'staging' || !@manager.can_tag_staging? || !executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
-      @manager.dispatch_new_job(@job, 'env' => 'production')
+      @job.stage = 'production'
+      @manager.dispatch_new_job(@job)
     end
 
     def handle_subscription(message)
@@ -150,7 +151,6 @@ module CapistranoMulticonfigParallel
 
     def update_machine_state(name)
       log_to_file("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}")
-      @machine.transitions.on(name.to_s, @machine.state => name.to_s)
       @machine.go_to_transition(name.to_s)
       abort(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new("task #{@action} failed ")) if name == 'deploy:failed' # force worker to rollback
     end

@@ -4,7 +4,8 @@ module CapistranoMulticonfigParallel
   module_function
 
     def find_config_type(type)
-      ['boolean'].include?(type.to_s) ? type.to_s.delete(':').to_sym : type.to_s.constantize
+      type = type.to_s
+      ['boolean'].include?(type) ? type.delete(':').to_sym : type.constantize
     end
 
     def app_debug_enabled?
@@ -32,9 +33,15 @@ module CapistranoMulticonfigParallel
       Gem.loaded_specs.values.find { |repo| repo.name == name }
     end
 
+    def ask_stdout_confirmation(message, default)
+      result = Ask.input message, default: default
+      $stdout.flush
+      result
+    end
+
     def ask_confirm(message, default)
       force_confirmation do
-        Ask.input message, default: default
+        ask_stdout_confirmation(message, default)
       end
     rescue
       return nil
@@ -44,7 +51,6 @@ module CapistranoMulticonfigParallel
       `stty -raw echo`
       check_terminal_tty
       result = block.call
-      $stdout.flush
       `stty -raw echo`
       result
     end
@@ -55,7 +61,7 @@ module CapistranoMulticonfigParallel
 
     def format_error(error)
       JSON.pretty_generate(class_name: error.class,
-                           message: error.respond_to?(:message) ? "#{error.message}#{error.message.class}" : error.inspect,
+                           message: error.respond_to?(:message) ? error.message : error.inspect,
                            backtrace: error.respond_to?(:backtrace) ? error.backtrace.join("\n\n") : '')
     end
 
@@ -68,13 +74,21 @@ module CapistranoMulticonfigParallel
       return if job_id.blank?
       FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
       filename = File.join(log_directory, "worker_#{job_id}.log")
+      setup_filename_logger(filename)
+    end
+
+    def setup_filename_logger(filename)
       worker_log = ::Logger.new(filename)
       worker_log.level = ::Logger::Severity::DEBUG
-      worker_log.formatter = proc do |severity, datetime, progname, msg|
+      setup_logger_formatter(worker_log)
+      worker_log
+    end
+
+    def setup_logger_formatter(logger)
+      logger.formatter = proc do |severity, datetime, progname, msg|
         date_format = datetime.strftime('%Y-%m-%d %H:%M:%S')
         "[#{date_format}] #{severity}  (#{progname}): #{msg}\n"
       end
-      worker_log
     end
 
     def debug_websocket?

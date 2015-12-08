@@ -10,33 +10,66 @@ module CapistranoMulticonfigParallel
 
   module_function
 
+    def default_config_param(param)
+      {
+        name: param['name'],
+        type: find_config_type(param['type']),
+        description: param['description'],
+        default: param['default']
+      }
+    end
+
+    def verify_array_of_strings(value)
+      value.reject(&:blank?)
+      warn_array_without_strings(value)
+    end
+
+    def warn_array_without_strings(value)
+      raise ArgumentError, 'the array must contain only task names' if value.find { |row| !row.is_a?(String) }
+    end
+
+    def check_hash_set(hash, props)
+      !Set.new(props).subset?(hash.keys.to_set) || hash.values.find(&:blank?).present?
+    end
+
+    def value_is_array?(value)
+      value.present? && value.is_a?(Array)
+    end
+
     def strip_characters_from_string(value)
       return unless value.present?
       value = value.delete("\r\n").delete("\n")
-      value = value.gsub(/\s+/, ' ').strip if value.present?
+      value = value.gsub(/\s+/, ' ').strip
       value
+    end
+
+    def regex_last_match(number)
+      Regexp.last_match(number)
     end
 
     def parse_task_string(string) # :nodoc:
       /^([^\[]+)(?:\[(.*)\])$/ =~ string.to_s
 
-      name           = Regexp.last_match(1)
-      remaining_args = Regexp.last_match(2)
+      name           = regex_last_match(1)
+      remaining_args = regex_last_match(2)
 
       return string, [] unless name
       return name,   [] if     remaining_args.empty?
 
-      args = []
+      args = find_remaaining_args(remaining_args)
+      [name, args]
+    end
 
+    def find_remaaining_args(remaining_args)
+      args = []
       loop do
         /((?:[^\\,]|\\.)*?)\s*(?:,\s*(.*))?$/ =~ remaining_args
 
-        remaining_args = Regexp.last_match(2)
-        args << Regexp.last_match(1).gsub(/\\(.)/, '\1')
+        remaining_args = regex_last_match(2)
+        args << regex_last_match(1).gsub(/\\(.)/, '\1')
         break if remaining_args.blank?
       end
-
-      [name, args]
+      args
     end
   end
 end

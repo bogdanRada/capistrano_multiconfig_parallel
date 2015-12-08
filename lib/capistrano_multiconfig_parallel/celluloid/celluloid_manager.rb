@@ -224,7 +224,8 @@ module CapistranoMulticonfigParallel
       return unless job.action == 'deploy'
       log_to_file "restarting #{job} on new worker"
       job.status = 'worker_died'
-      dispatch_new_job(job, action: 'deploy:rollback')
+      job.action = 'deploy:rollback'
+      dispatch_new_job(job)
     end
   end
 end

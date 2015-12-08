@@ -12,6 +12,7 @@ module CapistranoMulticonfigParallel
     end
 
     def go_to_transition(action)
+      transitions.on(action.to_s, state => action.to_s)
       machine.trigger(action.to_s)
     end
 

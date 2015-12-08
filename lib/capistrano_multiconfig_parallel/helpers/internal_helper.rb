@@ -24,11 +24,34 @@ module CapistranoMulticonfigParallel
       File.expand_path(File.dirname(File.dirname(__dir__)))
     end
 
+    def pathname_is_root?(root)
+      root.root?
+    end
+
+    def fail_capfile_not_found(root)
+      fail "Can't detect Capfile in the  application root".red if pathname_is_root?(root)
+    end
+
+    def pwd_parent_dir
+      pwd_directory.parent unless pwd_directory.directory?
+    end
+
+    def pwd_directory
+      Pathname.new(FileUtils.pwd)
+    end
+
+    def check_file(file, filename)
+      file.file? && file.basename.to_s.downcase == filename.to_s.downcase
+    end
+
+    def find_file_in_directory(root, filename)
+      root.children.find { |file| check_file(file, filename) }.present? || pathname_is_root?(root)
+    end
+
     def try_detect_capfile
-      root = Pathname.new(FileUtils.pwd)
-      root = root.parent unless root.directory?
-      root = root.parent until root.children.find { |f| f.file? && f.basename.to_s.downcase == 'capfile' }.present? || root.root?
-      fail "Can't detect Capfile in the  application root".red if root.root?
+      root = pwd_parent_dir
+      root = root.parent until find_file_in_directory(root, 'capfile')
+      fail_capfile_not_found(root)
       root
     end
 

@@ -15,33 +15,34 @@ module CapistranoMulticonfigParallel
 
       def fetch_configuration
         @fetched_config = Configliere::Param.new
+        setup_default_config
+        setup_configuration
+      end
+
+      def setup_default_config
         default_internal_config.each do |param|
-          param_type = find_config_type(param['type'])
-          @fetched_config.define param['name'], type: param_type, description: param['description'], default: param['default']
+          @fetched_config.define default_config_param(param)
         end
+      end
 
-        ARGV.clear
-
-        CapistranoMulticonfigParallel.original_args.each { |a| ARGV << a }
+      def setup_configuration
         @fetched_config.read config_file if File.file?(config_file)
         @fetched_config.use :commandline
 
         @fetched_config.use :config_block
-        @fetched_config.finally do |c|
-          check_configuration(c)
+        validate_configuration
+      end
+
+      def validate_configuration
+        @fetched_config.finally do |config|
+          @check_config = config.stringify_keys
+          check_configuration
         end
         @fetched_config.process_argv!
         @fetched_config.resolve!
       end
 
-      def verify_array_of_strings(value)
-        return true if value.blank?
-        value.reject(&:blank?)
-        raise ArgumentError, 'the array must contain only task names' if value.find { |row| !row.is_a?(String) }
-      end
-
-      def verify_application_dependencies(c, prop, props)
-        value = c[prop.to_sym]
+      def verify_application_dependencies(value, props)
         return unless value.is_a?(Array)
         value.reject { |val| val.blank? || !val.is_a?(Hash) }
         wrong = check_array_of_hash(value, props.map(&:to_sym))
@@ -50,35 +51,35 @@ module CapistranoMulticonfigParallel
 
       def check_array_of_hash(value, props)
         value.find do|hash|
-          !Set.new(props).subset?(hash.keys.to_set) ||
-            hash.values.find(&:blank?).present?
+          check_hash_set(hash, props)
         end
       end
 
-      def check_boolean(c, prop)
-        raise ArgumentError, "the property `#{prop}` must be boolean" unless %w(true false).include?(c[prop].to_s.downcase)
+      def check_boolean(prop)
+        raise ArgumentError, "the property `#{prop}` must be boolean" unless %w(true false).include?(@check_config[prop].to_s.downcase)
       end
 
       def configuration_valid?
         configuration
       end
 
-      def check_boolean_props(c, props)
+      def check_boolean_props(props)
         props.each do |prop|
-          c.send("#{prop}=", c[prop.to_sym]) if check_boolean(c, prop.to_sym)
+          @check_config.send("#{prop}=", @check_config[prop]) if check_boolean(prop)
         end
       end
 
-      def check_array_props(c, props)
+      def check_array_props(props)
         props.each do |prop|
-          c.send("#{prop}=", c[prop.to_sym]) if c[prop.to_sym].is_a?(Array) && verify_array_of_strings(c[prop.to_sym])
+          value =  @check_config[prop]
+          @check_config.send("#{prop}=", value) if value_is_array?(value) && verify_array_of_strings(value)
         end
       end
 
-      def check_configuration(c)
-        check_boolean_props(c, %w(multi_debug multi_secvential websocket_server.enable_debug))
-        check_array_props(c, %w(task_confirmations development_stages apply_stage_confirmation))
-        verify_application_dependencies(c, 'application_dependencies', %w(app priority dependencies))
+      def check_configuration
+        check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug))
+        check_array_props(%w(task_confirmations development_stages apply_stage_confirmation))
+        verify_application_dependencies(@check_config['application_dependencies'], %w(app priority dependencies))
       end
     end
   end
