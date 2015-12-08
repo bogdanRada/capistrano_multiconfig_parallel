@@ -84,7 +84,7 @@ module CapistranoMulticonfigParallel
       #     row << { value:  worker_state(worker) }
       #   end
       table.add_row(row)
-      table.add_separator if last_job_id != job.id.to_i
+      table.add_separator if last_job_id.to_i != job.id.to_i
       table
     end
 

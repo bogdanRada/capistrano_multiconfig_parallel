@@ -187,7 +187,7 @@ module CapistranoMulticonfigParallel
     def dispatch_new_job(job, options = {})
       env_opts = @job_manager.get_app_additional_env_options(job.app, job.stage)
       job.env_options = options.merge(env_opts)
-      new_job = CapistranoMulticonfigParallel::Job.new(job.to_s)
+      new_job = CapistranoMulticonfigParallel::Job.new(job.to_json)
       async.delegate(new_job)
     end
 
