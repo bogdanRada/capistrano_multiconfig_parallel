@@ -6,7 +6,7 @@ module CapistranoMulticonfigParallel
     include FileUtils
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_accessor :job
+    attr_reader :job
     delegate :app, :stage, :action, :task_arguments, :env_options, to: :job
 
     def initialize(job)
