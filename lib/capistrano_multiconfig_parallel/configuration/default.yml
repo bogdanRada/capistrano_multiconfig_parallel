@@ -2,27 +2,25 @@ default_config:
   - name: 'multi_debug'
     type: 'boolean'
     description: >-
-      Enable debugging of workers, CAP_VALUE can be true or false
+      Enable debugging of workers
     default: TRUE
 
   - name: 'multi_secvential'
     type: 'boolean'
     description: >-
-      Forces execution of jobs in sequence, CAP_VALUE can be true or false
+      Forces execution of jobs in sequence
     default: false
 
   - name: 'websocket_server.enable_debug'
     type: 'boolean'
     description: >-
-      Enables debugging of websocket communication between the workers,
-      CAP_VALUE can be true or false
+      Enables debugging of websocket communication between the workers
     default: false
 
   - name: 'development_stages'
     type: 'Array'
     description: >-
       Each of the items is used to recognize it as a development stage,
-      CAP_VALUE can Array of String
     default:
       - development
       - webdev
@@ -32,7 +30,6 @@ default_config:
     description: >-
       Enable user confirmation dialogs before executing each task
       from option  **--task_confirmations**
-      CAP_VALUE can be Array of strings ( task names with scope)
     default:
       - deploy:symlink:release
 
@@ -41,7 +38,6 @@ default_config:
     type: 'Array'
     description: >-
       Defines the stages for which option **--syncronize_confirmation** applies.
-      CAP_VALUE can be an Array of strings (stages)
     default:
       - production
 
