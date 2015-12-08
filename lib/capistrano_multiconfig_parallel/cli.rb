@@ -8,6 +8,7 @@ module CapistranoMulticonfigParallel
 
       # method used to start
       def start
+        check_terminal_tty
         arguments = multi_fetch_argv(ARGV.dup)
         if arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
           execute_with_rescue('stderr') do
@@ -20,7 +21,6 @@ module CapistranoMulticonfigParallel
       end
 
       def verify_validation
-        check_terminal_tty
         CapistranoMulticonfigParallel.original_args = ARGV.dup
         CapistranoMulticonfigParallel.configuration_valid?
       end
