@@ -3,6 +3,11 @@ module CapistranoMulticonfigParallel
   module InternalHelper
   module_function
 
+    def multi_level_prop(config, prop)
+      prop.split('.').each { |new_prop| config = config[new_prop] }
+      config
+    end
+
     def internal_config_directory
       File.join(root.to_s, 'capistrano_multiconfig_parallel', 'configuration')
     end
@@ -37,7 +42,7 @@ module CapistranoMulticonfigParallel
     end
 
     def setup_default_configuration_types(hash)
-      hash.each_with_object({}) do |memo, (key, value)|
+      hash.each_with_object({}) do |(key, value), memo|
         memo[key] = (key == 'type') ? find_config_type(value) : value
         memo
       end

@@ -56,7 +56,8 @@ module CapistranoMulticonfigParallel
       end
 
       def check_boolean(prop)
-        raise ArgumentError, "the property `#{prop}` must be boolean" unless %w(true false).include?(@check_config[prop].to_s.downcase)
+        value = get_prop_config(prop)
+        raise ArgumentError, "the property `#{prop}` must be boolean" unless %w(true false).include?(value.to_s.downcase)
       end
 
       def configuration_valid?
@@ -65,14 +66,23 @@ module CapistranoMulticonfigParallel
 
       def check_boolean_props(props)
         props.each do |prop|
-          @check_config.send("#{prop}=", @check_config[prop]) if check_boolean(prop)
+          @check_config.send("#{prop}=", get_prop_config(prop)) if check_boolean(prop)
         end
       end
 
       def check_array_props(props)
         props.each do |prop|
-          value =  @check_config[prop]
+          value = get_prop_config(prop)
           @check_config.send("#{prop}=", value) if value_is_array?(value) && verify_array_of_strings(value)
+        end
+      end
+
+      def get_prop_config(prop)
+        config = @check_config
+        if prop.include?('.')
+          multi_level_prop(config)
+        else
+          config[prop]
         end
       end
 

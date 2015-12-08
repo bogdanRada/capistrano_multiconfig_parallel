@@ -4,21 +4,40 @@ module CapistranoMulticonfigParallel
   class InteractiveMenu
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    def show_all_websites_interactive_menu(applications)
-      msg = ''
-      choices = []
-      print_menu_choices(msg, choices, applications)
-      print "\nYou selected"
-      msg = ' nothing'
-      result = ''
-      applications.each_with_index do |option_name, index|
-        next unless choices[index].present?
-        print(" #{option_name}")
-        msg = ''
-        result += "#{option_name},"
-      end
-      print "#{msg}\n"
+    attr_accessor :msg, :choices, :applications
+
+    def initialize(applications)
+      @applications = applications
+      @msg = ' '
+      @choices = {}
+    end
+
+    def fetch_menu
+      print_menu_choices
+      default_printing
+      result = show_all_websites_interactive_menu
+      print "#{@msg}\n"
       strip_characters_from_string(result)
+    end
+
+    def default_printing
+      print "\nYou selected"
+      @msg = ' nothing'
+    end
+
+    def show_all_websites_interactive_menu
+      result = ''
+      @applications.each_with_index do |option_name, index|
+        result += "#{option_name}," if choices[index].present?
+        print_option_name(option_name, index)
+      end
+      result
+    end
+
+    def print_option_name(option_name, index)
+      return unless @choices[index].present?
+      print(" #{option_name}")
+      @msg = ''
     end
 
     def confirm_option_selected
@@ -26,39 +45,61 @@ module CapistranoMulticonfigParallel
       $stdin.gets.squeeze(' ').strip
     end
 
-    def print_menu_choices(msg, choices, applications)
-      while print_all_websites_available_options(applications, msg, choices) && (option = confirm_option_selected).present?
+    def print_menu_choices
+      while print_all_websites_available_options && (option = confirm_option_selected).present?
         if /^[0-9,]+/.match(option)
-          handle_menu_option(msg, option, choices, applications)
+          handle_menu_option(option)
         else
-          msg = "Invalid option: #{option}\n  "
+          @msg = "Invalid option: #{option}\n  "
           next
         end
       end
     end
 
-    def print_all_websites_available_options(applications, msg, choices)
+    def print_all_websites_available_options
       puts 'Available options:'
-      applications.each_with_index do |option, index|
-        puts "#{(index + 1)} #{choices[index].present? ? "#{choices[index]}" : ''}) #{option} "
+      @applications.each_with_index do |option, index|
+        print_selected_index_option(index, option)
       end
-      puts "\n#{msg}" if msg.present?
+      puts "\n#{@msg}" if @msg.present?
       true
     end
 
-    def handle_menu_option(msg, option, choices, applications)
-      arr_in = option.split(',')
-      arr_in.each_with_index do |number_option, _index|
+    def handle_menu_option(option)
+      option.split(',').each_with_index do |number_option, _index|
         num = number_option.to_i
-        if /^[0-9]+/.match(num.to_s) && ((num.to_i > 0 && num.to_i <= applications.size))
-          num -= 1
-          msg += "#{applications[num]} was #{choices[num].present? ? 'un' : ''}checked\n"
-          choices[num] = choices[num].blank? ? '+' : ' '
-        else
-          msg = "Invalid option: #{num}\n"
-          next
-        end
+        show_option_selected(num)
+        setup_message_invalid(num)
+        next
       end
+    end
+
+    def check_number_selected(num)
+      check_numeric(num) && (num > 0 && num <= @applications.size)
+    end
+
+    def show_option_selected(num)
+      return unless check_number_selected(num)
+      num -= 1
+      @msg += "#{@applications[num]} was #{@choices[num].present? ? 'un' : ''}checked\n"
+      setup_choices_number(num)
+    end
+
+    def setup_message_invalid(num)
+      return if check_number_selected(num)
+      @msg = "Invalid option: #{num}\n"
+    end
+
+    def print_selected_index_option(index, option)
+      puts "#{(index + 1)} #{fetch_choice(index)}) #{option} "
+    end
+
+    def setup_choices_number(num)
+      @choices[num] = @choices[num].blank? ? '+' : ' '
+    end
+
+    def fetch_choice(num)
+      @choices.fetch(num, '')
     end
   end
 end

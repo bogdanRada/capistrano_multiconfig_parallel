@@ -43,8 +43,7 @@ module CapistranoMulticonfigParallel
     end
 
     def all_websites_return_applications_selected
-      interactive_menu = CapistranoMulticonfigParallel::InteractiveMenu.new
-      applications_selected = interactive_menu.show_all_websites_interactive_menu(available_apps)
+      applications_selected = CapistranoMulticonfigParallel::InteractiveMenu.new(available_apps).fetch_menu
       applications_selected.present? ? applications_selected.split(',') : []
     end
 

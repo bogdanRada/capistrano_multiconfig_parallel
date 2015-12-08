@@ -10,6 +10,10 @@ module CapistranoMulticonfigParallel
 
   module_function
 
+    def check_numeric(num)
+      /^[0-9]+/.match(num.to_s)
+    end
+
     def verify_empty_options(options)
       if options.is_a?(Hash)
         options.reject { |_key, value| value.blank? }
