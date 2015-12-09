@@ -35,7 +35,7 @@ module CapistranoMulticonfigParallel
         { value: id.to_s },
         { value: job_stage },
         { value: capistrano_action },
-        { value: setup_command_line_standard(filtered_keys: [CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]).join("\n") },
+        { value: setup_command_line_standard(filtered_keys: [env_variable]).join("\n") },
         { value: worker_state }
       ]
     end
