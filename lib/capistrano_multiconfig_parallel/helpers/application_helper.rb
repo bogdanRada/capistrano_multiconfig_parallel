@@ -16,6 +16,10 @@ module CapistranoMulticonfigParallel
 
   module_function
 
+    def percent_of(index, total)
+      index.to_f / total.to_f * 100.0
+    end
+
     def multi_fetch_argv(args)
       options = {}
       args.each do |arg|

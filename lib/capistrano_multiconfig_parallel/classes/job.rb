@@ -9,18 +9,33 @@ module CapistranoMulticonfigParallel
     attr_writer :status, :exit_status
 
     delegate :job_stage,
-             :capistrano_action,
-             :build_capistrano_task,
-             :execute_standard_deploy,
-             :setup_command_line_standard,
-             to: :command
+    :capistrano_action,
+    :build_capistrano_task,
+    :execute_standard_deploy,
+    :setup_command_line_standard,
+    to: :command
 
     def initialize(options)
       @options = options
     end
 
+    def env_variable
+      CapistranoMulticonfigParallel::ENV_KEY_JOB_ID
+    end
+
     def command
       @command ||= CapistranoMulticonfigParallel::JobCommand.new(self)
+    end
+
+    def terminal_row(index, job_state)
+      [
+        { value: (index + 1).to_s },
+        { value: id.to_s },
+        { value: job_stage },
+        { value: capistrano_action },
+        { value: setup_command_line_standard(filtered_keys: [CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]).join("\n") },
+        { value: job_state }
+      ]
     end
 
     def job_writer_attributes
@@ -54,7 +69,7 @@ module CapistranoMulticonfigParallel
     ].each do |hash|
       define_method hash[:name] do
         value = @options.fetch(hash[:name], hash[:default])
-        value["#{CapistranoMulticonfigParallel::ENV_KEY_JOB_ID}"] = id if hash[:name] == 'env_options'
+        value["#{env_variable}"] = id if hash[:name] == 'env_options'
         verify_empty_options(value)
       end
       # define_method "#{hash[:name]}=" do |value|
