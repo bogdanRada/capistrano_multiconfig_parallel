@@ -75,7 +75,7 @@ module CapistranoMulticonfigParallel
     end
 
     def crashed?
-      failed? || dead? || worker_died? || exit_status.to_i != 0
+      failed? || dead? || worker_died? || exit_status.present?
     end
 
     def dead?
