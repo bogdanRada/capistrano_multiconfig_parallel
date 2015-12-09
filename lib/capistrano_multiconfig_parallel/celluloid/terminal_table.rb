@@ -58,9 +58,10 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_state(job_id, job)
-      return unless @manager.alive?
+      default = job.status.upcase.red
+      return default unless @manager.alive?
       worker = @manager.get_worker_for_job(job_id)
-      worker.alive? ? worker.worker_state : job.status.upcase.red
+      worker.alive? ? worker.worker_state : default
     end
 
     def filtered_env_keys
