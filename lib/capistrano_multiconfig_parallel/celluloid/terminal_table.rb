@@ -27,9 +27,7 @@ module CapistranoMulticonfigParallel
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_headings)
       jobs = @manager.alive? ? @manager.jobs.dup : []
       if jobs.present?
-        count = 0
-        jobs.pmap do |job_id, job|
-          count += 1
+        jobs.each_with_index do |(job_id, job), count|
           add_job_to_table(table, job_id, job, count)
         end
       end
@@ -66,7 +64,7 @@ module CapistranoMulticonfigParallel
     end
 
     def add_job_to_table(table, job_id, job, index)
-      row = [{ value: index.to_s },
+      row = [{ value: (index + 1).to_s },
              { value: job_id.to_s },
              { value: job.job_stage },
              { value: job.capistrano_action },
