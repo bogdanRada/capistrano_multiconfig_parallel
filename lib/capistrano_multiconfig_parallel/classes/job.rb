@@ -15,8 +15,10 @@ module CapistranoMulticonfigParallel
     :setup_command_line_standard,
     to: :command
 
-    def initialize(options)
+    def initialize(application, options)
       @options = options
+      @application = application
+      @manager = @application.manager
     end
 
     def env_variable
@@ -27,15 +29,22 @@ module CapistranoMulticonfigParallel
       @command ||= CapistranoMulticonfigParallel::JobCommand.new(self)
     end
 
-    def terminal_row(index, job_state)
+    def terminal_row(index)
       [
         { value: (index + 1).to_s },
         { value: id.to_s },
         { value: job_stage },
         { value: capistrano_action },
         { value: setup_command_line_standard(filtered_keys: [CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]).join("\n") },
-        { value: job_state }
+        { value: worker_state }
       ]
+    end
+
+    def worker_state
+      default = status.to_s.upcase.red
+      return default unless @manager.alive?
+      worker = @manager.get_worker_for_job(id)
+      worker.alive? ? worker.worker_state : default
     end
 
     def job_writer_attributes

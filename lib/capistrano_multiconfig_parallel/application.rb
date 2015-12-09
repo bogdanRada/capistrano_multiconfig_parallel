@@ -219,7 +219,7 @@ module CapistranoMulticonfigParallel
       env_options = branch_name.present? ? { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
       job_env_options = custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
 
-      job = CapistranoMulticonfigParallel::Job.new(options.merge(
+      job = CapistranoMulticonfigParallel::Job.new(Actor.current, options.merge(
                                                      action: custom_command? && env_options['ACTION'].present? ? env_options['ACTION'] : options['action'],
                                                      env_options: job_env_options
       ))

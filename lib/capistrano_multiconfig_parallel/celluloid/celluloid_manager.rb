@@ -194,7 +194,7 @@ module CapistranoMulticonfigParallel
       options.stringify_keys! if options.present?
       env_opts = options['skip_env_options'].present? ? {} : @job_manager.get_app_additional_env_options(job.app, job.stage)
       new_job_options = job.options.merge('env_options' => job.env_options.merge(env_opts))
-      new_job = CapistranoMulticonfigParallel::Job.new(new_job_options.merge(options.except(job.job_writer_attributes)))
+      new_job = CapistranoMulticonfigParallel::Job.new(@job_manager, new_job_options.merge(options.except(job.job_writer_attributes)))
       new_job.setup_writer_attributes(options)
       async.delegate(new_job) unless job.worker_died?
     end

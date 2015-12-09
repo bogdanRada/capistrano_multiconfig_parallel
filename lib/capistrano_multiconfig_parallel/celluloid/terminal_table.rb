@@ -44,7 +44,7 @@ module CapistranoMulticonfigParallel
 
     def setup_table_jobs(table, jobs)
       jobs.each_with_index do |(_job_id, job), count|
-        add_job_to_table(table, job, count)
+        table.add_row(job.terminal_row(count))
         table.add_separator
       end
     end
@@ -58,19 +58,6 @@ module CapistranoMulticonfigParallel
     def signal_complete
       return if !@job_manager.alive? || @manager.alive?
       @job_manager.condition.signal('completed') if @manager.all_workers_finished?
-    end
-
-    def worker_state(job)
-      default = job.status.to_s.upcase.red
-      return default unless @manager.alive?
-      worker = @manager.get_worker_for_job(job.id)
-      worker.alive? ? worker.worker_state : default
-    end
-
-    def add_job_to_table(table, job, index)
-      job_state = worker_state(job)
-      job_row = job.terminal_row(index, job_state)
-      table.add_row(job_row)
     end
 
     def terminal_clear
