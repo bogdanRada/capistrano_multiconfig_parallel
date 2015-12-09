@@ -49,16 +49,14 @@ module CapistranoMulticonfigParallel
       terminal_clear
       #  table.style = { width: 20 }
       puts "\n#{table}\n"
-      sleep(0.1)
+      sleep(1)
       if @job_manager.alive? && @manager.alive? && @manager.all_workers_finished?
         @job_manager.condition.signal('completed')
-      else
-        terminate
       end
     end
 
     def worker_state(job_id, job)
-      default = job.status.upcase.red
+      default = job.status.to_s.upcase.red
       return default unless @manager.alive?
       worker = @manager.get_worker_for_job(job_id)
       worker.alive? ? worker.worker_state : default
