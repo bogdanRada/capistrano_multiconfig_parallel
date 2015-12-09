@@ -50,7 +50,11 @@ module CapistranoMulticonfigParallel
       #  table.style = { width: 20 }
       puts "\n#{table}\n"
       sleep(0.1)
-      @job_manager.condition.signal('completed') if @manager.all_workers_finished?
+      if @job_manager.alive? && @manager.alive? && @manager.all_workers_finished?
+        @job_manager.condition.signal('completed')
+      else
+        terminate
+      end
     end
 
     def worker_state(job_id, job)
@@ -65,12 +69,12 @@ module CapistranoMulticonfigParallel
 
     def add_job_to_table(table, job_id, job, index)
       row = [{ value: (index + 1).to_s },
-             { value: job_id.to_s },
-             { value: job.job_stage },
-             { value: job.capistrano_action },
-             { value: job.setup_command_line_standard(filtered_keys: [CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]).join("\n") },
-             { value: worker_state(job_id, job) }
-            ]
+        { value: job_id.to_s },
+        { value: job.job_stage },
+        { value: job.capistrano_action },
+        { value: job.setup_command_line_standard(filtered_keys: [CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]).join("\n") },
+        { value: worker_state(job_id, job) }
+      ]
 
       #   if  worker.alive?
       #     row << { value: job.rake_tasks.size }
