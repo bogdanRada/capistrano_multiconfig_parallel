@@ -8,6 +8,12 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::CoreHelper
     include CapistranoMulticonfigParallel::StagesHelper
 
+    delegate :logger,
+             :configuration,
+             :configuration_valid?,
+             :original_args,
+             to: :CapistranoMulticonfigParallel
+
   module_function
 
     def multi_fetch_argv(args)
@@ -75,7 +81,7 @@ module CapistranoMulticonfigParallel
       return string, [] unless name
       return name,   [] if     remaining_args.empty?
 
-      args = find_remaaining_args(remaining_args)
+      args = find_remaining_args(remaining_args)
       [name, args]
     end
 

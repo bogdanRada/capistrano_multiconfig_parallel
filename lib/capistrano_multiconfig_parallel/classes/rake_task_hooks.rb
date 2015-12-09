@@ -3,14 +3,14 @@ require_relative './input_stream'
 require_relative './output_stream'
 module CapistranoMulticonfigParallel
   # class used to handle the rake worker and sets all the hooks before and after running the worker
-  class RakeHookActor
+  class RakeTaskHooks
     attr_accessor :task, :env
     def initialize(env, task)
       @env = env
       @task = task
     end
 
-    def work(&block)
+    def automatic_hooks(&block)
       if job_id.present?
         actor_start_working
         actor.wait_execution until actor.task_approved

@@ -21,8 +21,7 @@ module CapistranoMulticonfigParallel
       Celluloid.task_class = Celluloid::TaskThread
       Celluloid.exception_handler do |ex|
         unless ex.is_a?(Interrupt)
-          puts format_error(ex)
-          log_error(ex)
+          log_error(ex, 'stderr')
         end
       end
     end

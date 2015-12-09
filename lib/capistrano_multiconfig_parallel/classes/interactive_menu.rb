@@ -43,7 +43,7 @@ module CapistranoMulticonfigParallel
     end
 
     def confirm_option_selected
-      print "Enter a comma-separated list of option numbers or one single option number (again to uncheck, ENTER when done): "
+      print 'Enter a comma-separated list of option numbers or one single option number (again to uncheck, ENTER when done): '
       $stdin.gets.squeeze(' ').strip
     end
 

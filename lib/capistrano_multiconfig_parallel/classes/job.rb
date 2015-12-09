@@ -17,7 +17,20 @@ module CapistranoMulticonfigParallel
 
     def initialize(options)
       @options = options
-      @command = CapistranoMulticonfigParallel::JobCommand.new(self)
+    end
+
+    def command
+      @command ||= CapistranoMulticonfigParallel::JobCommand.new(self)
+    end
+
+    def job_writer_attributes
+      %w(status exit_status)
+    end
+
+    def setup_writer_attributes(options)
+      job_writer_attributes.each do |attribute|
+        send("#{attribute}=", options.fetch("#{attribute}", send(attribute)))
+      end
     end
 
     def id
@@ -44,19 +57,33 @@ module CapistranoMulticonfigParallel
         value["#{CapistranoMulticonfigParallel::ENV_KEY_JOB_ID}"] = id if hash[:name] == 'env_options'
         verify_empty_options(value)
       end
+      # define_method "#{hash[:name]}=" do |value|
+      #   self.send("#{hash[:name]}=", value)
+      # end
     end
 
     def finished?
-      @status == 'finished'
-    end
-
-    def crashed?
-      crashing_actions = ['deploy:rollback', 'deploy:failed']
-      crashing_actions.include?(action) || crashing_actions.include?(status) || failed?
+      status == 'finished'
     end
 
     def failed?
-      status.present? && status == 'worker_died'
+      ['deploy:failed'].include?(status)
+    end
+
+    def rolling_back?
+      ['deploy:rollback'].include?(action)
+    end
+
+    def crashed?
+      failed? || dead? || worker_died? || exit_status.to_i != 0
+    end
+
+    def dead?
+      status.present? && status.to_s.downcase == 'dead'
+    end
+
+    def worker_died?
+      status.present? && status.to_s.downcase == 'worker_died'
     end
   end
 end

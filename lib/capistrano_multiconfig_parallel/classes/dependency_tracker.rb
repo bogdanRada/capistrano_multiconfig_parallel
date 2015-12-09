@@ -22,7 +22,7 @@ module CapistranoMulticonfigParallel
   private
 
     def fetch_application_dependencies(application, action)
-      return [] if app_configuration.application_dependencies.blank? || application.blank?
+      return [] if configuration.application_dependencies.blank? || application.blank?
       applications = get_applications_to_deploy(action, [application.camelcase])
       applications.delete_if { |hash| hash['app'] == application }
     end
@@ -33,7 +33,7 @@ module CapistranoMulticonfigParallel
     end
 
     def application_dependencies
-      deps = app_configuration.application_dependencies
+      deps = configuration.application_dependencies
       value_is_array?(deps) ? deps.map(&:stringify_keys) : []
     end
 

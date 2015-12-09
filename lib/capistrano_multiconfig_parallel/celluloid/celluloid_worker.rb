@@ -43,9 +43,9 @@ module CapistranoMulticonfigParallel
 
     def worker_state
       if Actor.current.alive?
-        status = @machine.state.to_s
-        job.crashed? ? status.red : status.green
+        @machine.state.to_s.green
       else
+        job.status = 'dead'
         'dead'.upcase.red
       end
     end
@@ -76,6 +76,7 @@ module CapistranoMulticonfigParallel
 
     def execute_after_succesfull_subscription
       async.execute_deploy
+      @manager.async.wait_task_confirmations_worker(@job)
     end
 
     def rake_tasks
@@ -91,7 +92,6 @@ module CapistranoMulticonfigParallel
       check_child_proces
       log_to_file("worker #{@job_id} executes: #{@job.build_capistrano_task}")
       @child_process.async.work(@job, @job.build_capistrano_task, actor: Actor.current, silent: true)
-      @manager.wait_task_confirmations_worker(@job)
     end
 
     def check_child_proces
@@ -110,8 +110,7 @@ module CapistranoMulticonfigParallel
 
     def check_gitflow
       return if @job.stage != 'staging' || !@manager.can_tag_staging? || !executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
-      @job.stage = 'production'
-      @manager.dispatch_new_job(@job)
+      @manager.dispatch_new_job(@job, stage: 'production')
     end
 
     def handle_subscription(message)
@@ -143,7 +142,7 @@ module CapistranoMulticonfigParallel
 
     def task_approval(message)
       job_conditions = @manager.job_to_condition[@job_id]
-      if job_conditions.present? && app_configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
+      if job_conditions.present? && configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
         task_confirmation = job_conditions[message['task']]
         task_confirmation[:status] = 'confirmed'
         task_confirmation[:condition].signal(message['task'])
@@ -161,28 +160,26 @@ module CapistranoMulticonfigParallel
     def update_machine_state(name)
       log_to_file("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}")
       @machine.go_to_transition(name.to_s)
-      abort(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new("task #{@action} failed ")) if name == 'deploy:failed' # force worker to rollback
+      error_message = "worker #{@job_id} task #{name} failed "
+      raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message) if job.failed? # force worker to rollback
     end
 
     def send_msg(channel, message = nil)
       publish channel, message.present? && message.is_a?(Hash) ? { job_id: @job_id }.merge(message) : { job_id: @job_id, time: Time.now }
     end
 
-    def finish_worker
+    def finish_worker(exit_status)
+      log_to_file("worker #{job_id} tries to terminate with exit_status #{exit_status}")
       @manager.mark_completed_remaining_tasks(@job)
-      @job.status = 'finished'
+      update_machine_state('FINISHED')
       @manager.workers_terminated.signal('completed') if @manager.alive? && @manager.all_workers_finished?
     end
 
     def notify_finished(exit_status)
-      if exit_status != 0
-        log_to_file("worker #{job_id} tries to terminate")
-        abort(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new("task  failed with exit status #{exit_status.inspect} ")) # force worker to rollback
-      else
-        async.update_machine_state('FINISHED')
-        log_to_file("worker #{job_id} notifies manager has finished")
-        async.finish_worker
-      end
+      finish_worker(exit_status)
+      return if exit_status == 0
+      error_message = "worker #{@job_id} task  failed with exit status #{exit_status.inspect}  "
+      raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message)
     end
   end
 end

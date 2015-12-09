@@ -4,24 +4,11 @@ module CapistranoMulticonfigParallel
   module_function
 
     def app_debug_enabled?
-      app_configuration.multi_debug.to_s.downcase == 'true'
+      configuration.multi_debug.to_s.downcase == 'true'
     end
 
     def show_warning(message)
       warn message if app_debug_enabled?
-    end
-
-    def app_configuration
-      CapistranoMulticonfigParallel.configuration
-    end
-
-    def app_logger
-      CapistranoMulticonfigParallel.logger
-    end
-
-    def verify_validation
-      CapistranoMulticonfigParallel.original_args = ARGV.dup
-      CapistranoMulticonfigParallel.configuration_valid?
     end
 
     def check_terminal_tty
@@ -55,8 +42,19 @@ module CapistranoMulticonfigParallel
       result
     end
 
-    def log_error(error)
-      log_to_file(format_error(error))
+    def filtered_errors
+      [CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, Celluloid::DeadActorError, Celluloid::Task::TerminatedError]
+    end
+
+    def error_filtered?(error)
+      filtered_errors.find { |class_name| error.is_a?(class_name) }.present?
+    end
+
+    def log_error(error, output = nil)
+      return if error_filtered?(error)
+      message = format_error(error)
+      puts(message) if output.present?
+      log_to_file(message)
     end
 
     def format_error(error)
@@ -66,7 +64,7 @@ module CapistranoMulticonfigParallel
     end
 
     def log_to_file(message, job_id = nil)
-      worker_log = job_id.present? ? find_worker_log(job_id) : app_logger
+      worker_log = job_id.present? ? find_worker_log(job_id) : logger
       worker_log.debug(message) if worker_log.present? && app_debug_enabled?
     end
 
@@ -96,7 +94,7 @@ module CapistranoMulticonfigParallel
     end
 
     def websocket_server_config
-      app_configuration.fetch(:websocket_server, {}).stringify_keys
+      configuration.fetch(:websocket_server, {}).stringify_keys
     end
 
     def websocket_config
@@ -112,8 +110,7 @@ module CapistranoMulticonfigParallel
     end
 
     def rescue_error(error, output = nil)
-      puts(format_error(error)) if output.present?
-      log_error(error)
+      log_error(error, output)
       exit(1)
     end
 

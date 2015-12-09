@@ -9,7 +9,8 @@ module CapistranoMulticonfigParallel
       # method used to start
       def start
         check_terminal_tty
-        arguments = multi_fetch_argv(ARGV.dup)
+        CapistranoMulticonfigParallel.original_args = ARGV.dup
+        arguments = multi_fetch_argv(original_args)
         if arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
           run_the_application
         else
@@ -19,7 +20,7 @@ module CapistranoMulticonfigParallel
 
       def run_the_application
         execute_with_rescue('stderr') do
-          verify_validation
+          configuration_valid?
           CapistranoMulticonfigParallel::Application.new.start
         end
       end

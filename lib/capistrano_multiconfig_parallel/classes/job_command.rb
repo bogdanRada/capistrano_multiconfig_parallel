@@ -55,7 +55,7 @@ module CapistranoMulticonfigParallel
       command = build_capistrano_task(action)
       run_shell_command(command)
     rescue => ex
-      log_error(ex)
+      log_error(ex, 'stderr')
       execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
     end
 

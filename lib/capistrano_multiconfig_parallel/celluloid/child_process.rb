@@ -7,7 +7,7 @@ module CapistranoMulticonfigParallel
     include Celluloid::Logger
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_accessor :options, :actor, :job_id, :exit_status, :pid, :process, :job
+    attr_accessor :options, :job, :actor, :job_id, :exit_status, :pid, :process
 
     finalizer :process_finalizer
 
@@ -23,6 +23,7 @@ module CapistranoMulticonfigParallel
         end
         @timer = EM::PeriodicTimer.new(0.1) do
           check_exit_status
+          @timer.cancel if @exit_status.present?
         end
       end
       EM.error_handler do|e|
@@ -37,12 +38,11 @@ module CapistranoMulticonfigParallel
     end
 
     def check_exit_status
-      log_to_file("worker #{@job_id} checking exit status #{@exit_status.inspect}") if @exit_status.present?
       return if @exit_status.blank?
-      @job.exit_status = @exit_status
-      log_to_file("worker #{@job_id} startsnotify finished")
-      @actor.async.notify_finished(@exit_status)
       @timer.cancel
+      @job.exit_status = @exit_status
+      log_to_file("worker #{@job_id} startsnotify finished with exit status #{@exit_status.inspect}")
+      @actor.async.notify_finished(@exit_status)
     end
 
     def start_async_deploy(cmd, options)
@@ -76,9 +76,8 @@ module CapistranoMulticonfigParallel
     end
 
     def on_exit(status)
+      log_to_file "Child process for worker #{@job_id} on_exit  disconnected due to error #{status.inspect}"
       @exit_status = status.exitstatus
-      log_to_file "Child process for worker #{@job_id} on_exit  disconnected due to error #{status.inspect} and #{@exit_status.inspect}"
-      check_exit_status
     end
 
     def async_exception_handler(*data)
@@ -90,6 +89,7 @@ module CapistranoMulticonfigParallel
 
     def watch_handler(process)
       @process ||= process
+      check_exit_status
     end
 
     def io_callback(io, data)

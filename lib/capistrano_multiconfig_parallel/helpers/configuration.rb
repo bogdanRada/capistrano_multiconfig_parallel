@@ -3,9 +3,9 @@ module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module Configuration
     extend ActiveSupport::Concern
-    include CapistranoMulticonfigParallel::ApplicationHelper
 
     included do
+      include CapistranoMulticonfigParallel::ApplicationHelper
       attr_reader :configuration
 
       def configuration

@@ -25,19 +25,18 @@ module CapistranoMulticonfigParallel
       #   default_headings << 'Total'
       #   default_headings << 'Progress'
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_headings)
-      jobs = @manager.alive? ? @manager.jobs : []
+      jobs = @manager.alive? ? @manager.jobs.dup : []
       if jobs.present?
         count = 0
-        last_job_id = jobs.keys.last.to_i
-        jobs.each do |_job_id, job|
+        jobs.pmap do |job_id, job|
           count += 1
-          add_job_to_table(table, job, count, last_job_id)
+          add_job_to_table(table, job_id, job, count)
         end
       end
       show_terminal_screen(table)
     rescue => ex
       log_to_file("Terminal Table  client disconnected due to error #{ex.inspect}")
-      log_to_file(ex.backtrace)
+      log_error(ex, 'stderr')
       terminate
     end
 
@@ -56,7 +55,9 @@ module CapistranoMulticonfigParallel
       @job_manager.condition.signal('completed') if @manager.all_workers_finished?
     end
 
-    def worker_state(worker)
+    def worker_state(job_id)
+      return unless @manager.alive?
+      worker = @manager.get_worker_for_job(job_id)
       worker.alive? ? worker.worker_state : 'dead'.upcase.red
     end
 
@@ -64,27 +65,24 @@ module CapistranoMulticonfigParallel
       %w(STAGES ACTION)
     end
 
-    def add_job_to_table(table, job, count, last_job_id)
-      return unless @manager.alive?
-      worker = @manager.get_worker_for_job(job.id)
-
-      row = [{ value: count.to_s },
-             { value: job.id.to_s },
+    def add_job_to_table(table, job_id, job, index)
+      row = [{ value: index.to_s },
+             { value: job_id.to_s },
              { value: job.job_stage },
              { value: job.capistrano_action },
              { value: job.setup_command_line_standard(filtered_keys: [CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]).join("\n") },
-             { value: worker_state(worker) }
+             { value: worker_state(job_id) }
             ]
 
       #   if  worker.alive?
-      #     row << { value: worker.rake_tasks.size }
-      #     row << { value: worker_progress(details['processed_job'], worker) }
+      #     row << { value: job.rake_tasks.size }
+      #     row << { value: worker_progress(job_id, job) }
       #   else
       #     row << { value: 0 }
-      #     row << { value:  worker_state(worker) }
+      #     row << { value:  worker_state(job_id) }
       #   end
       table.add_row(row)
-      table.add_separator if last_job_id.to_i != job.id.to_i
+      table.add_separator
       table
     end
 
@@ -92,23 +90,17 @@ module CapistranoMulticonfigParallel
       system('cls') || system('clear') || puts("\e[H\e[2J")
     end
 
-    # def worker_progress(processed_job, worker)
-    #   return worker_state(worker) unless worker.alive?
-    #   tasks = worker.alive? ? worker.invocation_chain : []
-    #   current_task = worker.alive? ? worker.machine.state.to_s : ''
-    #   show_worker_percent(worker, tasks, current_task, processed_job)
+    # def worker_progress(job)
+    #   tasks = job.rake_tasks.size
+    #   current_task = job.status
+    #   show_worker_percent(tasks, current_task, job)
     # end
     #
-    # def show_worker_percent(worker, tasks, current_task, processed_job)
-    #   total_tasks = worker.alive? ? tasks.size : nil
-    #   task_index = worker.alive? ? tasks.index(current_task.to_s).to_i + 1 : 0
+    # def show_worker_percent(tasks, current_task, job)
+    #   task_index = tasks.index(current_task.to_s).to_i + 1
     #   percent = percent_of(task_index, total_tasks)
     #   result  = "Progress [#{format('%.2f', percent)}%]  (executed #{task_index} of #{total_tasks})"
-    #   if worker.alive?
-    #     processed_job.crashed? ? result.red : result.green
-    #   else
-    #     worker_state(worker)
-    #   end
+    #   job.crashed? ? result.red : result.green
     # end
     #
     # def percent_of(index, total)

@@ -17,14 +17,14 @@ module CapistranoMulticonfigParallel
     end
 
     def start
-      verify_app_dependencies if multi_apps? && app_configuration.application_dependencies.present?
+      verify_app_dependencies if multi_apps? && configuration.application_dependencies.present?
       check_before_starting
       initialize_data
       run
     end
 
     def verify_app_dependencies
-      wrong = app_configuration.application_dependencies.find do |hash|
+      wrong = configuration.application_dependencies.find do |hash|
         !@stage_apps.include?(hash[:app]) || (hash[:dependencies].present? && hash[:dependencies].find { |val| !@stage_apps.include?(val) })
       end
       raise ArgumentError, "Invalid configuration for #{wrong.inspect}".red if wrong.present?
@@ -93,7 +93,7 @@ module CapistranoMulticonfigParallel
     def check_before_starting
       CapistranoMulticonfigParallel.enable_logging
       @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(Actor.current)
-      @default_stage = app_configuration.development_stages.present? ? app_configuration.development_stages.first : 'development'
+      @default_stage = configuration.development_stages.present? ? configuration.development_stages.first : 'development'
       @condition = Celluloid::Condition.new
       @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
     end
@@ -110,7 +110,7 @@ module CapistranoMulticonfigParallel
     def process_jobs
       return unless @jobs.present?
       FileUtils.rm Dir["#{log_directory}/worker_*.log"]
-      if app_configuration.multi_secvential.to_s.downcase == 'true'
+      if configuration.multi_secvential.to_s.downcase == 'true'
         @jobs.each(&:execute_standard_deploy)
       else
         run_async_jobs
@@ -177,7 +177,7 @@ module CapistranoMulticonfigParallel
       options = options.stringify_keys
       main_box_name = @argv['BOX'].blank? ? '' : @argv['BOX']
       stage = options.fetch('stage', @default_stage)
-      if app_configuration.development_stages.include?(stage) && main_box_name.present? && /^[a-z0-9,]+/.match(main_box_name)
+      if configuration.development_stages.include?(stage) && main_box_name.present? && /^[a-z0-9,]+/.match(main_box_name)
         execute_on_multiple_boxes(main_box_name, options)
       else
         prepare_job(options)
@@ -198,7 +198,7 @@ module CapistranoMulticonfigParallel
     end
 
     def wait_jobs_termination
-      return if app_configuration.multi_secvential.to_s.downcase == 'true'
+      return if configuration.multi_secvential.to_s.downcase == 'true'
       result = @condition.wait
       return unless result.present?
       @manager.terminate

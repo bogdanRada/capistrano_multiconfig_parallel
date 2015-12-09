@@ -55,12 +55,12 @@ module CapistranoMulticonfigParallel
       @worker_to_job[worker.mailbox.address] = job
       log_to_file("worker #{worker.job_id} registed into manager")
       Actor.current.link worker
-      worker.async.start_task unless syncronized_confirmation?
+      worker.async.start_task if !syncronized_confirmation? || job.failed? || job.rolling_back?
       @registration_complete = true if @job_manager.jobs.size == @job_to_worker.size
     end
 
     def all_workers_finished?
-      @job_to_worker.all? { |job_id, _worker| @jobs[job_id].finished? }
+      @jobs.all? { |_job_id, job| job.finished? || job.crashed? || job.rolling_back? }
     end
 
     def process_jobs
@@ -80,7 +80,7 @@ module CapistranoMulticonfigParallel
     end
 
     def apply_confirmations?
-      confirmations = app_configuration.task_confirmations
+      confirmations = configuration.task_confirmations
       confirmations.is_a?(Array) && confirmations.present?
     end
 
@@ -89,13 +89,13 @@ module CapistranoMulticonfigParallel
     end
 
     def apply_confirmation_for_job(job)
-      app_configuration.apply_stage_confirmation.include?(job.stage) && apply_confirmations?
+      configuration.apply_stage_confirmation.include?(job.stage) && apply_confirmations?
     end
 
     def setup_worker_conditions(job)
       return unless apply_confirmation_for_job(job)
       hash_conditions = {}
-      app_configuration.task_confirmations.each do |task|
+      configuration.task_confirmations.each do |task|
         hash_conditions[task] = { condition: Celluloid::Condition.new, status: 'unconfirmed' }
       end
       @job_to_condition[job.id] = hash_conditions
@@ -103,22 +103,21 @@ module CapistranoMulticonfigParallel
 
     def mark_completed_remaining_tasks(job)
       return unless apply_confirmation_for_job(job)
-      app_configuration.task_confirmations.each_with_index do |task, _index|
+      configuration.task_confirmations.each_with_index do |task, _index|
         fake_result = proc { |sum| sum }
         task_confirmation = @job_to_condition[job.id][task]
-        if task_confirmation[:status] != 'confirmed'
-          task_confirmation[:status] = 'confirmed'
-          task_confirmation[:condition].signal(fake_result)
-        end
+        next unless task_confirmation[:status] != 'confirmed'
+        log_to_file("worker #{job.id} with action #{job.action} status #{job.status} and exit status #{job.exit_status} tries to mark fake the task #{task} with status #{task_confirmation[:status]}")
+        task_confirmation[:status] = 'confirmed'
+        task_confirmation[:condition].signal(fake_result)
       end
     end
 
     def wait_task_confirmations_worker(job)
-      return unless job.finished? || job.exit_status.present?
       return if !apply_confirmation_for_job(job) || !syncronized_confirmation?
-      app_configuration.task_confirmations.each_with_index do |task, _index|
+      configuration.task_confirmations.each_with_index do |task, _index|
         result = wait_condition_for_task(job.id, task)
-        confirm_task_approval(result, task, job) if result.present?
+        confirm_task_approval(result, task, job)
       end
     end
 
@@ -127,9 +126,9 @@ module CapistranoMulticonfigParallel
     end
 
     def wait_task_confirmations
-      stage_apply = app_configuration.apply_stage_confirmation.include?(@job_manager.stage)
+      stage_apply = configuration.apply_stage_confirmation.include?(@job_manager.stage)
       return if !stage_apply || !syncronized_confirmation?
-      app_configuration.task_confirmations.each_with_index do |task, _index|
+      configuration.task_confirmations.each_with_index do |task, _index|
         results = []
         @jobs.pmap do |job_id, _job|
           result = wait_condition_for_task(job_id, task)
@@ -146,11 +145,15 @@ module CapistranoMulticonfigParallel
       message = "Do you want  to continue the deployment and execute #{task.upcase}"
       message += " for JOB #{job.id}" if job.present?
       message += '?'
-      apps_symlink_confirmation = Celluloid::Actor[:terminal_server].show_confirmation(message, 'Y/N')
-      until apps_symlink_confirmation.present?
-        sleep(0.1) # keep current thread alive
+      if Celluloid::Actor[:terminal_server].present? && Celluloid::Actor[:terminal_server].alive?
+        apps_symlink_confirmation = Celluloid::Actor[:terminal_server].show_confirmation(message, 'Y/N')
+        until apps_symlink_confirmation.present?
+          sleep(0.1) # keep current thread alive
+        end
+        apps_symlink_confirmation
+      else
+        'y'
       end
-      apps_symlink_confirmation
     end
 
     def confirm_task_approval(result, task, processed_job = nil)
@@ -159,11 +162,13 @@ module CapistranoMulticonfigParallel
       return unless action_confirmed?(result)
       @jobs.pmap do |job_id, job|
         worker = get_worker_for_job(job_id)
-        worker.publish_rake_event('approved' => 'yes',
-                                  'action' => 'invoke',
-                                  'job_id' => job.id,
-                                  'task' => task
-                                 )
+        if worker.alive?
+          worker.publish_rake_event('approved' => 'yes',
+                                    'action' => 'invoke',
+                                    'job_id' => job.id,
+                                    'task' => task
+                                   )
+        end
       end
     end
 
@@ -185,10 +190,13 @@ module CapistranoMulticonfigParallel
     end
 
     def dispatch_new_job(job, options = {})
-      env_opts = @job_manager.get_app_additional_env_options(job.app, job.stage)
-      job.env_options = options.merge(env_opts)
-      new_job = CapistranoMulticonfigParallel::Job.new(job.to_json)
-      async.delegate(new_job)
+      return unless job.is_a?(CapistranoMulticonfigParallel::Job)
+      options.stringify_keys! if options.present?
+      env_opts = options['skip_env_options'].present? ? {} : @job_manager.get_app_additional_env_options(job.app, job.stage)
+      new_job_options = job.options.merge('env_options' => job.env_options.merge(env_opts))
+      new_job = CapistranoMulticonfigParallel::Job.new(new_job_options.merge(options.except(job.job_writer_attributes)))
+      new_job.setup_writer_attributes(options)
+      async.delegate(new_job) unless job.worker_died?
     end
 
     # lookup status of job by asking actor running it
@@ -208,14 +216,11 @@ module CapistranoMulticonfigParallel
 
     def worker_died(worker, reason)
       job = @worker_to_job[worker.mailbox.address]
-      log_to_file("worker job #{job} with mailbox #{worker.mailbox.inspect} died  for reason:  #{reason}")
-      @worker_to_job.delete(worker.mailbox.address)
-      return if job.blank? || job.crashed?
-      return unless job.action == 'deploy'
-      log_to_file "restarting #{job} on new worker"
-      job.status = 'worker_died'
-      job.action = 'deploy:rollback'
-      dispatch_new_job(job)
+      return true if job.blank? || job.worker_died? || job.action != 'deploy'
+      mailbox = worker.mailbox
+      @worker_to_job.delete(mailbox.address)
+      log_to_file("RESTARTING: worker job #{job.inspect} with mailbox #{mailbox.inspect} and #{mailbox.address.inspect} died  for reason:  #{reason}")
+      dispatch_new_job(job, skip_env_options: true, action: 'deploy:rollback', status: 'worker_died')
     end
   end
 end
