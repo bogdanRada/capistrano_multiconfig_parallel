@@ -46,7 +46,7 @@ module CapistranoMulticonfigParallel
         @machine.state.to_s.green
       else
         job.status = 'dead'
-        'dead'.upcase.red
+        job.status.upcase.red
       end
     end
 

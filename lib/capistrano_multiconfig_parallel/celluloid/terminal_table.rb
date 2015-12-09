@@ -55,10 +55,10 @@ module CapistranoMulticonfigParallel
       @job_manager.condition.signal('completed') if @manager.all_workers_finished?
     end
 
-    def worker_state(job_id)
+    def worker_state(job_id, job)
       return unless @manager.alive?
       worker = @manager.get_worker_for_job(job_id)
-      worker.alive? ? worker.worker_state : 'dead'.upcase.red
+      worker.alive? ? worker.worker_state : job.status.upcase.red
     end
 
     def filtered_env_keys
@@ -71,7 +71,7 @@ module CapistranoMulticonfigParallel
              { value: job.job_stage },
              { value: job.capistrano_action },
              { value: job.setup_command_line_standard(filtered_keys: [CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]).join("\n") },
-             { value: worker_state(job_id) }
+             { value: worker_state(job_id, job) }
             ]
 
       #   if  worker.alive?
