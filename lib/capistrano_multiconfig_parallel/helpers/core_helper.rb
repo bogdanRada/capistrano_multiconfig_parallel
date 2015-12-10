@@ -1,7 +1,7 @@
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module CoreHelper
-    module_function
+  module_function
 
     def app_debug_enabled?
       configuration.multi_debug.to_s.downcase == 'true'
@@ -14,10 +14,6 @@ module CapistranoMulticonfigParallel
     def check_terminal_tty
       $stdin.sync = true if $stdin.isatty
       $stdout.sync = true if $stdout.isatty
-    end
-
-    def find_loaded_gem(name)
-      Gem.loaded_specs.values.find { |repo| repo.name == name }
     end
 
     def ask_stdout_confirmation(message, default)
@@ -65,15 +61,13 @@ module CapistranoMulticonfigParallel
     end
 
     def log_to_file(message, options = {})
-      options.stringify_keys! if options.present?
-      worker_log = options['job_id'].present? ? find_worker_log(options['job_id']) : logger
-      print_to_log_file(worker_log, options.merge(message: message))
+      worker_log = options.fetch(:job_id, '').present? ? find_worker_log(options[:job_id]) : logger
+      print_to_log_file(worker_log, options.merge(message: message)) if worker_log.present? && app_debug_enabled?
     end
 
     def print_to_log_file(worker_log, options = {})
-      options.stringify_keys!
       ActiveSupport::Deprecation.silence do
-        worker_log.send(options.fetch('log_method', 'debug'), "#{options.fetch('message', '')}\n") if worker_log.present? && app_debug_enabled?
+        worker_log.send(options.fetch(:log_method, 'debug'), "#{options.fetch(:message, '')}\n")
       end
     end
 

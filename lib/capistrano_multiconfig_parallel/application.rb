@@ -219,8 +219,8 @@ module CapistranoMulticonfigParallel
       job_env_options = custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
 
       job = CapistranoMulticonfigParallel::Job.new(Actor.current, options.merge(
-                                                     action: custom_command? && env_options['ACTION'].present? ? env_options['ACTION'] : options['action'],
-                                                     env_options: job_env_options
+                                                                    action: custom_command? && env_options['ACTION'].present? ? env_options['ACTION'] : options['action'],
+                                                                    env_options: job_env_options
       ))
       @jobs << job
     end

@@ -9,12 +9,16 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::StagesHelper
 
     delegate :logger,
-    :configuration,
-    :configuration_valid?,
-    :original_args,
-    to: :CapistranoMulticonfigParallel
+             :configuration,
+             :configuration_valid?,
+             :original_args,
+             to: :CapistranoMulticonfigParallel
 
-    module_function
+  module_function
+
+    def find_loaded_gem(name)
+      Gem.loaded_specs.values.find { |repo| repo.name == name }
+    end
 
     def percent_of(index, total)
       index.to_f / total.to_f * 100.0

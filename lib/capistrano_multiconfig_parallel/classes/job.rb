@@ -9,11 +9,11 @@ module CapistranoMulticonfigParallel
     attr_writer :status, :exit_status
 
     delegate :job_stage,
-    :capistrano_action,
-    :build_capistrano_task,
-    :execute_standard_deploy,
-    :setup_command_line_standard,
-    to: :command
+             :capistrano_action,
+             :build_capistrano_task,
+             :execute_standard_deploy,
+             :setup_command_line_standard,
+             to: :command
 
     def initialize(application, options)
       @options = options
