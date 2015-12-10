@@ -27,8 +27,8 @@ module CapistranoMulticonfigParallel
         end
       end
       EM.error_handler do|e|
-        log_to_file("Error during event loop for worker #{@job_id}: #{e.inspect}", @job_id)
-        log_to_file(e.backtrace, @job_id)
+        log_to_file("Error during event loop for worker #{@job_id}: #{e.inspect}", job_id: @job_id)
+        log_to_file(e.backtrace, job_id: @job_id)
         EM.stop
       end
     end
@@ -93,7 +93,7 @@ module CapistranoMulticonfigParallel
     end
 
     def io_callback(io, data)
-      log_to_file("#{io.upcase} ---- #{data}", @job_id)
+      log_to_file("#{io.upcase} ---- #{data}", job_id: @job_id)
     end
   end
 end

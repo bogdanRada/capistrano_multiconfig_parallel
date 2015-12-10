@@ -1,7 +1,7 @@
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module CoreHelper
-  module_function
+    module_function
 
     def app_debug_enabled?
       configuration.multi_debug.to_s.downcase == 'true'
@@ -54,18 +54,27 @@ module CapistranoMulticonfigParallel
       return if error_filtered?(error)
       message = format_error(error)
       puts(message) if output.present?
-      log_to_file(message)
+      log_to_file(message, log_method: 'fatal')
     end
 
-    def format_error(error)
-      JSON.pretty_generate(class_name: error.class,
-                           message: error.respond_to?(:message) ? error.message : error.inspect,
-                           backtrace: error.respond_to?(:backtrace) ? error.backtrace.join("\n\n") : '')
+    def format_error(exception)
+      message = "\n#{exception.class} (#{exception.respond_to?(:message) ? exception.message : exception.inspect}):\n"
+      message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
+      message << '  ' << exception.backtrace.join("\n  ") if exception.respond_to?(:backtrace)
+      message
     end
 
-    def log_to_file(message, job_id = nil)
-      worker_log = job_id.present? ? find_worker_log(job_id) : logger
-      worker_log.debug(message) if worker_log.present? && app_debug_enabled?
+    def log_to_file(message, options = {})
+      options.stringify_keys! if options.present?
+      worker_log = options['job_id'].present? ? find_worker_log(options['job_id']) : logger
+      print_to_log_file(worker_log, options.merge(message: message))
+    end
+
+    def print_to_log_file(worker_log, options = {})
+      options.stringify_keys!
+      ActiveSupport::Deprecation.silence do
+        worker_log.send(options.fetch('log_method', 'debug'), "#{options.fetch('message', '')}\n") if worker_log.present? && app_debug_enabled?
+      end
     end
 
     def find_worker_log(job_id)

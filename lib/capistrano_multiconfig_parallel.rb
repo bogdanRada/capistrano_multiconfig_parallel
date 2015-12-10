@@ -1,1 +1,1 @@
-require_relative './capistrano_multiconfig_parallel/version'
+require 'capistrano_multiconfig_parallel/all'

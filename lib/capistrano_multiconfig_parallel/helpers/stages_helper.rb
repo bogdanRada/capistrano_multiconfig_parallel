@@ -1,11 +1,12 @@
 module CapistranoMulticonfigParallel
   # module used to fetch the stages (code taken from https://github.com/railsware/capistrano-multiconfig)
   # TODO: find a way to do this without copying code. Can't currently use gem specification to require that gem
-  # because that is only compatible with capistrano version 3
+  # because seems to not work properly after capistrano/all is required. It seems to only work in Capfile if is required.
+  # Still investigating how to make that work.
   module StagesHelper
   module_function
 
-    def fetch_stages
+    def stages
       fetch_stages_paths do |paths|
         checks_paths(paths)
       end
@@ -25,7 +26,7 @@ module CapistranoMulticonfigParallel
     end
 
     def stages_paths
-      stages_root = 'config/deploy'
+      stages_root = File.expand_path(File.join(detect_root, 'config/deploy'))
       Dir["#{stages_root}/**/*.rb"].map do |file|
         file.slice(stages_root.size + 1..-4).tr('/', ':')
       end

@@ -25,7 +25,7 @@ module CapistranoMulticonfigParallel
 
     def notify_time_change(_topic, _message)
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: ['Job ID', 'Job UUID', 'App/Stage', 'Action', 'ENV Variables', 'Current Task'])
-      jobs = @manager.alive? ? @manager.jobs : []
+      jobs = @manager.alive? ? @manager.jobs.dup : []
       setup_table_jobs(table, jobs)
       display_table_on_terminal(table)
     end

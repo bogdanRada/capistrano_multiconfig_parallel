@@ -6,12 +6,11 @@ module CapistranoMulticonfigParallel
     include Celluloid::Logger
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :stages, :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
+    attr_reader :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
 
     def initialize
       Celluloid.boot
-      @stages = fetch_stages
-      @stage_apps = multi_apps? ? @stages.map { |stage| stage.split(':').reverse[1] }.uniq : []
+      @stage_apps = multi_apps? ? stages.map { |stage| stage.split(':').reverse[1] }.uniq : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
       @jobs = []
     end
@@ -55,14 +54,14 @@ module CapistranoMulticonfigParallel
 
     def custom_command?
       if multi_apps?
-        !@stages.include?(@top_level_tasks.first) && custom_commands.include?(@top_level_tasks.first)
+        !stages.include?(@top_level_tasks.first) && custom_commands.include?(@top_level_tasks.first)
       else
-        !@stages.include?(@top_level_tasks.second) && @stages.include?(@top_level_tasks.first) && custom_commands.include?(@top_level_tasks.second)
+        !stages.include?(@top_level_tasks.second) && stages.include?(@top_level_tasks.first) && custom_commands.include?(@top_level_tasks.second)
       end
     end
 
     def multi_apps?
-      @stages.find { |stage| stage.include?(':') }.present?
+      stages.find { |stage| stage.include?(':') }.present?
     end
 
     def initialize_data

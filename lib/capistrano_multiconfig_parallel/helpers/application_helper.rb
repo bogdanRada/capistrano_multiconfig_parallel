@@ -9,12 +9,12 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::StagesHelper
 
     delegate :logger,
-             :configuration,
-             :configuration_valid?,
-             :original_args,
-             to: :CapistranoMulticonfigParallel
+    :configuration,
+    :configuration_valid?,
+    :original_args,
+    to: :CapistranoMulticonfigParallel
 
-  module_function
+    module_function
 
     def percent_of(index, total)
       index.to_f / total.to_f * 100.0
