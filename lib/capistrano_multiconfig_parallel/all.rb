@@ -34,6 +34,7 @@ Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 Gem.find_files('capistrano_multiconfig_parallel/classes/**/*.rb').each { |path| require path }
 Gem.find_files('capistrano_multiconfig_parallel/helpers/**/*.rb').each { |path| require path }
 Gem.find_files('capistrano_multiconfig_parallel/celluloid/**/*.rb').each { |path| require path }
+Gem.find_files('capistrano_multiconfig_parallel/initializers/**/*.rb').each { |path| require path }
 
 require_relative './version'
 require_relative './base'
