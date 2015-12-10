@@ -31,10 +31,9 @@ require 'capistrano/all'
 # fix error with not files that can not be found
 Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 
-Gem.find_files('capistrano_multiconfig_parallel/classes/**/*.rb').each { |path| require path }
-Gem.find_files('capistrano_multiconfig_parallel/helpers/**/*.rb').each { |path| require path }
-Gem.find_files('capistrano_multiconfig_parallel/celluloid/**/*.rb').each { |path| require path }
-Gem.find_files('capistrano_multiconfig_parallel/initializers/**/*.rb').each { |path| require path }
+%w(classes helpers celluloid initializers).each do |folder_name|
+  Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
+end
 
 require_relative './version'
 require_relative './base'
