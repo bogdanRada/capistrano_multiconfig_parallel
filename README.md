@@ -29,10 +29,11 @@ Requirements
 7.	[eventmachine >= 1.0.3](https://github.com/eventmachine/eventmachine)
 8.	[right_popen >= 1.1.3](https://github.com/rightscale/right_popen)
 9.	[capistrano >= 3.0](https://github.com/capistrano/capistrano/)
-10.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
-11.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
-12.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
-13.	[versionomy >= 0.4.4](https://github.com/dazuma/versionomy)
+10.	[capistrano-multiconfig >= 3.0.8](https://github.com/railsware/capistrano-multiconfig)
+11.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
+12.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
+13.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
+14.	[versionomy >= 0.4.4](https://github.com/dazuma/versionomy)
 
 Compatibility
 -------------
@@ -50,12 +51,6 @@ Add the following to your Gemfile after requiring **capistrano** and **capistran
 
 ```ruby
   gem "capistrano_multiconfig_parallel"
-```
-
-Add the following to your Capfile after requiring **capistrano** and **capistrano-multiconfig**
-
-```ruby
-  require 'capistrano_multiconfig_parallel'
 ```
 
 Please read [Release Details](https://github.com/bogdanRada/capistrano_multiconfig_parallel/releases) if you are upgrading. We break backward compatibility between large ticks but you can expect it to be specified at release notes.
