@@ -14,7 +14,6 @@ module CapistranoMulticonfigParallel
     def initialize(manager, job_manager)
       @manager = manager
       @job_manager = job_manager
-      @table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_heaadings)
       async.run
     rescue => ex
       rescue_exception(ex)
@@ -29,7 +28,7 @@ module CapistranoMulticonfigParallel
     end
 
     def notify_time_change(_channel, _message)
-      @table.rows = []
+      @table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_heaadings)
       jobs = @manager.alive? ? @manager.jobs.dup : []
       setup_table_jobs(jobs)
       display_table_on_terminal
