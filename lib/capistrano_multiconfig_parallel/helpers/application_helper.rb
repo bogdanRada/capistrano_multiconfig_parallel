@@ -79,28 +79,28 @@ module CapistranoMulticonfigParallel
     end
 
     def parse_task_string(string) # :nodoc:
-      /^([^\[]+)(?:\[(.*)\])$/ =~ string.to_s
-
-      name           = regex_last_match(1)
-      remaining_args = regex_last_match(2)
-
-      return string, [] unless name
-      return name,   [] if     remaining_args.empty?
-
-      args = find_remaining_args(remaining_args)
-      [name, args]
+      name, remaining_args = fetch_parsed_string(string)
+      name.present? ? find_remaining_args(name, remaining_args) : [string, []]
     end
 
-    def find_remaining_args(remaining_args)
+    def fetch_parsed_string(string)
+      /^([^\[]+)(?:\[(.*)\])$/ =~ string.to_s
+      [regex_last_match(1), regex_last_match(2)]
+    end
+
+    def fetch_remaining_arguments(args, remaining_args)
+      /((?:[^\\,]|\\.)*?)\s*(?:,\s*(.*))?$/ =~ remaining_args
+      args << regex_last_match(1).gsub(/\\(.)/, '\1')
+      regex_last_match(2)
+    end
+
+    def find_remaining_args(name, remaining_args)
       args = []
       loop do
-        /((?:[^\\,]|\\.)*?)\s*(?:,\s*(.*))?$/ =~ remaining_args
-
-        remaining_args = regex_last_match(2)
-        args << regex_last_match(1).gsub(/\\(.)/, '\1')
+        remaining_args = fetch_remaining_arguments(args, remaining_args)
         break if remaining_args.blank?
       end
-      args
+      [name, args]
     end
   end
 end

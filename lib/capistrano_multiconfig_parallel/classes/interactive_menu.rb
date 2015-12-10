@@ -14,17 +14,17 @@ module CapistranoMulticonfigParallel
 
     def fetch_menu
       print_menu_choices
-      default_printing
-      result = show_all_websites_interactive_menu
+      result = print_selections
       print "#{@msg}\n"
       result.present? ? result.split(',') : []
     end
 
   private
 
-    def default_printing
+    def print_selections
       print "\nYou selected"
       @msg = ' nothing'
+      show_all_websites_interactive_menu
     end
 
     def show_all_websites_interactive_menu

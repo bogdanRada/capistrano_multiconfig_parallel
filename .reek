@@ -1,3 +1,7 @@
 ---
 Attribute:
   enabled: false
+TooManyInstanceVariables:
+  enabled: false
+TooManyMethods:
+  enabled: false
