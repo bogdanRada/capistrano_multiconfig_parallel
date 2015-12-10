@@ -26,32 +26,27 @@ module CapistranoMulticonfigParallel
       "#{rake_action}#{argv}"
     end
 
-    def setup_env_options(*args)
-      options = args.extract_options!
-      options.stringify_keys!
-      fetch_env_options(options)
+    def env_option_filtered?(key, filtered_keys_array = [])
+      filtered_env_keys.include?(key) || filtered_keys_array.include?(key.to_s)
     end
 
-    def fetch_env_options(options = {})
+    def setup_env_options(options = {})
       array_options = []
       env_options.each do |key, value|
-        array_options << "#{key}=#{value}" if value.present? && (!filtered_env_keys.include?(key) && !options.fetch('filtered_keys', []).include?(key.to_s))
+        array_options << "#{key}=#{value}" if value.present? && !env_option_filtered?(key, options.fetch(:filtered_keys, []))
       end
       array_options << '--trace' if app_debug_enabled?
       array_options
     end
 
-    def setup_command_line_standard(*args)
-      array_options = setup_env_options(*args)
-      args.each do |argument|
-        array_options << argument if argument.present?
-      end
-      array_options
+    def setup_command_line(*args)
+      new_arguments, options = setup_command_line_standard(*args)
+      setup_env_options(options).concat(new_arguments)
     end
 
-    def build_capistrano_task(rake_action = nil, env = [])
+    def build_capistrano_task(rake_action = nil, *args)
       rake_action = rake_action.present? ? rake_action : action
-      environment_options = setup_command_line_standard(env).join(' ')
+      environment_options = setup_command_line(*args).join(' ')
       "cd #{detect_root} && RAILS_ENV=#{@stage}  bundle exec multi_cap #{job_stage} #{capistrano_action(rake_action)}  #{environment_options}"
     end
 

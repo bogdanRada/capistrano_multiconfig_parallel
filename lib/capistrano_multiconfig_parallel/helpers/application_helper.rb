@@ -14,6 +14,17 @@ module CapistranoMulticonfigParallel
 
   module_function
 
+    def setup_command_line_standard(*args)
+      options = args.extract_options!
+      args.select(&:present?)
+      [args, options]
+    end
+
+    def wrap_string(string, options = {})
+      options.stringify_keys!
+      string.scan(/.{#{options.fetch('length', 80)}}|.+/).map(&:strip).join(options.fetch('character', $INPUT_RECORD_SEPARATOR))
+    end
+
     def find_loaded_gem(name)
       Gem.loaded_specs.values.find { |repo| repo.name == name }
     end

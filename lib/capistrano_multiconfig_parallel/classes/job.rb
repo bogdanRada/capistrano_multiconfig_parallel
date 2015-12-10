@@ -12,7 +12,7 @@ module CapistranoMulticonfigParallel
              :capistrano_action,
              :build_capistrano_task,
              :execute_standard_deploy,
-             :setup_command_line_standard,
+             :setup_command_line,
              to: :command
 
     def initialize(application, options)
@@ -29,14 +29,18 @@ module CapistranoMulticonfigParallel
       @command ||= CapistranoMulticonfigParallel::JobCommand.new(self)
     end
 
+    def terminal_env_variables
+      setup_command_line(filtered_keys: [env_variable])
+    end
+
     def terminal_row(index)
       [
         { value: (index + 1).to_s },
         { value: id.to_s },
-        { value: job_stage },
-        { value: capistrano_action },
-        { value: setup_command_line_standard(filtered_keys: [env_variable]).join("\n") },
-        { value: worker_state }
+        { value: wrap_string(job_stage) },
+        { value: wrap_string(capistrano_action) },
+        { value: terminal_env_variables.map { |str| wrap_string(str) }.join("\n") },
+        { value: wrap_string(worker_state) }
       ]
     end
 
@@ -58,15 +62,15 @@ module CapistranoMulticonfigParallel
     end
 
     def id
-      @id ||= SecureRandom.uuid
+      @id ||= @options.fetch('id', SecureRandom.uuid)
     end
 
     def status
-      @status ||= :unstarted
+      @status ||= @options.fetch('status', :unstarted)
     end
 
     def exit_status
-      @exit_status ||= nil
+      @exit_status ||= @options.fetch('exit_status', nil)
     end
 
     [
