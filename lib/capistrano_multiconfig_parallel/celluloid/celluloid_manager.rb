@@ -3,7 +3,7 @@ require_relative './terminal_table'
 require_relative './web_server'
 require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
-  # rubocop:disable ClassLength
+  # manager class that handles workers
   class CelluloidManager
     include Celluloid
     include Celluloid::Notifications

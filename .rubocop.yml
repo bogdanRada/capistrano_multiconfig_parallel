@@ -6,6 +6,9 @@ AllCops:
     - vendor/**/*
     - Rakefile
 
+ClassLength:
+  Max: 500
+
 Documentation:
   Enabled: true
 

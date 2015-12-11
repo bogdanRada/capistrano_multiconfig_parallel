@@ -1,7 +1,6 @@
 require 'capistrano/multiconfig/dsl'
 module CapistranoMulticonfigParallel
   # finds app dependencies, shows menu and delegates jobs to celluloid manager
-  # rubocop:disable ClassLength
   class Application
     include Celluloid
     include Celluloid::Logger

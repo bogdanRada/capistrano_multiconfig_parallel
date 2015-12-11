@@ -14,6 +14,19 @@ module CapistranoMulticonfigParallel
 
   module_function
 
+    def msg_for_stdin?(message)
+      message['action'] == 'stdin'
+    end
+
+    def msg_for_task?(message)
+      message['task'].present?
+    end
+
+    def get_question_details(data)
+      /(.*)\?*\s*\:*\s*(\([^)]*\))*/m =~ data
+      [regex_last_match(1), regex_last_match(2)]
+    end
+
     def setup_command_line_standard(*args)
       options = args.extract_options!
       args.select(&:present?)

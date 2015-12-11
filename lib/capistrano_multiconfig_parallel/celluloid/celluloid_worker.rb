@@ -2,7 +2,6 @@ require_relative './child_process'
 require_relative './state_machine'
 require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
-  # rubocop:disable ClassLength
   # worker that will spawn a child process in order to execute a capistrano job and monitor that process
   #
   # @!attribute job
