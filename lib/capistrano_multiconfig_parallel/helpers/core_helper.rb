@@ -38,12 +38,8 @@ module CapistranoMulticonfigParallel
       result
     end
 
-    def filtered_errors
-      [CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, Celluloid::DeadActorError, Celluloid::Task::TerminatedError]
-    end
-
     def error_filtered?(error)
-      filtered_errors.find { |class_name| error.is_a?(class_name) }.present?
+      [CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed].find { |class_name|error.is_a?(class_name) }.present?
     end
 
     def log_error(error, output = nil)

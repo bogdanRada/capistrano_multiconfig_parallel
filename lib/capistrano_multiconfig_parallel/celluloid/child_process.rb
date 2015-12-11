@@ -14,27 +14,49 @@ module CapistranoMulticonfigParallel
     def work(job, cmd, options = {})
       @options = options
       @job = job
+      @cmd = cmd
+      start_running
+    end
+
+    def start_running
+      setup_attributes
+      run_event_machine
+      setup_em_error_handler
+    end
+
+    def setup_attributes
       @actor = @options.fetch(:actor, nil)
       @job_id = @job.id
       @exit_status = nil
+    end
+
+    def setup_em_error_handler
+      EM.error_handler do|exception|
+        log_to_file("Error during event loop for worker #{@job_id}: #{exception.inspect}", job_id: @job_id)
+        log_to_file(format_error(exception), job_id: @job_id)
+        EM.stop
+      end
+    end
+
+    def run_event_machine
       EM.run do
         EM.next_tick do
-          start_async_deploy(cmd, options)
+          start_async_deploy
         end
-        @timer = EM::PeriodicTimer.new(0.1) do
-          check_exit_status
-          @timer.cancel if @exit_status.present?
-        end
+        setup_periodic_timer
       end
-      EM.error_handler do|e|
-        log_to_file("Error during event loop for worker #{@job_id}: #{e.inspect}", job_id: @job_id)
-        log_to_file(e.backtrace, job_id: @job_id)
-        EM.stop
+    end
+
+    def setup_periodic_timer
+      @timer = EM::PeriodicTimer.new(0.1) do
+        check_exit_status
+        @timer.cancel if @exit_status.present?
       end
     end
 
     def process_finalizer
       EM.stop if EM.reactor_running?
+      terminate
     end
 
     def check_exit_status
@@ -45,11 +67,11 @@ module CapistranoMulticonfigParallel
       @actor.async.notify_finished(@exit_status)
     end
 
-    def start_async_deploy(cmd, options)
+    def start_async_deploy
       RightScale::RightPopen.popen3_async(
-        cmd,
+        @cmd,
         target: self,
-        environment: options[:environment].present? ? options[:environment] : nil,
+        environment: @options.fetch(:environment, nil),
         pid_handler: :on_pid,
         input: :on_input_stdin,
         stdout_handler: :on_read_stdout,
