@@ -6,7 +6,7 @@ capistrano_multiconfig_parallel
 DEMO
 ----
 
-[![capistrano multiconfig parallel ](img/parallel_demo.png)](#features)
+[![capistrano multiconfig parallel ](img/parallel_demo-min.png)](#features)
 
 Description
 -----------
@@ -208,7 +208,7 @@ bundle exec multi_cap deploy_multi_stages  STAGES=development, staging, producti
 
 Demo:
 
-[![capistrano multiconfig parallel ](img/interactive_menu.png)](#features)
+[![capistrano multiconfig parallel ](img/interactive_menu-min.png)](#features)
 
 NOTE: IF you want to execute a different command on all stages, you can specify environment variable **ACTION=task_name** either when you specify the STAGES, or can be done individually for each task when prompted about additional ENV options
 
