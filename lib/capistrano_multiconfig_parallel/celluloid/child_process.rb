@@ -93,6 +93,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_read_stderr(data)
+      puts data
       io_callback('stderr', data)
     end
 

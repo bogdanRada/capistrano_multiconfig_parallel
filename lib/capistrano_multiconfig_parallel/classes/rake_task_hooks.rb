@@ -6,12 +6,12 @@ module CapistranoMulticonfigParallel
   # class used to handle the rake worker and sets all the hooks before and after running the worker
   class RakeTaskHooks
     attr_accessor :task, :env, :rake_task_list, :invocation_chain
-    
+
     def initialize(env, task)
       @env = env
       @task = task
       @rake_task_list = CapistranoMulticonfigParallel::RakeInvocationChain.new(@env, @task)
-      @invocation_chain = @rake_task_list.invocation_chain
+      @invocation_chain = @rake_task_list.get_job_invocation_chain(job_id)
     end
 
     def automatic_hooks(&block)

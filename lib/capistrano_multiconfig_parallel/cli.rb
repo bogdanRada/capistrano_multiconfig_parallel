@@ -20,7 +20,8 @@ module CapistranoMulticonfigParallel
           capistrano = Capistrano::Application.new
           capistrano.init
           capistrano.load_rakefile
-          puts capistrnao.instance_variable_get("@tasks").inspect
+          capistrano.send(:load_imports)
+         raise [CapistranoMulticonfigParallel.fetch_invocation_chains, capistrano.instance_variable_get("@tasks")].inspect
           capistrano.run
         end
       end

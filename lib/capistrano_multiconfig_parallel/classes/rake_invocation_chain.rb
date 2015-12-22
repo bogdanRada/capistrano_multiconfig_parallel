@@ -4,19 +4,18 @@ module CapistranoMulticonfigParallel
   class RakeInvocationChain
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_accessor :task, :env, :job_id, :invocation_chain
+    delegate :get_job_invocation_chain,
+    :fetch_invocation_chains,
+    :job_chain_task_index,
+    to: :CapistranoMulticonfigParallel
+
+    attr_accessor :task, :env, :job_id
 
     def initialize(env, task)
       @env = env
       @task = task
       @job_id = @env[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
-      @invocation_chain ||= CapistranoMulticonfigParallel.invocation_chains[@job_id] || []
-      task_index = @invocation_chain.index(task_name)
-      @invocation_chain << task_name if task_index.blank?
-    end
-
-    def task_index
-      @invocation_chain.index(task_name)
+      get_job_invocation_chain(@job_id, task_name)
     end
 
     def task_name(task_obj = nil)
@@ -26,7 +25,8 @@ module CapistranoMulticonfigParallel
 
     def register_hooks(deps, &block)
       register_before_hook(deps)
-      register_after_hook(&block)
+      new_block = block_given? ?  block.dup : proc {}
+      register_after_hook(&new_block)
     end
 
     private
@@ -48,8 +48,7 @@ module CapistranoMulticonfigParallel
     def register_after_tasks(tasks, &block)
       return if tasks.blank?
       tasks.each do |task_string|
-        name_task = evaluate_task(task_string.to_s, &block)
-        register_hook_for_task('after', name_task)
+        register_hook_for_task('after', task_string)
       end
     end
 
@@ -60,12 +59,12 @@ module CapistranoMulticonfigParallel
       nil
     end
 
-    def evaluate_task(task_string, &block)
-      eval(task_string, block.binding)
-    rescue => exception
-      log_error(exception, 'stderr')
-      task_string
-    end
+    # def evaluate_task(task_string, &block)
+    #   eval(task_string, block.binding)
+    # rescue => exception
+    #   log_error(exception, 'stderr')
+    #   task_string
+    # end
 
     def evaluate_interpolated_string(code)
       proc { eval(code) }.call
@@ -75,11 +74,13 @@ module CapistranoMulticonfigParallel
     end
 
     def task_insert_position(hook_name)
-      task_index.send((hook_name == 'before') ? '+' : '-', 1)
+       current_index =job_chain_task_index(@job_id, task_name) 
+       current_index =  current_index.present? ? current_index : 0
+       current_index.send((hook_name == 'before') ? '+' : '-', 1)
     end
 
     def register_hook_for_task(hook_name, obj)
-      @invocation_chain.insert(task_insert_position(hook_name), task_name(obj))
+      get_job_invocation_chain(@job_id, task_name(obj), task_insert_position(hook_name))
     end
 
     def parse_source_block(source)
@@ -119,7 +120,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def get_tasks_fron_code(code)
+    def get_tasks_from_code(code)
       code = strip_code('%w{' + code.join)
       tasks = evaluate_interpolated_string(code)
       tasks.reject(&:blank?)
