@@ -32,8 +32,8 @@ Requirements
 10.	[capistrano-multiconfig >= 3.0.8](https://github.com/railsware/capistrano-multiconfig)
 11.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
 12.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
-13.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
-14.	[versionomy >= 0.4.4](https://github.com/dazuma/versionomy)
+13.	[devnull >= 0.1](https://github.com/maraigue/devnull)
+14.	[method_source >= 0.8](https://github.com/banister/method_source)
 
 Compatibility
 -------------
