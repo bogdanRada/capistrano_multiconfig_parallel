@@ -62,7 +62,8 @@ module CapistranoMulticonfigParallel
       {
         action: @action,
         task: task_name,
-        job_id: @job_id
+        job_id: @job_id,
+        invocation_chain: @options.fetch('invocation_chain', [])
       }
     end
 

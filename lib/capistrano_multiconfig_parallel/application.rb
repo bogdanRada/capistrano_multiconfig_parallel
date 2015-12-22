@@ -190,7 +190,7 @@ module CapistranoMulticonfigParallel
     def run_async_jobs
       return unless @jobs.present?
       @jobs.pmap do |job|
-        @manager.async.delegate(job)
+        @manager.async.delegate_job(job)
       end
       unless can_tag_staging?
         until @manager.registration_complete

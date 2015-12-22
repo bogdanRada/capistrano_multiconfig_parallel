@@ -20,7 +20,7 @@ module CapistranoMulticonfigParallel
     end
 
     def default_heaadings
-      ['Job ID', 'Job UUID', 'App/Stage', 'Action', 'ENV Variables', 'Current Task']
+      ['Job ID', 'Job UUID', 'App/Stage', 'Action', 'ENV Variables', 'Current Task', 'Total', 'Progress']
     end
 
     def run

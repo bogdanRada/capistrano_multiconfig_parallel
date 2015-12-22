@@ -1,13 +1,17 @@
 require_relative '../celluloid/rake_worker'
 require_relative './input_stream'
 require_relative './output_stream'
+require_relative './rake_invocation_chain'
 module CapistranoMulticonfigParallel
   # class used to handle the rake worker and sets all the hooks before and after running the worker
   class RakeTaskHooks
-    attr_accessor :task, :env
+    attr_accessor :task, :env, :rake_task_list, :invocation_chain
+    
     def initialize(env, task)
       @env = env
       @task = task
+      @rake_task_list = CapistranoMulticonfigParallel::RakeInvocationChain.new(@env, @task)
+      @invocation_chain = @rake_task_list.invocation_chain
     end
 
     def automatic_hooks(&block)
@@ -50,9 +54,9 @@ module CapistranoMulticonfigParallel
     def actor_start_working
       if actor.blank?
         supervise_actor
-        actor.work(@env, actor_id: rake_actor_id, job_id: job_id, task: @task)
+        actor.work(@env, actor_id: rake_actor_id, job_id: job_id, task: @task, invocation_chain: @invocation_chain)
       else
-        actor.publish_new_work(@env, task: @task)
+        actor.publish_new_work(@env, task: @task,invocation_chain: @invocation_chain)
       end
     end
 

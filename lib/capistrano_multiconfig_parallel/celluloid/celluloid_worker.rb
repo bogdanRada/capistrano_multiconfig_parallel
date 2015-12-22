@@ -153,7 +153,7 @@ module CapistranoMulticonfigParallel
     def save_tasks_to_be_executed(message)
       log_to_file("worler #{@job_id} current invocation chain : #{rake_tasks.inspect}")
       rake_tasks << message['task'] if rake_tasks.last != message['task']
-      invocation_chain << message['task'] if invocation_chain.last != message['task']
+      invocation_chain << message['invocation_chain'] if invocation_chain != message['invocation_chain'] && message['invocation_chain'].present?
     end
 
     def update_machine_state(name)

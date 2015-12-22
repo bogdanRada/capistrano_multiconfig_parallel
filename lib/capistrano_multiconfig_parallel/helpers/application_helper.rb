@@ -7,12 +7,16 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::CoreHelper
 
     delegate :logger,
-             :configuration,
-             :configuration_valid?,
-             :original_args,
-             to: :CapistranoMulticonfigParallel
+    :configuration,
+    :configuration_valid?,
+    :original_args,
+    to: :CapistranoMulticonfigParallel
 
-  module_function
+    module_function
+
+    def string_interpolated?(string)
+      string.include?('#{') || string.include?('+') || string.include?('<')
+    end
 
     def msg_for_stdin?(message)
       message['action'] == 'stdin'
@@ -29,8 +33,7 @@ module CapistranoMulticonfigParallel
 
     def setup_command_line_standard(*args)
       options = args.extract_options!
-      args.select(&:present?)
-      [args, options]
+      [args.select(&:present?), options]
     end
 
     def wrap_string(string, options = {})
@@ -92,7 +95,7 @@ module CapistranoMulticonfigParallel
     end
 
     def strip_characters_from_string(value)
-      return unless value.present?
+      return '' if value.blank?
       value = value.delete("\r\n").delete("\n")
       value = value.gsub(/\s+/, ' ').strip
       value

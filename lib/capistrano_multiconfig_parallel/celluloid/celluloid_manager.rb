@@ -40,7 +40,7 @@ module CapistranoMulticonfigParallel
 
     # call to send an actor
     # a job
-    def delegate(job)
+    def delegate_job(job)
       @jobs[job.id] = job
       # debug(@jobs)
       # start work and send it to the background
@@ -196,7 +196,7 @@ module CapistranoMulticonfigParallel
       @job_manager.job_count += 1
       new_job_options = job.options.merge('env_options' => job.env_options.merge(env_opts), 'count' => @job_manager.job_count)
       new_job = CapistranoMulticonfigParallel::Job.new(@job_manager, new_job_options.merge(options))
-      async.delegate(new_job) unless job.worker_died?
+      async.delegate_job(new_job) unless job.worker_died?
     end
 
     # lookup status of job by asking actor running it

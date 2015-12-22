@@ -33,6 +33,27 @@ module CapistranoMulticonfigParallel
       setup_command_line(filtered_keys: [env_variable])
     end
 
+    def worker
+      return unless @manager.alive?
+      @manager.get_worker_for_job(id)
+    end
+
+    def invocation_chain
+      worker.present? && worker.alive? ? worker.invocation_chain : []
+    end
+
+    def invocation_chain_size
+      invocation_chain.size
+    end
+
+    def job_progress
+      task_index = invocation_chain.index(worker_state.to_s).to_i + 1
+      percent = percent_of(task_index, invocation_chain_size)
+      result  = "Progress [#{format('%.2f', percent)}%]  (executed #{task_index} of #{invocation_chain_size})"
+      worker.present? && worker.alive? ? result.green : result.red
+    end
+
+
     def terminal_row
       [
         { value: count.to_s },
@@ -40,15 +61,15 @@ module CapistranoMulticonfigParallel
         { value: wrap_string(job_stage) },
         { value: wrap_string(capistrano_action) },
         { value: terminal_env_variables.map { |str| wrap_string(str) }.join("\n") },
-        { value: wrap_string(worker_state) }
+        { value: wrap_string(worker_state) },
+       { value: invocation_chain.size },
+       { value: job_progress }
       ]
     end
 
     def worker_state
       default = status.to_s.upcase.red
-      return default unless @manager.alive?
-      worker = @manager.get_worker_for_job(id)
-      worker.alive? ? worker.worker_state : default
+      worker.present? && worker.alive? ? worker.worker_state : default
     end
 
     def id
