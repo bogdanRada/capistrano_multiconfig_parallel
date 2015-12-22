@@ -17,7 +17,11 @@ module CapistranoMulticonfigParallel
           require_relative './application'
           run_the_application
         else
-          Capistrano::Application.new.run
+          capistrano = Capistrano::Application.new
+          capistrano.init
+          capistrano.load_rakefile
+          puts capistrnao.instance_variable_get("@tasks").inspect
+          capistrano.run
         end
       end
 

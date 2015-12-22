@@ -15,8 +15,6 @@ module CapistranoMulticonfigParallel
       @invocation_chain << task_name if task_index.blank?
     end
 
-
-
     def task_index
       @invocation_chain.index(task_name)
     end
@@ -44,15 +42,13 @@ module CapistranoMulticonfigParallel
       source = block_given? ? fetch_block_source(&block) : nil
       return if source.blank?
       tasks = parse_source_block(source)
-      register_after_tasks(tasks)
+      register_after_tasks(tasks, &block)
     end
 
-    def register_after_tasks(tasks)
+    def register_after_tasks(tasks, &block)
       return if tasks.blank?
-      tasks.each do |t|
-        task_name = t[:scope].present? ? "#{t[:scope]}:#{t[:task]}" : t[:task]
-        post_task = evaluate_task(task_name, &block)
-        name_task = post_task.present? ? post_task : t[:task]
+      tasks.each do |task_string|
+        name_task = evaluate_task(task_string.to_s, &block)
         register_hook_for_task('after', name_task)
       end
     end
@@ -64,14 +60,14 @@ module CapistranoMulticonfigParallel
       nil
     end
 
-    def evaluate_task(_task, &_block)
-      eval(task, block.binding)
+    def evaluate_task(task_string, &block)
+      eval(task_string, block.binding)
     rescue => exception
       log_error(exception, 'stderr')
-      nil
+      task_string
     end
 
-    def evaluate_dynamic_string(_code)
+    def evaluate_interpolated_string(code)
       proc { eval(code) }.call
     rescue => exception
       log_error(exception, 'stderr')
@@ -87,25 +83,24 @@ module CapistranoMulticonfigParallel
     end
 
     def parse_source_block(source)
-      source_tasks = source.scan(Regexp.union(/(\S+)\.invoke\b/, /(?<!\S)invoke\s{1}(\S+)/)).map do |match|
-        match.reject(&:blank?).join.map do|task|
-          parse_source_task_string(source, task)
+      source_tasks = []
+      source.scan(Regexp.union(/(\S+)\.invoke\b/, /(?<!\S)invoke\s{1}(\S+)/, /^Rake\:\:Task\[(.*?)\]/)).each do |match|
+        get_task_match(source_tasks, match, source)
+      end
+      source_tasks
+    end
+
+    def get_task_match(source_tasks, match_array, source)
+       new_match = match_array.reject(&:blank?)
+        new_match.each do|match_task|
+          string = parse_string_enclosed_quotes(source, match_task)
+          source_tasks << string if string.present?
         end
-        source_tasks.present? ? source_tasks : []
       end
-    end
 
-    def parse_source_task_string(source, task)
-      if task.include?('Rake::Task[')
-        task.scan(/^Rake\:\:Task\[(.*?)\]/).each { |name| parse_string_enclosed_quotes(source, name) }
-      else
-        parse_string_enclosed_quotes(source, task)
-      end
-    end
-
-    def parse_string_enclosed_quotes(source, task)
-      task = task.scan(/[\\'"]+(.*?)[\\'"]+/).join
-      parse_task_dynamic(source, task)
+    def parse_string_enclosed_quotes(source, match_task)
+      match_task = match_task.scan(/[\\'"]+(.*?)[\\'"]+/).join
+      parse_task_dynamic(source, match_task)
     end
 
     def strip_code(code, task = '')
@@ -113,22 +108,22 @@ module CapistranoMulticonfigParallel
       code.gsub(/\//, '').gsub('.each', '.map').gsub("#{task}.invoke", task).gsub('invoke', '')
     end
 
-    def parse_task_dynamic(source, task)
-      if string_interpolated?(task)
+    def parse_task_dynamic(source, match_task)
+      if string_interpolated?(match_task)
         new_source = strip_code(source.dup)
         new_source.scan(/\%w\{(.*?end+.*?)end/m).map do|code|
           get_tasks_from_code(code)
-        end.flatten
+        end.compact.flatten
       else
-        task.present? ? task : []
+        match_task.present? ? match_task : ''
       end
     end
 
     def get_tasks_fron_code(code)
       code = strip_code('%w{' + code.join)
-      tasks = evaluate_dynamic_string(code)
+      tasks = evaluate_interpolated_string(code)
       tasks.reject(&:blank?)
-      tasks.map { |new_task| new_task }
+      tasks.map { |new_task| new_task }.compact
     end
   end
 end

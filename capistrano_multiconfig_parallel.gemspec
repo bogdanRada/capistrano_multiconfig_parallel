@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'configliere', '~> 0.4', '>=0.4'
   s.add_runtime_dependency 'inquirer', '~> 0.2', '>= 0.2'
   s.add_runtime_dependency 'devnull','~> 0.1', '>= 0.1'
-  #s.add_runtime_dependency 'method_source', '~> 0.8', '>= 0.8'
+  s.add_runtime_dependency 'method_source', '~> 0.8', '>= 0.8'
 
 
   s.add_development_dependency 'rspec-rails', '~> 3.3', '>= 3.3'

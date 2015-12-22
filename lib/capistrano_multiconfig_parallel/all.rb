@@ -23,6 +23,7 @@ require 'fileutils'
 require 'pp'
 require 'yaml'
 require 'stringio'
+require 'method_source'
 
 # capistrano requirements
 require 'rake'
