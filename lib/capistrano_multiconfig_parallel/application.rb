@@ -9,6 +9,7 @@ module CapistranoMulticonfigParallel
     include Capistrano::Multiconfig::DSL
 
     attr_reader :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage, :job_count
+    attr_writer :job_count
 
     def initialize
       Celluloid.boot

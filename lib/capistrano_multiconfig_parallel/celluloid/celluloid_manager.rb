@@ -60,7 +60,7 @@ module CapistranoMulticonfigParallel
     end
 
     def all_workers_finished?
-      @jobs.all? { |_job_id, job| job.finished? || job.crashed? || job.rolling_back? }
+      @jobs.all? { |_job_id, job| job.finished? || job.crashed? }
     end
 
     def process_jobs

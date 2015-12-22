@@ -51,7 +51,7 @@ module CapistranoMulticonfigParallel
     end
 
     def start_task
-      log_to_file("exec worker #{@job_id} starts task with #{@job.inspect}")
+      log_to_file("exec worker #{@job_id} starts task")
       @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel)
     end
 
