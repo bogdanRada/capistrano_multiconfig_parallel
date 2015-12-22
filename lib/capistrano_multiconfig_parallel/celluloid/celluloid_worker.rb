@@ -31,12 +31,12 @@ module CapistranoMulticonfigParallel
     def work(job, manager)
       @job = job
       @job_id = job.id
-      @worker_state = 'started'
+      @worker_state = job.status
       @manager = manager
       @job_confirmation_conditions = []
       log_to_file("worker #{@job_id} received #{job.inspect}")
       @subscription_channel = "worker_#{@job_id}"
-      @machine = CapistranoMulticonfigParallel::StateMachine.new(job, Actor.current)
+      @machine = CapistranoMulticonfigParallel::StateMachine.new(@job, Actor.current)
       @manager.setup_worker_conditions(@job)
       manager.register_worker_for_job(job, Actor.current)
     end

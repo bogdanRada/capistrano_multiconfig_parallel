@@ -44,19 +44,19 @@ module CapistranoMulticonfigParallel
       @jobs[job.id] = job
       # debug(@jobs)
       # start work and send it to the background
-      @workers.async.work(job, Actor.current)
+      @workers.work(job, Actor.current)
     end
 
     # call back from actor once it has received it's job
     # actor should do this asap
     def register_worker_for_job(job, worker)
-      worker.job_id = job.id if worker.job_id.blank?
       @job_to_worker[job.id] = worker
       @worker_to_job[worker.mailbox.address] = job
       log_to_file("worker #{worker.job_id} registed into manager")
       Actor.current.link worker
       worker.async.start_task if !syncronized_confirmation? || job.failed? || job.rolling_back?
-      @registration_complete = true if @job_manager.jobs.size == @job_to_worker.size
+      return unless syncronized_confirmation?
+      @registration_complete = true if @job_manager.jobs.size == @jobs.size
     end
 
     def all_workers_finished?
@@ -193,9 +193,9 @@ module CapistranoMulticonfigParallel
       return unless job.is_a?(CapistranoMulticonfigParallel::Job)
       options.stringify_keys! if options.present?
       env_opts = options['skip_env_options'].present? ? {} : @job_manager.get_app_additional_env_options(job.app, job.stage)
-      new_job_options = job.options.merge('env_options' => job.env_options.merge(env_opts))
-      new_job = CapistranoMulticonfigParallel::Job.new(@job_manager, new_job_options.merge(options.except(job.job_writer_attributes)))
-      new_job.setup_writer_attributes(options)
+      @job_manager.job_count += 1
+      new_job_options = job.options.merge('env_options' => job.env_options.merge(env_opts), 'count' => @job_manager.job_count)
+      new_job = CapistranoMulticonfigParallel::Job.new(@job_manager, new_job_options.merge(options))
       async.delegate(new_job) unless job.worker_died?
     end
 

@@ -8,12 +8,13 @@ module CapistranoMulticonfigParallel
     include Capistrano::DSL
     include Capistrano::Multiconfig::DSL
 
-    attr_reader :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
+    attr_reader :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage, :job_count
 
     def initialize
       Celluloid.boot
       @stage_apps = multi_apps? ? stages.map { |stage| stage.split(':').reverse[1] }.uniq : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
+      @job_count = 0
       @jobs = []
     end
 
@@ -190,11 +191,13 @@ module CapistranoMulticonfigParallel
       @jobs.pmap do |job|
         @manager.async.delegate(job)
       end
-      until @manager.registration_complete
-        sleep(0.1) # keep current thread alive
+      unless can_tag_staging?
+        until @manager.registration_complete
+          sleep(0.1) # keep current thread alive
+        end
+        return unless @manager.registration_complete
+        @manager.async.process_jobs
       end
-      return unless @manager.registration_complete
-      @manager.async.process_jobs
       wait_jobs_termination
     end
 
@@ -219,10 +222,11 @@ module CapistranoMulticonfigParallel
 
       env_options = branch_name.present? ? { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
       job_env_options = custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
-
+      @job_count += 1
       job = CapistranoMulticonfigParallel::Job.new(Actor.current, options.merge(
                                                                     action: custom_command? && env_options['ACTION'].present? ? env_options['ACTION'] : options['action'],
-                                                                    env_options: job_env_options
+                                                                    env_options: job_env_options,
+                                                                    count: @job_count
       ))
       @jobs << job
     end

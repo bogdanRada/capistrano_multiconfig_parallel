@@ -32,8 +32,7 @@ module CapistranoMulticonfigParallel
 
     def setup_em_error_handler
       EM.error_handler do|exception|
-        log_to_file("Error during event loop for worker #{@job_id}: #{exception.inspect}", job_id: @job_id)
-        log_to_file(format_error(exception), job_id: @job_id)
+        log_to_file("Error during event loop for worker #{@job_id}: #{format_error(exception)}", job_id: @job_id)
         EM.stop
       end
     end
@@ -43,14 +42,6 @@ module CapistranoMulticonfigParallel
         EM.next_tick do
           start_async_deploy
         end
-        setup_periodic_timer
-      end
-    end
-
-    def setup_periodic_timer
-      @timer = EM::PeriodicTimer.new(0.1) do
-        check_exit_status
-        @timer.cancel if @exit_status.present?
       end
     end
 
@@ -100,6 +91,7 @@ module CapistranoMulticonfigParallel
     def on_exit(status)
       log_to_file "Child process for worker #{@job_id} on_exit  disconnected due to error #{status.inspect}"
       @exit_status = status.exitstatus
+      check_exit_status
     end
 
     def async_exception_handler(*data)

@@ -29,8 +29,16 @@ module CapistranoMulticonfigParallel
       publish_to_worker(task_data)
     end
 
-    def wait_execution(_name = task_name, time = 0.1)
+    def wait_execution(name = task_name, time = 0.1)
+      #    info "Before waiting #{name}"
+      Actor.current.wait_for(name, time)
+      #  info "After waiting #{name}"
+    end
+
+    def wait_for(_name, time)
+      # info "waiting for #{time} seconds on #{name}"
       sleep time
+      # info "done waiting on #{name} "
     end
 
     def default_settings
