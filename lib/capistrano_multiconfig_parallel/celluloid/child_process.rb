@@ -68,16 +68,16 @@ module CapistranoMulticonfigParallel
 
     def start_async_deploy
       RightScale::RightPopen.popen3_async(
-      @cmd,
-      target: self,
-      environment: @options.fetch(:environment, nil),
-      pid_handler: :on_pid,
-      input: :on_input_stdin,
-      stdout_handler: :on_read_stdout,
-      stderr_handler: :on_read_stderr,
-      watch_handler: :watch_handler,
-      async_exception_handler: :async_exception_handler,
-      exit_handler: :on_exit)
+        @cmd,
+        target: self,
+        environment: @options.fetch(:environment, nil),
+        pid_handler: :on_pid,
+        input: :on_input_stdin,
+        stdout_handler: :on_read_stdout,
+        stderr_handler: :on_read_stderr,
+        watch_handler: :watch_handler,
+        async_exception_handler: :async_exception_handler,
+        exit_handler: :on_exit)
     end
 
     def on_pid(pid)
