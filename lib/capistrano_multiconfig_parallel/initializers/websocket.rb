@@ -12,7 +12,8 @@ Celluloid::WebSocket::Client::Connection.class_eval do
                             'HTTP_ORIGIN'                  => @url,
                             'HTTP_SEC_WEBSOCKET_KEY'        => SecureRandom.uuid,
                             'HTTP_SEC_WEBSOCKET_PROTOCAL'    => 'ws',
-                            'HTTP_SEC_WEBSOCKET_VERSION'    => SecureRandom.random_number(15))
+                            'HTTP_SEC_WEBSOCKET_VERSION'    => '13'
+                            )
     ::Rack::MockRequest.env_for(@url, env_hash)
   end
 end
