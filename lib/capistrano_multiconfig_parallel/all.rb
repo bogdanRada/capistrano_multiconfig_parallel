@@ -17,6 +17,7 @@ require 'celluloid_pubsub'
 require 'configliere'
 require 'devnull'
 require 'inquirer'
+require 'rack'
 
 require 'logger'
 require 'fileutils'
