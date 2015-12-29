@@ -97,7 +97,7 @@ module CapistranoMulticonfigParallel
     end
 
     def websocket_config
-      websocket_server_config.merge('enable_debug' =>  debug_websocket?)
+      websocket_server_config.merge('enable_debug' =>  debug_websocket?, 'use_redis' => false)
     end
 
     def execute_with_rescue(output = nil)
