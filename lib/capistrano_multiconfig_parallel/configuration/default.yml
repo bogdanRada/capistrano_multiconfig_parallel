@@ -27,6 +27,13 @@ default_config:
     default: 'false'
     required: false
 
+  - name: 'websocket_server.log_file_path'
+    type: 'filename'
+    description: >-
+      Enables the logging of websocket communication into a different file
+    default: './log/multi_cap_websocket.log'
+    required: false
+
   - name: 'development_stages'
     type: 'Array'
     description: >-
