@@ -97,7 +97,8 @@ module CapistranoMulticonfigParallel
     end
 
     def websocket_config
-      create_log_file(websocket_server_config.fetch('log_file_path', nil))
+      raise websocket_server_config.inspect
+      create_log_file(websocket_server_config.fetch('log_file_path', nil)) if debug_websocket?
       websocket_server_config.merge('enable_debug' =>  debug_websocket?, 'use_redis' => false)
     end
 
