@@ -7,6 +7,9 @@ module CapistranoMulticonfigParallel
     include Celluloid::Notifications
     include Celluloid::Logger
     include CapistranoMulticonfigParallel::ApplicationHelper
+
+    attr_reader :options, :errors, :manager, :position, :job_manager
+
     def self.topic
       'sshkit_terminal'
     end
@@ -14,6 +17,7 @@ module CapistranoMulticonfigParallel
     def initialize(manager, job_manager, options = {})
       @manager = manager
       @position = nil
+      @errors = []
       @options = options.is_a?(Hash) ? options.stringify_keys : options
       @job_manager = job_manager
       async.run
@@ -44,6 +48,7 @@ module CapistranoMulticonfigParallel
     def display_table_on_terminal(table)
       @position ||= CapistranoMulticonfigParallel::Cursor.fetch_position
       CapistranoMulticonfigParallel::Cursor.display_on_screen("\n#{table}\n", @options.merge(position: @position))
+      puts(@errors.join("\n")) if @errors.present? && options.fetch('clear_screen', false).to_s == 'false'
       signal_complete
     end
 

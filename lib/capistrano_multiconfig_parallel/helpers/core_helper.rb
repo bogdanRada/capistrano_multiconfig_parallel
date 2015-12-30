@@ -1,7 +1,7 @@
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module CoreHelper
-  module_function
+    module_function
 
     def app_debug_enabled?
       configuration.multi_debug.to_s.downcase == 'true'
@@ -45,8 +45,15 @@ module CapistranoMulticonfigParallel
     def log_error(error, output = nil)
       return if error_filtered?(error)
       message = format_error(error)
-      puts(message) if output.present?
+      log_output_error(output, message)
       log_to_file(message, log_method: 'fatal')
+    end
+
+    def log_output_error(output, message)
+      return if output.blank?
+      terminal = Celluloid::Actor[:terminal_server]
+      terminal.errors.push(message) if terminal.present? && terminal.alive? && !terminal.errors.include?(message)
+      puts message
     end
 
     def format_error(exception)
