@@ -45,8 +45,17 @@ module CapistranoMulticonfigParallel
       terminate
     end
 
-    def display_table_on_terminal(table)
+    def fetch_cursor_position
+      terminal_size = CapistranoMulticonfigParallel::Cursor.fetch_terminal_size
       @position ||= CapistranoMulticonfigParallel::Cursor.fetch_position
+      return @position if terminal_size[:rows].nonzero? && position[:row] < (terminal_size[:rows] / 2)
+      CapistranoMulticonfigParallel::Cursor.move_to_home!(0,0)
+      @position = CapistranoMulticonfigParallel::Cursor.fetch_position
+      @position
+    end
+
+    def display_table_on_terminal(table)
+      cursor_position = fetch_cursor_position
       CapistranoMulticonfigParallel::Cursor.display_on_screen("\n#{table}\n", @options.merge(position: @position))
       puts(@errors.join("\n")) if @errors.present? && options.fetch('clear_screen', false).to_s == 'false'
       signal_complete

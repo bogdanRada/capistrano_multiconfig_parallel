@@ -24,6 +24,7 @@ require 'fileutils'
 require 'pp'
 require 'yaml'
 require 'stringio'
+require 'io/console'
 
 # capistrano requirements
 require 'rake'

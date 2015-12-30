@@ -1,8 +1,15 @@
-require 'io/console'
+require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class used to fetch cursor position before displaying terminal table
   class Cursor
     class << self
+      include CapistranoMulticonfigParallel::ApplicationHelper
+
+      def fetch_terminal_size
+        size = (dynamic_size_stty || dynamic_size_tput || `echo $LINES $COLUMNS`)
+        size = strip_characters_from_string(size).split(' ')
+        { rows: size[0].to_i, columns: size[1].to_i }
+      end
 
       def fetch_position
         res = ''
@@ -25,12 +32,23 @@ module CapistranoMulticonfigParallel
         handle_string_display(position, clear_scren, string)
       end
 
-      def move_to_home!
-        position_cursor(2, 1)
+      def move_to_home!(row = 2, column = 1)
+        position_cursor(row, column)
         erase_from_current_line_to_bottom
       end
 
       private
+
+      def dynamic_size_stty
+       size = %x{stty size 2>/dev/null}
+       size.present? ? size : nil
+      end
+
+      def dynamic_size_tput
+        lines %x{tput lines 2>/dev/null}
+        cols = %x{tput cols 2>/dev/null}
+        lines.present? && cols.present? ? "#{lines} #{cols}" : nil
+      end
 
       def handle_string_display(position, clear_scren, string)
         if clear_scren.to_s == 'true'
