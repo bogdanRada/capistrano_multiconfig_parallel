@@ -1,10 +1,20 @@
 require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class used to fetch cursor position before displaying terminal table
+  # http://ispltd.org/mini_howto:ansi_terminal_codes
   class Cursor
     class << self
       include CapistranoMulticonfigParallel::ApplicationHelper
-      attr_accessor :position
+
+      def display_on_screen(string, options = {})
+        options = options.is_a?(Hash) ? options.stringify_keys : {}
+        handle_string_display(string, options)
+      end
+
+      def move_to_home!(row = 0, column = 1)
+        erase_screen
+        position_cursor(row, column)
+      end
 
       def fetch_terminal_size
         size = (dynamic_size_stty || dynamic_size_tput || `echo $LINES $COLUMNS`)
@@ -12,27 +22,26 @@ module CapistranoMulticonfigParallel
         { rows: size[0].to_i, columns: size[1].to_i }
       end
 
-      def fetch_cursor_position
-        terminal_size = fetch_terminal_size
-        position = fetch_position
-        return position if terminal_size[:rows].nonzero? && position[:row] < (terminal_size[:rows] / 2)
-        move_to_home!(0, 0)
-        fetch_position
+      def fetch_cursor_position(table_size, position)
+        final_position = position
+        terminal_rows = fetch_terminal_size
+        if refetch_position?(table_size, terminal_rows, position)
+          move_to_home! if position.present?
+          final_position = fetch_position
+          terminal_rows = fetch_terminal_size
+        end
+        [final_position,terminal_rows]
       end
 
-      def display_on_screen(string, options = {})
-        options = options.is_a?(Hash) ? options.stringify_keys : {}
-        position = options.fetch('position', nil)
-        clear_scren =  options.fetch('clear_screen', false)
-        handle_string_display(position, clear_scren, string)
+      def refetch_position?(table_size,terminal_size, position)
+        return true if position.blank?
+        terminal_rows = terminal_size[:rows]
+        row_position = position[:row]
+        terminal_rows.zero? || (terminal_rows.nonzero? && row_position >= (terminal_rows / 2)) || (table_size >= (terminal_rows -row_position))
       end
 
-      def move_to_home!(row = 2, column = 1)
-        position_cursor(row, column)
-        erase_from_current_line_to_bottom
-      end
+      private
 
-    private
 
       def fetch_position
         res = ''
@@ -58,8 +67,9 @@ module CapistranoMulticonfigParallel
         lines.present? && cols.present? ? "#{lines} #{cols}" : nil
       end
 
-      def handle_string_display(position, clear_scren, string)
-        if clear_scren.to_s == 'true'
+      def handle_string_display(string, options)
+        position = options.fetch('position',nil)
+        if options.fetch('clear_screen', false).to_s == 'true'
           terminal_clear_display(string)
         elsif position.present?
           display_string_at_position(position, string)
@@ -80,6 +90,10 @@ module CapistranoMulticonfigParallel
 
       def erase_from_current_line_to_bottom
         puts "\e[J"
+      end
+
+      def erase_screen
+       puts("\e[2J")
       end
 
       def go_to_position(position)

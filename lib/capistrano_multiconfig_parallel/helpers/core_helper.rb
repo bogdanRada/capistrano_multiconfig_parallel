@@ -50,10 +50,9 @@ module CapistranoMulticonfigParallel
     end
 
     def log_output_error(output, message)
-      return if output.blank?
+      puts message if output.present?
       terminal = Celluloid::Actor[:terminal_server]
-      terminal.errors.push(message) if terminal.present? && terminal.alive? && !terminal.errors.include?(message)
-      puts message
+      terminal.errors.push(message) if terminal.present? && terminal.alive?
     end
 
     def format_error(exception)
