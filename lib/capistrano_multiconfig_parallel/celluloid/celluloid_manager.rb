@@ -25,7 +25,7 @@ module CapistranoMulticonfigParallel
       # http://rubydoc.info/gems/celluloid/Celluloid/SupervisionGroup/Member
       @workers = @worker_supervisor.pool(CapistranoMulticonfigParallel::CelluloidWorker, as: :workers, size: 10)
       Actor.current.link @workers
-      @worker_supervisor.supervise_as(:terminal_server, CapistranoMulticonfigParallel::TerminalTable, Actor.current, @job_manager)
+      @worker_supervisor.supervise_as(:terminal_server, CapistranoMulticonfigParallel::TerminalTable, Actor.current, @job_manager, configuration.fetch(:terminal, {}))
       @worker_supervisor.supervise_as(:web_server, CapistranoMulticonfigParallel::WebServer, [websocket_config])
 
       # Get a handle on the PoolManager

@@ -19,20 +19,35 @@ module CapistranoMulticonfigParallel
 
 
       def display_on_screen(string, options = {})
-        position = options.fetch(:position, nil)
-        if options.fetch(:terminal_clear, nil).to_s == 'true'
-          terminal_clear
-          puts string
-        else
-          position_cursor(position[:row], position[:column]) if position.present?
-          reputs string
+        options = options.is_a?(Hash) ? options.stringify_keys : {}
+        position = options.fetch('position', nil)
+        clear_scren =  options.fetch('clear_screen', false)
+        handle_string_display(position, clear_scren, string)
+      end
+
+      def handle_string_display(position, clear_scren, string)
+        if clear_scren.to_s == 'true'
+          terminal_clear_display(string)
+        elsif position.present?
+          display_string_at_position(position, string)
         end
       end
 
-      def reputs( str = '' )
-        puts "\e[0K" + str
+      def terminal_clear_display(string)
+        terminal_clear
+        puts string
       end
 
+      def display_string_at_position(position, string)
+        position_cursor(position[:row], position[:column])
+        erase_from_current_line_to_bottom
+        position_cursor(position[:row], position[:column])
+        puts string
+      end
+
+      def erase_from_current_line_to_bottom
+        puts "\e[J"
+      end
 
       def position_cursor(line, column)
         puts("\e[#{line};#{column}H")
@@ -41,7 +56,6 @@ module CapistranoMulticonfigParallel
       def terminal_clear
         system('cls') || system('clear') || puts("\e[H\e[2J")
       end
-
 
     end
   end

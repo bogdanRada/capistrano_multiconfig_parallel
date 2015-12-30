@@ -11,9 +11,10 @@ module CapistranoMulticonfigParallel
       'sshkit_terminal'
     end
 
-    def initialize(manager, job_manager)
+    def initialize(manager, job_manager, options = {})
       @manager = manager
       @position = nil
+      @options = options.is_a?(Hash) ? options.stringify_keys : options
       @job_manager = job_manager
       async.run
     rescue => ex
@@ -42,7 +43,7 @@ module CapistranoMulticonfigParallel
 
     def display_table_on_terminal(table)
       @position ||= Cursor.fetch_position
-      Cursor.display_on_screen("\n#{table}\n", terminal_clear: false, position: @position)
+      Cursor.display_on_screen("\n#{table}\n", @options.merge(position: @position))
       signal_complete
     end
 

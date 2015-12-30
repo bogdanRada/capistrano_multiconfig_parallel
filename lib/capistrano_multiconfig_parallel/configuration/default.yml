@@ -51,6 +51,13 @@ default_config:
       - deploy:symlink:release
     required: false
 
+  - name: 'terminal.clear_screen'
+    type: 'boolean'
+    description: >-
+      Enables the clear screen to happen before the table status is displayed on screen
+    default: 'false'
+    required: false
+
 
   - name: 'apply_stage_confirmation'
     type: 'Array'
