@@ -42,8 +42,8 @@ module CapistranoMulticonfigParallel
     end
 
     def display_table_on_terminal(table)
-      @position ||= Cursor.fetch_position
-      Cursor.display_on_screen("\n#{table}\n", @options.merge(position: @position))
+      @position ||= CapistranoMulticonfigParallel::Cursor.fetch_position
+      CapistranoMulticonfigParallel::Cursor.display_on_screen("\n#{table}\n", @options.merge(position: @position))
       signal_complete
     end
 

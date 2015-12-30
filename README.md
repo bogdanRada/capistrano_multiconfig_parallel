@@ -72,6 +72,10 @@ multi_debug: true
 multi_secvential: false
 websocket_server:
   enable_debug: false
+  use_redis: false
+  log_file_path: './log/multi_cap_websocket.log'
+terminal:
+  clear_screen: false  
 
 development_stages:
   - development
@@ -100,6 +104,18 @@ Available command line options when executing a command
 -	--websocket_server.enable_debug
 
 	-	if option is present and has value TRUE, will enable debugging of websocket communication between the workers
+
+-	--websocket_server.use_redis
+
+	-	Enables use of redis reactor for publish subscribe communication
+
+-	--websocket_server.log_file_path
+
+	-	Enables the logging of websocket communication into a different file -
+
+-	--terminal.clear_screen
+
+	-	Enables the clear screen to happen before the table status is displayed on screen
 
 -	--development_stages
 
