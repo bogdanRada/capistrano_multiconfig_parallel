@@ -13,6 +13,7 @@ module CapistranoMulticonfigParallel
 
     def initialize(manager, job_manager)
       @manager = manager
+      @position = nil
       @job_manager = job_manager
       async.run
     rescue => ex
@@ -40,8 +41,8 @@ module CapistranoMulticonfigParallel
     end
 
     def display_table_on_terminal(table)
-      terminal_clear
-      puts "\n#{table}\n"
+      @position ||= Cursor.fetch_position
+      Cursor.display_on_screen("\n#{table}\n", terminal_clear: false, position: @position)
       signal_complete
     end
 
@@ -71,8 +72,5 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def terminal_clear
-      system('cls') || system('clear') || puts("\e[H\e[2J")
-    end
   end
 end
