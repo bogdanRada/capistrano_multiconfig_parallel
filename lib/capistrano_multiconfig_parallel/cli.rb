@@ -29,6 +29,7 @@ module CapistranoMulticonfigParallel
       def run_the_application
         execute_with_rescue('stderr') do
           configuration_valid?
+          CapistranoMulticonfigParallel::Cursor.move_to_home!
           CapistranoMulticonfigParallel::Application.new.start
         end
       end

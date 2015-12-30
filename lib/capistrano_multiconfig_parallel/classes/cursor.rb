@@ -45,12 +45,17 @@ module CapistranoMulticonfigParallel
         puts string
       end
 
+      def move_to_home!
+        print "\e[2;1H"
+        erase_from_current_line_to_bottom
+      end
+
       def erase_from_current_line_to_bottom
         puts "\e[J"
       end
 
       def position_cursor(line, column)
-        puts("\e[#{line};#{column}H")
+        puts("\eD\e[#{line};#{column}H")
       end
 
       def terminal_clear
