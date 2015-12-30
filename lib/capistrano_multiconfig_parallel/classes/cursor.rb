@@ -4,12 +4,35 @@ module CapistranoMulticonfigParallel
   class Cursor
     class << self
       include CapistranoMulticonfigParallel::ApplicationHelper
+      attr_accessor :position
 
       def fetch_terminal_size
         size = (dynamic_size_stty || dynamic_size_tput || `echo $LINES $COLUMNS`)
         size = strip_characters_from_string(size).split(' ')
         { rows: size[0].to_i, columns: size[1].to_i }
       end
+
+      def fetch_cursor_position
+        terminal_size = fetch_terminal_size
+        position = fetch_position
+        return position if terminal_size[:rows].nonzero? && position[:row] < (terminal_size[:rows] / 2)
+        move_to_home!(0, 0)
+        fetch_position
+      end
+
+      def display_on_screen(string, options = {})
+        options = options.is_a?(Hash) ? options.stringify_keys : {}
+        position = options.fetch('position', nil)
+        clear_scren =  options.fetch('clear_screen', false)
+        handle_string_display(position, clear_scren, string)
+      end
+
+      def move_to_home!(row = 2, column = 1)
+        position_cursor(row, column)
+        erase_from_current_line_to_bottom
+      end
+
+    private
 
       def fetch_position
         res = ''
@@ -24,29 +47,14 @@ module CapistranoMulticonfigParallel
         { row: position[:row].to_i, column: position[:column].to_i }
       end
 
-
-      def display_on_screen(string, options = {})
-        options = options.is_a?(Hash) ? options.stringify_keys : {}
-        position = options.fetch('position', nil)
-        clear_scren =  options.fetch('clear_screen', false)
-        handle_string_display(position, clear_scren, string)
-      end
-
-      def move_to_home!(row = 2, column = 1)
-        position_cursor(row, column)
-        erase_from_current_line_to_bottom
-      end
-
-      private
-
       def dynamic_size_stty
-       size = %x{stty size 2>/dev/null}
-       size.present? ? size : nil
+        size = `stty size 2>/dev/null`
+        size.present? ? size : nil
       end
 
       def dynamic_size_tput
-        lines %x{tput lines 2>/dev/null}
-        cols = %x{tput cols 2>/dev/null}
+        lines `tput lines 2>/dev/null`
+        cols = `tput cols 2>/dev/null`
         lines.present? && cols.present? ? "#{lines} #{cols}" : nil
       end
 
@@ -85,7 +93,6 @@ module CapistranoMulticonfigParallel
       def terminal_clear
         system('cls') || system('clear') || puts("\e[H\e[2J")
       end
-
     end
   end
 end

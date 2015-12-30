@@ -1,7 +1,7 @@
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module CoreHelper
-    module_function
+  module_function
 
     def app_debug_enabled?
       configuration.multi_debug.to_s.downcase == 'true'
