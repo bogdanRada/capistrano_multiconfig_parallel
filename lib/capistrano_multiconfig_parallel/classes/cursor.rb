@@ -25,6 +25,13 @@ module CapistranoMulticonfigParallel
         handle_string_display(position, clear_scren, string)
       end
 
+      def move_to_home!
+        position_cursor(2, 1)
+        erase_from_current_line_to_bottom
+      end
+
+      private
+
       def handle_string_display(position, clear_scren, string)
         if clear_scren.to_s == 'true'
           terminal_clear_display(string)
@@ -39,23 +46,22 @@ module CapistranoMulticonfigParallel
       end
 
       def display_string_at_position(position, string)
-        position_cursor(position[:row], position[:column])
+        go_to_position(position)
         erase_from_current_line_to_bottom
-        position_cursor(position[:row], position[:column])
+        go_to_position(position)
         puts string
-      end
-
-      def move_to_home!
-        position_cursor(2, 1)
-        erase_from_current_line_to_bottom
       end
 
       def erase_from_current_line_to_bottom
         puts "\e[J"
       end
 
+      def go_to_position(position)
+        position_cursor(position[:row], position[:column])
+      end
+
       def position_cursor(line, column)
-        puts("\eD\e[#{line};#{column}H")
+        puts("\e[#{line};#{column}H")
       end
 
       def terminal_clear
