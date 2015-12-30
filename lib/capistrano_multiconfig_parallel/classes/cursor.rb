@@ -46,7 +46,7 @@ module CapistranoMulticonfigParallel
       end
 
       def move_to_home!
-        print "\e[2;1H"
+        position_cursor(2, 1)
         erase_from_current_line_to_bottom
       end
 
