@@ -57,7 +57,7 @@ module CapistranoMulticonfigParallel
     def display_table_on_terminal(table)
       cursor_position = fetch_cursor_position
       CapistranoMulticonfigParallel::Cursor.display_on_screen("\n#{table}\n", @options.merge(position: @position))
-      puts(@errors.join("\n")) if @errors.present? && options.fetch('clear_screen', false).to_s == 'false'
+      puts(@errors.join("\n")) if @errors.present? && @options.fetch('clear_screen', false).to_s == 'false'
       signal_complete
     end
 
