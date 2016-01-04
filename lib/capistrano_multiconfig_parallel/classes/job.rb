@@ -67,6 +67,13 @@ module CapistranoMulticonfigParallel
       ]
     end
 
+    def row_size
+      longest_hash = terminal_row.max_by do |hash|
+        hash[:value].size
+      end
+      (longest_hash[:value].size.to_f / 80.0).ceil
+    end
+
     def worker_state
       default = status.to_s.upcase.red
       worker.present? && worker.alive? ? worker.worker_state : default

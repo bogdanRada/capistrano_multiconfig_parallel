@@ -52,7 +52,7 @@ module CapistranoMulticonfigParallel
 
     def start_task
       log_to_file("exec worker #{@job_id} starts task")
-      @client = CelluloidPubsub::Client.connect(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel)
+      @client = CelluloidPubsub::Client.new(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel, log_file_path: websocket_config.fetch('log_file_path', nil))
     end
 
     def publish_rake_event(data)
@@ -170,7 +170,7 @@ module CapistranoMulticonfigParallel
     def finish_worker(exit_status)
       log_to_file("worker #{job_id} tries to terminate with exit_status #{exit_status}")
       @manager.mark_completed_remaining_tasks(@job)
-      update_machine_state('FINISHED')
+      update_machine_state('FINISHED') if exit_status == 0
       @manager.workers_terminated.signal('completed') if @manager.alive? && @manager.all_workers_finished?
     end
 

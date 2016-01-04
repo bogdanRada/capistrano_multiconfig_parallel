@@ -45,8 +45,14 @@ module CapistranoMulticonfigParallel
     def log_error(error, output = nil)
       return if error_filtered?(error)
       message = format_error(error)
-      puts(message) if output.present?
+      log_output_error(output, message)
       log_to_file(message, log_method: 'fatal')
+    end
+
+    def log_output_error(output, message)
+      puts message if output.present?
+      terminal = Celluloid::Actor[:terminal_server]
+      terminal.errors.push(message) if terminal.present? && terminal.alive?
     end
 
     def format_error(exception)
@@ -97,7 +103,8 @@ module CapistranoMulticonfigParallel
     end
 
     def websocket_config
-      websocket_server_config.merge('enable_debug' =>  debug_websocket?)
+      create_log_file(websocket_server_config.fetch('log_file_path', nil)) if debug_websocket?
+      websocket_server_config.merge('enable_debug' =>  debug_websocket?, 'use_redis' => false)
     end
 
     def execute_with_rescue(output = nil)

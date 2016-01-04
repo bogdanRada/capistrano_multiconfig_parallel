@@ -20,6 +20,20 @@ default_config:
     default: 'false'
     required: false
 
+  - name: 'websocket_server.use_redis'
+    type: 'boolean'
+    description: >-
+      Enables use of redis reactor for publish subscribe communication
+    default: 'false'
+    required: false
+
+  - name: 'websocket_server.log_file_path'
+    type: 'filename'
+    description: >-
+      Enables the logging of websocket communication into a different file
+    default: './log/multi_cap_websocket.log'
+    required: false
+
   - name: 'development_stages'
     type: 'Array'
     description: >-
@@ -35,6 +49,13 @@ default_config:
       Enable user confirmation dialogs before executing each task from this list
     default:
       - deploy:symlink:release
+    required: false
+
+  - name: 'terminal.clear_screen'
+    type: 'boolean'
+    description: >-
+      Enables the clear screen to happen before the table status is displayed on screen
+    default: 'false'
     required: false
 
 

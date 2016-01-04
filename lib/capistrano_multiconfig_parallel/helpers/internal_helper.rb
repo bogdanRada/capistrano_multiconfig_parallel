@@ -50,7 +50,7 @@ module CapistranoMulticonfigParallel
 
     def find_config_type(type)
       type = type.to_s
-      ['boolean'].include?(type) ? type.delete(':').to_sym : type.constantize
+      %w(boolean filename).include?(type) ? type.delete(':').to_sym : type.constantize
     end
 
     def find_env_multi_cap_root
@@ -118,9 +118,15 @@ module CapistranoMulticonfigParallel
       ['deploy_multi_stages']
     end
 
+    def create_log_file(file_path)
+      return if file_path.blank?
+      directory = File.dirname(file_path)
+      FileUtils.mkdir_p(directory) unless File.directory?(directory)
+      FileUtils.touch(file_path) unless File.file?(file_path)
+    end
+
     def enable_main_log_file
-      FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
-      FileUtils.touch(main_log_file) unless File.file?(main_log_file)
+      create_log_file(main_log_file)
       log_file = File.open(main_log_file, 'w')
       log_file.sync = true
     end

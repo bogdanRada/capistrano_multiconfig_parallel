@@ -87,7 +87,7 @@ module CapistranoMulticonfigParallel
       end
 
       def check_configuration
-        check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug))
+        check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug websocket_server.use_redis terminal.clear_screen))
         check_array_props(%w(task_confirmations development_stages apply_stage_confirmation))
         verify_application_dependencies(@check_config['application_dependencies'], %w(app priority dependencies))
       end

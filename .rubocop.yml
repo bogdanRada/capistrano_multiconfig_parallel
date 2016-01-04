@@ -7,7 +7,10 @@ AllCops:
     - Rakefile
 
 ClassLength:
-  Max: 500
+  Max: 900
+  
+ModuleLength:
+  Max: 900
 
 Documentation:
   Enabled: true

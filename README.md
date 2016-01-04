@@ -6,7 +6,7 @@ capistrano_multiconfig_parallel
 DEMO
 ----
 
-[![capistrano multiconfig parallel ](img/parallel_demo.png)](#features)
+[![capistrano multiconfig parallel ](img/parallel_demo-min.png)](#features)
 
 Description
 -----------
@@ -23,17 +23,20 @@ Requirements
 1.	[Ruby 1.9.x or Ruby 2.x.x](http://www.ruby-lang.org)
 2.	[ActiveSuport >= 4.2.0](https://rubygems.org/gems/activesupport)
 3.	[celluloid-pmap >= 0.2.2](https://github.com/jwo/celluloid-pmap)
-4.	[composable_state_machine >= 1.0.2](https://github.com/swoop-inc/composable_state_machine)
-5.	[terminal-table >= 1.5.2](https://github.com/tj/terminal-table)
-6.	[colorize >= 0.7](https://github.com/fazibear/colorize)
-7.	[eventmachine >= 1.0.3](https://github.com/eventmachine/eventmachine)
-8.	[right_popen >= 1.1.3](https://github.com/rightscale/right_popen)
-9.	[capistrano >= 3.0](https://github.com/capistrano/capistrano/)
-10.	[capistrano-multiconfig >= 3.0.8](https://github.com/railsware/capistrano-multiconfig)
-11.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
-12.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
-13.	[devnull >= 0.1](https://github.com/maraigue/devnull)
-14.	[method_source >= 0.8](https://github.com/banister/method_source)
+4.	[celluloid_pubsub >= 0.1.0](https://github.com/bogdanRada/celluloid_pubsub)
+5.	[celluloid-websocket-client >= 0.0.1](https://github.com/jeremyd/celluloid-websocket-client)
+6.	[composable_state_machine >= 1.0.2](https://github.com/swoop-inc/composable_state_machine)
+7.	[terminal-table >= 1.5.2](https://github.com/tj/terminal-table)
+8.	[colorize >= 0.7](https://github.com/fazibear/colorize)
+9.	[eventmachine >= 1.0.3](https://github.com/eventmachine/eventmachine)
+10.	[right_popen >= 1.1.3](https://github.com/rightscale/right_popen)
+11.	[capistrano >= 3.0](https://github.com/capistrano/capistrano/)
+12.	[capistrano-multiconfig >= 3.0.8](https://github.com/railsware/capistrano-multiconfig)
+13.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
+14.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
+15.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
+16.	[rack >= 1.6](http://rack.github.io/)
+17.	[method_source >= 0.8](https://github.com/banister/method_source)
 
 Compatibility
 -------------
@@ -70,6 +73,10 @@ multi_debug: true
 multi_secvential: false
 websocket_server:
   enable_debug: false
+  use_redis: false
+  log_file_path: './log/multi_cap_websocket.log'
+terminal:
+  clear_screen: false  
 
 development_stages:
   - development
@@ -98,6 +105,18 @@ Available command line options when executing a command
 -	--websocket_server.enable_debug
 
 	-	if option is present and has value TRUE, will enable debugging of websocket communication between the workers
+
+-	--websocket_server.use_redis
+
+	-	Enables use of redis reactor for publish subscribe communication
+
+-	--websocket_server.log_file_path
+
+	-	Enables the logging of websocket communication into a different file -
+
+-	--terminal.clear_screen
+
+	-	Enables the clear screen to happen before the table status is displayed on screen
 
 -	--development_stages
 
@@ -208,7 +227,7 @@ bundle exec multi_cap deploy_multi_stages  STAGES=development, staging, producti
 
 Demo:
 
-[![capistrano multiconfig parallel ](img/interactive_menu.png)](#features)
+[![capistrano multiconfig parallel ](img/interactive_menu-min.png)](#features)
 
 NOTE: IF you want to execute a different command on all stages, you can specify environment variable **ACTION=task_name** either when you specify the STAGES, or can be done individually for each task when prompted about additional ENV options
 

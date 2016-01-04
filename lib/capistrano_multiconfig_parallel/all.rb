@@ -17,13 +17,16 @@ require 'celluloid_pubsub'
 require 'configliere'
 require 'devnull'
 require 'inquirer'
+require 'rack'
+require 'method_source'
 
 require 'logger'
 require 'fileutils'
 require 'pp'
 require 'yaml'
 require 'stringio'
-require 'method_source'
+require 'io/console'
+
 
 # capistrano requirements
 require 'rake'
