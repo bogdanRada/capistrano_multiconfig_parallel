@@ -39,7 +39,7 @@ module CapistranoMulticonfigParallel
     end
 
     def error_filtered?(error)
-      [CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed].find { |class_name| error.is_a?(class_name) }.present?
+      [CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, SystemExit].find { |class_name| error.is_a?(class_name) }.present?
     end
 
     def log_error(error, output = nil)
