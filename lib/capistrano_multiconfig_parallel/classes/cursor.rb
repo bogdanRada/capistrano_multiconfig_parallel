@@ -11,6 +11,8 @@ module CapistranoMulticonfigParallel
         handle_string_display(string, options)
       end
 
+  private
+
       def move_to_home!(row = 0, column = 1)
         erase_screen
         position_cursor(row, column)
@@ -22,12 +24,12 @@ module CapistranoMulticonfigParallel
         { rows: size[0].to_i, columns: size[1].to_i }
       end
 
-      def fetch_cursor_position(table_size, position)
+      def fetch_cursor_position(table_size, position, previously_erased_screen)
         final_position = position
         terminal_rows = fetch_terminal_size
         screen_erased = refetch_position?(table_size, terminal_rows, position)
-        if screen_erased
-          move_to_home! if position.present?
+        if screen_erased == true
+          move_to_home! if previously_erased_screen != true
           final_position = fetch_position
           terminal_rows = fetch_terminal_size
         end
@@ -72,7 +74,7 @@ module CapistranoMulticonfigParallel
           terminal_clear_display(string)
           [0, 0, false]
         else
-          new_position, terminal_rows, screen_erased = fetch_cursor_position(table_size, position)
+          new_position, terminal_rows, screen_erased = fetch_cursor_position(table_size, position, options.fetch('screen_erased', false))
           display_string_at_position(new_position, string)
           [new_position, terminal_rows, screen_erased]
         end
