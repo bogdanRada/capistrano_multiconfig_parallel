@@ -72,7 +72,7 @@ module CapistranoMulticonfigParallel
 
     def verify_valid_data
       return  if  @top_level_tasks != ['default']
-      puts 'Stage not set, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
+      puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
       exit(false)
     end
 
