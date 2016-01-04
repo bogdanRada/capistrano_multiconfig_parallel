@@ -54,7 +54,7 @@ module CapistranoMulticonfigParallel
 
     def display_table_on_terminal(table, jobs)
       table_size = fetch_table_size(jobs)
-      @position, @terminal_rows, @screen_erased = CapistranoMulticonfigParallel::Cursor.display_on_screen("\n#{table}\n", @options.merge(position: @position, table_size: table_size, screen_erased: @screen_erased ))
+      @position, @terminal_rows, @screen_erased = CapistranoMulticonfigParallel::Cursor.display_on_screen("#{table}", @options.merge(position: @position, table_size: table_size, screen_erased: @screen_erased ))
       # puts [@position, @terminal_rows, table_size , (@terminal_rows[:rows] - @position[:row]), screen_erased].inspect
       print_errors
       signal_complete
