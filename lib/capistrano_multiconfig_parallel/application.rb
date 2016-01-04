@@ -13,6 +13,7 @@ module CapistranoMulticonfigParallel
 
     def initialize
       Celluloid.boot
+      CapistranoMulticonfigParallel.enable_logging
       @stage_apps = multi_apps? ? stages.map { |stage| stage.split(':').reverse[1] }.uniq : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
       @job_count = 0
@@ -21,6 +22,7 @@ module CapistranoMulticonfigParallel
 
     def start
       verify_app_dependencies if multi_apps? && configuration.application_dependencies.present?
+      verify_valid_data
       check_before_starting
       initialize_data
       run
@@ -68,6 +70,12 @@ module CapistranoMulticonfigParallel
       stages.find { |stage| stage.include?(':') }.present?
     end
 
+    def verify_valid_data
+      return  if  @top_level_tasks != ['default']
+      puts 'Stage not set, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
+      exit(false)
+    end
+
     def initialize_data
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
@@ -94,7 +102,6 @@ module CapistranoMulticonfigParallel
     end
 
     def check_before_starting
-      CapistranoMulticonfigParallel.enable_logging
       @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(Actor.current)
       @default_stage = configuration.development_stages.present? ? configuration.development_stages.first : 'development'
       @condition = Celluloid::Condition.new

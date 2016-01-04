@@ -8,6 +8,7 @@ module CapistranoMulticonfigParallel
   class << self
     attr_accessor :logger, :original_args
     include CapistranoMulticonfigParallel::Configuration
+    include CapistranoMulticonfigParallel::CoreHelper
 
     def enable_logging
       enable_file_logging
