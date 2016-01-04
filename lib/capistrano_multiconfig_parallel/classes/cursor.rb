@@ -25,23 +25,21 @@ module CapistranoMulticonfigParallel
       def fetch_cursor_position(table_size, position)
         final_position = position
         terminal_rows = fetch_terminal_size
-        if refetch_position?(table_size, terminal_rows, position)
+        screen_erased = refetch_position?(table_size, terminal_rows, position)
+        if screen_erased
           move_to_home! if position.present?
           final_position = fetch_position
           terminal_rows = fetch_terminal_size
         end
-        [final_position,terminal_rows]
+        [final_position, terminal_rows, screen_erased]
       end
 
-      def refetch_position?(table_size,terminal_size, position)
+      def refetch_position?(table_size, terminal_size, position)
         return true if position.blank?
         terminal_rows = terminal_size[:rows]
         row_position = position[:row]
-        terminal_rows.zero? || (terminal_rows.nonzero? && row_position >= (terminal_rows / 2)) || (table_size >= (terminal_rows -row_position))
+        terminal_rows.zero? || (terminal_rows.nonzero? && row_position >= (terminal_rows / 2)) || (table_size >= (terminal_rows - row_position))
       end
-
-      private
-
 
       def fetch_position
         res = ''
@@ -68,11 +66,15 @@ module CapistranoMulticonfigParallel
       end
 
       def handle_string_display(string, options)
-        position = options.fetch('position',nil)
+        position = options.fetch('position', nil)
+        table_size = options.fetch('table_size', 0)
         if options.fetch('clear_screen', false).to_s == 'true'
           terminal_clear_display(string)
-        elsif position.present?
-          display_string_at_position(position, string)
+          [0, 0, false]
+        else
+          new_position, terminal_rows, screen_erased = fetch_cursor_position(table_size, position)
+          display_string_at_position(new_position, string)
+          [new_position, terminal_rows, screen_erased]
         end
       end
 
@@ -93,7 +95,7 @@ module CapistranoMulticonfigParallel
       end
 
       def erase_screen
-       puts("\e[2J")
+        puts("\e[2J")
       end
 
       def go_to_position(position)
