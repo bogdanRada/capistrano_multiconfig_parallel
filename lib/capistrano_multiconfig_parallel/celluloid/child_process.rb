@@ -69,14 +69,14 @@ module CapistranoMulticonfigParallel
     def start_async_deploy
       RightScale::RightPopen.popen3_async(
         @cmd,
-        target: self,
+        target: Actor.current,
         environment: @options.fetch(:environment, nil),
         pid_handler: :on_pid,
         input: :on_input_stdin,
         stdout_handler: :on_read_stdout,
         stderr_handler: :on_read_stderr,
         watch_handler: :watch_handler,
-        async_exception_handler: :async_exception_handler,
+        async_exception_handler: :on_async_exception_handler,
         exit_handler: :on_exit)
     end
 
@@ -102,7 +102,7 @@ module CapistranoMulticonfigParallel
       check_exit_status
     end
 
-    def async_exception_handler(*data)
+    def on_async_exception_handler(*data)
       log_to_file "Child process for worker #{@job_id} async_exception_handler  disconnected due to error #{data.inspect}"
       io_callback('stderr', data)
       @exit_status = 1

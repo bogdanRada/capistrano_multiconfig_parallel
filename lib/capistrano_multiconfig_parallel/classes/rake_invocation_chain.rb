@@ -15,6 +15,7 @@ module CapistranoMulticonfigParallel
       @env = env
       @task = task
       @job_id = @env[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
+      log_to_file("Enhancing task #{task_name}", job_id: @job_id)
       get_job_invocation_chain(@job_id, task_name)
     end
 
@@ -74,12 +75,13 @@ module CapistranoMulticonfigParallel
     end
 
     def task_insert_position(hook_name)
-       current_index =job_chain_task_index(@job_id, task_name) 
+       current_index =job_chain_task_index(@job_id, task_name)
        current_index =  current_index.present? ? current_index : 0
        current_index.send((hook_name == 'before') ? '+' : '-', 1)
     end
 
     def register_hook_for_task(hook_name, obj)
+      log_to_file("Enhancing task #{task_name} #{hook_name} #{task_name(obj)} #{task_insert_position(hook_name)}", job_id: @job_id)
       get_job_invocation_chain(@job_id, task_name(obj), task_insert_position(hook_name))
     end
 
