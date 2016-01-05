@@ -43,7 +43,7 @@ module CapistranoMulticonfigParallel
 
     def rescue_exception(ex)
       log_to_file("Terminal Table client disconnected due to error #{ex.inspect}")
-      log_error(ex, 'stderr')
+      rescue_error(ex, 'stderr')
       terminate
     end
 
