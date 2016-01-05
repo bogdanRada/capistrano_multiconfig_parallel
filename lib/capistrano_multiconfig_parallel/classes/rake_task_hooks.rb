@@ -11,7 +11,7 @@ module CapistranoMulticonfigParallel
       @env = env
       @task = task
       @rake_task_list = CapistranoMulticonfigParallel::RakeInvocationChain.new(@env, @task)
-      @invocation_chain = @rake_task_list.get_job_invocation_chain(job_id)
+      @invocation_chain = @rake_task_list.fetch_invocation_chains(job_id)
     end
 
     def automatic_hooks(&block)

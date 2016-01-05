@@ -47,7 +47,6 @@ module CapistranoMulticonfigParallel
       log_to_file("AFTER Enhancing task #{task_name} with #{source}", job_id: @job_id)
       tasks = parse_source_block(source)
       register_after_tasks(tasks, &block)
-      #block.call if source.include?('load') || source.include?('require')
     end
 
     def register_after_tasks(tasks, &block)
