@@ -7,7 +7,7 @@ module CapistranoMulticonfigParallel
       super(*args)
     rescue => exc
       log_error(exc, 'stderr')
-      raise exc if Celluloid::Actor[:web_server].blank?
+      # fails silently
     end
   end
 end
