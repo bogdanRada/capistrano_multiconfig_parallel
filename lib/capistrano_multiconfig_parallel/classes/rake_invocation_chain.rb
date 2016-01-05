@@ -5,9 +5,9 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     delegate :get_job_invocation_chain,
-             :fetch_invocation_chains,
-             :job_chain_task_index,
-             to: :CapistranoMulticonfigParallel
+    :fetch_invocation_chains,
+    :job_chain_task_index,
+    to: :CapistranoMulticonfigParallel
 
     attr_accessor :task, :env, :job_id
 
@@ -31,7 +31,7 @@ module CapistranoMulticonfigParallel
       register_after_hook(&new_block)
     end
 
-  private
+    private
 
     def register_before_hook(deps)
       return if deps.blank?
@@ -47,12 +47,17 @@ module CapistranoMulticonfigParallel
       log_to_file("AFTER Enhancing task #{task_name} with #{source}", job_id: @job_id)
       tasks, loaded_files = parse_source_block(source, &block)
       register_after_tasks(tasks, &block)
-      loaded_files.each do |file|
-        load file
-      end
+      # loaded_files.each do |file|
+      #   loaded_file = Gem.find_files(file).first
+      #   pathname = Pathname.new(loaded_file)
+      #   extension = pathname.extname
+      #   filename = File.basename(pathname, extension)
+      #   log_to_file("LOADED FILES for  #{task_name} are #{loaded_files.inspect} #{filename}", job_id: @job_id) if loaded_files.present?
+      #   load filename
+      # end
     end
 
-    def register_after_tasks(tasks, &_block)
+    def register_after_tasks(tasks)
       return if tasks.blank?
       tasks.each do |task_string|
         register_hook_for_task('after', task_string)
@@ -73,12 +78,6 @@ module CapistranoMulticonfigParallel
       task_string
     end
 
-    # def evaluate_interpolated_string(code)
-    #   proc { eval(code) }.call
-    # rescue => exception
-    #   rescue_error(exception, 'stderr')
-    #   []
-    # end
 
     def task_insert_position(hook_name)
       current_index = job_chain_task_index(@job_id, task_name)
@@ -106,7 +105,7 @@ module CapistranoMulticonfigParallel
       end
       loaded_files = []
       source.scan(Regexp.union(/load\s*\(?(\S+)\)?/)).each do |match|
-        get_task_match(loaded_files, match, source, &block)
+        get_task_match(loaded_files, match, source,  &block)
       end
       [source_tasks, loaded_files]
     end
@@ -114,7 +113,7 @@ module CapistranoMulticonfigParallel
     def get_task_match(source_tasks, match_array, source, &block)
       new_match = match_array.reject(&:blank?)
       new_match.each do|match_task|
-        string = parse_string_enclosed_quotes(source, match_task, &block)
+        string = parse_string_enclosed_quotes(source, match_task, &block) 
         source_tasks << string if string.present?
       end
     end
