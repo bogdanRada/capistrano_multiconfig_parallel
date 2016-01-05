@@ -32,7 +32,7 @@ module CapistranoMulticonfigParallel
 
     def setup_em_error_handler
       EM.error_handler do|exception|
-        log_to_file("Error during event loop for worker #{@job_id}: #{format_error(exception)}", job_id: @job_id)
+        log_error(exception, job_id: @job_id, output: 'stderr')
         EM.stop
       end
     end

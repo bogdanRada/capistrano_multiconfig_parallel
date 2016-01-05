@@ -42,7 +42,7 @@ module CapistranoMulticonfigParallel
       Celluloid.task_class = Celluloid::TaskThread
       Celluloid.exception_handler do |ex|
         unless ex.is_a?(Interrupt)
-          log_error(ex, 'stderr')
+        rescue_error(ex, 'stderr')
         end
       end
     end

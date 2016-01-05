@@ -42,20 +42,20 @@ module CapistranoMulticonfigParallel
       [CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, SystemExit].find { |class_name| error.is_a?(class_name) }.present?
     end
 
-    def log_error(error, output = nil)
-      return if error_filtered?(error)
+    def log_error(error, options = {})
       message = format_error(error)
-      log_output_error(output, message)
-      log_to_file(message, log_method: 'fatal')
+      log_output_error(error, options.fetch(:output, nil), message)
+      log_to_file(message, options.merge(log_method: 'fatal'))
     end
 
     def terminal_actor
       Celluloid::Actor[:terminal_server]
     end
 
-    def log_output_error(output, message)
+    def log_output_error(error, output, message)
+      return if error_filtered?(error)
       puts message if output.present?
-      terminal_actor.errors.push(message) if terminal_actor.present? && terminal_actor.alive?
+      terminal_actor.errors.push(message) if terminal_actor.alive?
     end
 
     def format_error(exception)
@@ -119,7 +119,7 @@ module CapistranoMulticonfigParallel
     end
 
     def rescue_error(error, output = nil)
-      log_error(error, output)
+      log_error(error, output: output)
       exit(1)
     end
 
