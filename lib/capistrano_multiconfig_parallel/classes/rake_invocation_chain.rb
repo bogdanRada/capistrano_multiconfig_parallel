@@ -15,8 +15,9 @@ module CapistranoMulticonfigParallel
       @env = env
       @task = task
       @job_id = @env[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
-      log_to_file("Enhancing task #{task_name}", job_id: @job_id)
+      log_to_file("Enhancing task #{task_name} #{fetch_invocation_chains}", job_id: @job_id)
       get_job_invocation_chain(@job_id, task_name)
+      log_to_file("Enhancing_AFTER task #{task_name} #{fetch_invocation_chains}", job_id: @job_id)
     end
 
     def task_name(task_obj = nil)
@@ -80,13 +81,20 @@ module CapistranoMulticonfigParallel
     def task_insert_position(hook_name)
        current_index =job_chain_task_index(@job_id, task_name)
        current_index =  current_index.present? ? current_index : 0
-       log_to_file("Task #{task_name} #{hook_name} is at position #{current_index} #{fetch_invocation_chains}", job_id: @job_id)
+       log_to_file("Task #{task_name} is at position #{current_index} #{fetch_invocation_chains}", job_id: @job_id)
        current_index.send((hook_name == 'after') ? '+' : '-', 1)
     end
 
     def register_hook_for_task(hook_name, obj)
-      log_to_file("Enhancing task #{task_name} #{hook_name} #{task_name(obj)} #{task_insert_position(hook_name)}", job_id: @job_id)
-      get_job_invocation_chain(@job_id, task_name(obj), task_insert_position(hook_name))
+      new_task =  task_name(obj)
+      log_to_file("REGISTER #{task_name} #{hook_name} #{new_task} #{task_insert_position(hook_name)} #{fetch_invocation_chains}", job_id: @job_id)
+      if new_task.is_a?(Array)
+        new_task.each do |task|
+          register_hook_for_task(hook_name, task)
+        end
+      else
+         get_job_invocation_chain(@job_id,new_task, task_insert_position(hook_name))
+      end
     end
 
     def parse_source_block(source)

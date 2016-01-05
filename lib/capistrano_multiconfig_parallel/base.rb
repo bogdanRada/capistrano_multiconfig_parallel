@@ -16,15 +16,15 @@ module CapistranoMulticonfigParallel
     end
 
     def fetch_invocation_chains(job_id = nil)
-      self.invocation_chains ||=  {}
-      self.invocation_chains[job_id] = [] if job_id.present?
-      job_id.present?  ? invocation_chains[job_id] : invocation_chains
+      @invocation_chains ||=  {}
+      @invocation_chains[job_id] ||= [] if job_id.present?
+      job_id.present?  ? @invocation_chains[job_id] : @invocation_chains
     end
 
     def get_job_invocation_chain(job_id, task = nil, position = nil)
       tasks = fetch_invocation_chains(job_id)
-      position = position.present? ? position : (tasks.size + 1)
-      fetch_invocation_chains(job_id).insert(position, task)
+      position = position.present? ? position : tasks.size 
+      fetch_invocation_chains(job_id).insert(position, task)  if task.present? && job_chain_task_index(job_id, task).blank?
     end
 
      def job_chain_task_index(job_id, task_name)
