@@ -34,7 +34,7 @@ module CapistranoMulticonfigParallel
       @worker_state = job.status
       @manager = manager
       @job_confirmation_conditions = []
-      log_to_file("worker #{@job_id} received #{job.inspect}")
+      log_to_file("worker #{@job_id} received #{job.to_json}")
       @subscription_channel = "worker_#{@job_id}"
       @machine = CapistranoMulticonfigParallel::StateMachine.new(@job, Actor.current)
       @manager.setup_worker_conditions(@job)
