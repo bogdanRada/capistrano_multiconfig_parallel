@@ -34,6 +34,7 @@ module CapistranoMulticonfigParallel
 
     def register_before_hook(deps)
       return if deps.blank?
+      log_to_file("BEFORE Enhancing task #{task_name} with #{deps.inspect}", job_id: @job_id)
       deps.each do |dependency|
         register_hook_for_task('before', dependency)
       end
@@ -42,8 +43,10 @@ module CapistranoMulticonfigParallel
     def register_after_hook(&block)
       source = block_given? ? fetch_block_source(&block) : nil
       return if source.blank?
+      log_to_file("AFTER Enhancing task #{task_name} with #{source}", job_id: @job_id)
       tasks = parse_source_block(source)
       register_after_tasks(tasks, &block)
+      block.call if source.include?('load') || source.include?('require')
     end
 
     def register_after_tasks(tasks, &block)
@@ -77,7 +80,8 @@ module CapistranoMulticonfigParallel
     def task_insert_position(hook_name)
        current_index =job_chain_task_index(@job_id, task_name)
        current_index =  current_index.present? ? current_index : 0
-       current_index.send((hook_name == 'before') ? '+' : '-', 1)
+       log_to_file("Task #{task_name} #{hook_name} is at position #{current_index} #{fetch_invocation_chains}", job_id: @job_id)
+       current_index.send((hook_name == 'after') ? '+' : '-', 1)
     end
 
     def register_hook_for_task(hook_name, obj)
