@@ -11,7 +11,7 @@ module CapistranoMulticonfigParallel
         handle_string_display(string, options)
       end
 
-  private
+    private
 
       def move_to_home!(row = 0, column = 1)
         erase_screen

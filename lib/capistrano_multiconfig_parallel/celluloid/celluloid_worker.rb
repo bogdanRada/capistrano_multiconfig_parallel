@@ -89,8 +89,9 @@ module CapistranoMulticonfigParallel
     def execute_deploy
       log_to_file("invocation chain #{@job_id} is : #{@rake_tasks.inspect}")
       check_child_proces
-      log_to_file("worker #{@job_id} executes: #{@job.build_capistrano_task}")
-      @child_process.async.work(@job, @job.build_capistrano_task, actor: Actor.current, silent: true)
+      command = job.command.to_s
+      log_to_file("worker #{@job_id} executes: #{command}")
+      @child_process.async.work(@job, command, actor: Actor.current, silent: true)
     end
 
     def check_child_proces

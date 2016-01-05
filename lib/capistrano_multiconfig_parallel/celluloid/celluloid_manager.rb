@@ -54,7 +54,7 @@ module CapistranoMulticonfigParallel
       @worker_to_job[worker.mailbox.address] = job
       log_to_file("worker #{worker.job_id} registed into manager")
       Actor.current.link worker
-      worker.async.start_task if !syncronized_confirmation? || job.failed? || job.rolling_back?
+      worker.async.start_task if !syncronized_confirmation? || job.rolling_back?
       return unless syncronized_confirmation?
       @registration_complete = true if @job_manager.jobs.size == @jobs.size
     end
@@ -193,10 +193,9 @@ module CapistranoMulticonfigParallel
       return unless job.is_a?(CapistranoMulticonfigParallel::Job)
       options.stringify_keys! if options.present?
       env_opts = options['skip_env_options'].present? ? {} : @job_manager.get_app_additional_env_options(job.app, job.stage)
-      @job_manager.job_count += 1
-      new_job_options = job.options.merge('env_options' => job.env_options.merge(env_opts), 'count' => @job_manager.job_count)
+      new_job_options = job.options.except!('id', 'status', 'exit_status').merge('env_options' => job.env_options.merge(env_opts))
       new_job = CapistranoMulticonfigParallel::Job.new(@job_manager, new_job_options.merge(options))
-      async.delegate_job(new_job) unless job.worker_died?
+      async.delegate_job(new_job) unless job.rolling_back?
     end
 
     # lookup status of job by asking actor running it
@@ -216,11 +215,11 @@ module CapistranoMulticonfigParallel
 
     def worker_died(worker, reason)
       job = @worker_to_job[worker.mailbox.address]
-      return true if job.blank? || job.worker_died? || job.action != 'deploy'
+      return true if job.blank? || job.rolling_back? || job.action != 'deploy'
       mailbox = worker.mailbox
       @worker_to_job.delete(mailbox.address)
       log_to_file("RESTARTING: worker job #{job.inspect} with mailbox #{mailbox.inspect} and #{mailbox.address.inspect} died  for reason:  #{reason}")
-      dispatch_new_job(job, skip_env_options: true, action: 'deploy:rollback', status: 'worker_died')
+      dispatch_new_job(job, skip_env_options: true, action: 'deploy:rollback')
     end
   end
 end

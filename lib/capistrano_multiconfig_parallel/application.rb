@@ -8,19 +8,19 @@ module CapistranoMulticonfigParallel
     include Capistrano::DSL
     include Capistrano::Multiconfig::DSL
 
-    attr_reader :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage, :job_count
-    attr_writer :job_count
+    attr_reader :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
 
     def initialize
       Celluloid.boot
+      CapistranoMulticonfigParallel.enable_logging
       @stage_apps = multi_apps? ? stages.map { |stage| stage.split(':').reverse[1] }.uniq : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
-      @job_count = 0
       @jobs = []
     end
 
     def start
       verify_app_dependencies if multi_apps? && configuration.application_dependencies.present?
+      verify_valid_data
       check_before_starting
       initialize_data
       run
@@ -68,6 +68,12 @@ module CapistranoMulticonfigParallel
       stages.find { |stage| stage.include?(':') }.present?
     end
 
+    def verify_valid_data
+      return  if  @top_level_tasks != ['default']
+      puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
+      exit(false)
+    end
+
     def initialize_data
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
@@ -94,7 +100,6 @@ module CapistranoMulticonfigParallel
     end
 
     def check_before_starting
-      CapistranoMulticonfigParallel.enable_logging
       @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(Actor.current)
       @default_stage = configuration.development_stages.present? ? configuration.development_stages.first : 'development'
       @condition = Celluloid::Condition.new
@@ -223,11 +228,10 @@ module CapistranoMulticonfigParallel
 
       env_options = branch_name.present? ? { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
       job_env_options = custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
-      @job_count += 1
       job = CapistranoMulticonfigParallel::Job.new(Actor.current, options.merge(
                                                                     action: custom_command? && env_options['ACTION'].present? ? env_options['ACTION'] : options['action'],
-                                                                    env_options: job_env_options,
-                                                                    count: @job_count
+                                                                    env_options: job_env_options
+
       ))
       @jobs << job
     end
