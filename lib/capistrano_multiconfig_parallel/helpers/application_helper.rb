@@ -92,7 +92,7 @@ module CapistranoMulticonfigParallel
     end
 
     def strip_characters_from_string(value)
-      return unless value.present?
+      return '' if value.blank?
       value = value.delete("\r\n").delete("\n")
       value = value.gsub(/\s+/, ' ').strip
       value

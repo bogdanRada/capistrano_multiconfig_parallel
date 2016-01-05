@@ -35,7 +35,6 @@ module CapistranoMulticonfigParallel
 
     def terminal_row
       [
-        { value: count.to_s },
         { value: id.to_s },
         { value: wrap_string(job_stage) },
         { value: wrap_string(capistrano_action) },
@@ -51,10 +50,13 @@ module CapistranoMulticonfigParallel
       (longest_hash[:value].size.to_f / 80.0).ceil
     end
 
+    def worker
+      return unless @manager.alive?
+      @manager.get_worker_for_job(id)
+    end
+
     def worker_state
       default = status.to_s.upcase.red
-      return default unless @manager.alive?
-      worker = @manager.get_worker_for_job(id)
       worker.alive? ? worker.worker_state : default
     end
 
@@ -69,8 +71,7 @@ module CapistranoMulticonfigParallel
       { name: 'task_arguments', default: [] },
       { name: 'env_options', default: {} },
       { name: 'status', default: :unstarted },
-      { name: 'exit_status', default: nil },
-      { name: 'count', default: nil }
+      { name: 'exit_status', default: nil }
     ].each do |hash|
       define_method hash[:name] do
         value = @options.fetch(hash[:name], hash[:default])
@@ -93,7 +94,7 @@ module CapistranoMulticonfigParallel
     end
 
     def crashed?
-      failed? || dead? || worker_died? || exit_status.present?
+      worker_died? || failed? || dead? || exit_status.present?
     end
 
     def dead?
@@ -101,7 +102,15 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_died?
-      status.present? && status.to_s.downcase == 'worker_died'
+      !worker.alive?
+    end
+
+    def to_json
+      hash = {}
+      %w(id app stage action task_arguments env_options status exit_status).each do |key|
+        hash[key] = send(key)
+      end
+      hash
     end
   end
 end

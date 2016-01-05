@@ -21,9 +21,9 @@ module CapistranoMulticonfigParallel
       app.present? ? "#{app}:#{stage}" : "#{stage}"
     end
 
-    def capistrano_action(rake_action = action)
+    def capistrano_action
       argv = task_arguments.present? ? "[#{task_arguments}]" : ''
-      "#{rake_action}#{argv}"
+      "#{action}#{argv}"
     end
 
     def env_option_filtered?(key, filtered_keys_array = [])
@@ -44,10 +44,13 @@ module CapistranoMulticonfigParallel
       setup_env_options(options).concat(new_arguments)
     end
 
-    def build_capistrano_task(rake_action = nil, *args)
-      rake_action = rake_action.present? ? rake_action : action
-      environment_options = setup_command_line(*args).join(' ')
-      "cd #{detect_root} && RAILS_ENV=#{@stage}  bundle exec multi_cap #{job_stage} #{capistrano_action(rake_action)}  #{environment_options}"
+    def to_s
+      environment_options = setup_command_line.join(' ')
+      "cd #{detect_root} && RAILS_ENV=#{@stage}  bundle exec multi_cap #{job_stage} #{capistrano_action}  #{environment_options}"
+    end
+
+    def to_json
+      { command: to_s }
     end
 
     def execute_standard_deploy(action = nil)
