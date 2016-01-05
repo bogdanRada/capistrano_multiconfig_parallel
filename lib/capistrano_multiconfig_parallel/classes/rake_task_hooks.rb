@@ -56,7 +56,7 @@ module CapistranoMulticonfigParallel
         supervise_actor
         actor.work(@env, actor_id: rake_actor_id, job_id: job_id, task: @task, invocation_chain: @invocation_chain)
       else
-        actor.publish_new_work(@env, task: @task,invocation_chain: @invocation_chain)
+        actor.publish_new_work(@env, task: @task, invocation_chain: @invocation_chain)
       end
     end
 

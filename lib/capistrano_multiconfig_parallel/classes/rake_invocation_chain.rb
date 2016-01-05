@@ -5,9 +5,9 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     delegate :get_job_invocation_chain,
-    :fetch_invocation_chains,
-    :job_chain_task_index,
-    to: :CapistranoMulticonfigParallel
+             :fetch_invocation_chains,
+             :job_chain_task_index,
+             to: :CapistranoMulticonfigParallel
 
     attr_accessor :task, :env, :job_id
 
@@ -27,11 +27,11 @@ module CapistranoMulticonfigParallel
 
     def register_hooks(deps, &block)
       register_before_hook(deps)
-      new_block = block_given? ?  block.dup : proc {}
+      new_block = block_given? ? block.dup : proc {}
       register_after_hook(&new_block)
     end
 
-    private
+  private
 
     def register_before_hook(deps)
       return if deps.blank?
@@ -49,7 +49,7 @@ module CapistranoMulticonfigParallel
       register_after_tasks(tasks, &block)
     end
 
-    def register_after_tasks(tasks, &block)
+    def register_after_tasks(tasks, &_block)
       return if tasks.blank?
       tasks.each do |task_string|
         register_hook_for_task('after', task_string)
@@ -78,21 +78,21 @@ module CapistranoMulticonfigParallel
     end
 
     def task_insert_position(hook_name)
-       current_index =job_chain_task_index(@job_id, task_name)
-       current_index =  current_index.present? ? current_index : 0
-       log_to_file("Task #{task_name} is at position #{current_index} #{fetch_invocation_chains}", job_id: @job_id)
-       current_index.send((hook_name == 'after') ? '+' : '-', 1)
+      current_index = job_chain_task_index(@job_id, task_name)
+      current_index = current_index.present? ? current_index : 0
+      log_to_file("Task #{task_name} is at position #{current_index} #{fetch_invocation_chains}", job_id: @job_id)
+      current_index.send((hook_name == 'after') ? '+' : '-', 1)
     end
 
     def register_hook_for_task(hook_name, obj)
-      new_task =  task_name(obj)
+      new_task = task_name(obj)
       log_to_file("REGISTER #{task_name} #{hook_name} #{new_task} #{task_insert_position(hook_name)} #{fetch_invocation_chains}", job_id: @job_id)
       if new_task.is_a?(Array)
         new_task.each do |task|
           register_hook_for_task(hook_name, task)
         end
       else
-         get_job_invocation_chain(@job_id,new_task, task_insert_position(hook_name))
+        get_job_invocation_chain(@job_id, new_task, task_insert_position(hook_name))
       end
     end
 
@@ -105,12 +105,12 @@ module CapistranoMulticonfigParallel
     end
 
     def get_task_match(source_tasks, match_array, source)
-       new_match = match_array.reject(&:blank?)
-        new_match.each do|match_task|
-          string = parse_string_enclosed_quotes(source, match_task)
-          source_tasks << string if string.present?
-        end
+      new_match = match_array.reject(&:blank?)
+      new_match.each do|match_task|
+        string = parse_string_enclosed_quotes(source, match_task)
+        source_tasks << string if string.present?
       end
+    end
 
     def parse_string_enclosed_quotes(source, match_task)
       match_task = match_task.scan(/[\\'"]+(.*?)[\\'"]+/).join

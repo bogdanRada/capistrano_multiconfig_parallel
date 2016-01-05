@@ -49,7 +49,6 @@ module CapistranoMulticonfigParallel
       worker.present? && worker.alive? ? result.green : result.red
     end
 
-
     def terminal_row
       chain = invocation_chain.dup
       [
@@ -58,8 +57,8 @@ module CapistranoMulticonfigParallel
         { value: wrap_string(capistrano_action) },
         { value: terminal_env_variables.map { |str| wrap_string(str) }.join("\n") },
         { value: wrap_string(worker_state) },
-       { value: chain.size },
-       { value: job_progress(chain) }
+        { value: chain.size },
+        { value: job_progress(chain) }
       ]
     end
 
@@ -69,7 +68,6 @@ module CapistranoMulticonfigParallel
       end
       (longest_hash[:value].size.to_f / 80.0).ceil
     end
-
 
     def worker_state
       default = status.to_s.upcase.red

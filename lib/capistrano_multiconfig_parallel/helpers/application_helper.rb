@@ -7,12 +7,12 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::CoreHelper
 
     delegate :logger,
-    :configuration,
-    :configuration_valid?,
-    :original_args,
-    to: :CapistranoMulticonfigParallel
+             :configuration,
+             :configuration_valid?,
+             :original_args,
+             to: :CapistranoMulticonfigParallel
 
-    module_function
+  module_function
 
     def string_interpolated?(string)
       string.include?('#{') || string.include?('+') || string.include?('<')

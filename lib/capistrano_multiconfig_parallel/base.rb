@@ -16,32 +16,30 @@ module CapistranoMulticonfigParallel
     end
 
     def fetch_invocation_chains(job_id = nil)
-      @invocation_chains ||=  {}
+      @invocation_chains ||= {}
       @invocation_chains[job_id] ||= [] if job_id.present?
-      job_id.present?  ? @invocation_chains[job_id] : @invocation_chains
+      job_id.present? ? @invocation_chains[job_id] : @invocation_chains
     end
 
     def get_job_invocation_chain(job_id, task = nil, position = nil)
       tasks = fetch_invocation_chains(job_id)
-      position = position.present? ? position : tasks.size 
-      fetch_invocation_chains(job_id).insert(position, task)  if task.present? && job_chain_task_index(job_id, task).blank?
+      position = position.present? ? position : tasks.size
+      fetch_invocation_chains(job_id).insert(position, task) if task.present? && job_chain_task_index(job_id, task).blank?
     end
 
-     def job_chain_task_index(job_id, task_name)
+    def job_chain_task_index(job_id, task_name)
       return if job_id.blank? || task_name.blank?
       fetch_invocation_chains(job_id).index(task_name)
     end
 
-    private
-
-
+  private
 
     def set_celluloid_exception_handling
       Celluloid.logger = logger
       Celluloid.task_class = Celluloid::TaskThread
       Celluloid.exception_handler do |ex|
         unless ex.is_a?(Interrupt)
-        rescue_error(ex, 'stderr')
+          rescue_error(ex, 'stderr')
         end
       end
     end

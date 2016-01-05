@@ -27,7 +27,6 @@ require 'yaml'
 require 'stringio'
 require 'io/console'
 
-
 # capistrano requirements
 require 'rake'
 require 'capistrano/all'
