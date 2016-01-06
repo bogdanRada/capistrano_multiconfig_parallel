@@ -32,10 +32,13 @@ module CapistranoMulticonfigParallel
 
     def setup_env_options(options = {})
       array_options = []
+      prefix = CapistranoMulticonfigParallel.capistrano_version_2? ? '-S' : ''
       env_options.each do |key, value|
-        array_options << "#{key}=#{value}" if value.present? && !env_option_filtered?(key, options.fetch(:filtered_keys, []))
+        key = CapistranoMulticonfigParallel.capistrano_version_2? ? key.downcase : key
+        array_options << "#{prefix} #{key}=#{value}" if value.present? && !env_option_filtered?(key, options.fetch(:filtered_keys, []))
       end
-      array_options << '--trace' if app_debug_enabled?
+      trace_flag = CapistranoMulticonfigParallel.capistrano_version_2? ? '--debug' : '--trace'
+      array_options << trace_flag if app_debug_enabled?
       array_options
     end
 
@@ -46,7 +49,7 @@ module CapistranoMulticonfigParallel
 
     def to_s
       environment_options = setup_command_line.join(' ')
-      "cd #{detect_root} && RAILS_ENV=#{@stage}  bundle exec multi_cap #{job_stage} #{capistrano_action}  #{environment_options}"
+      "cd #{detect_root} && RAILS_ENV=#{stage}  bundle exec multi_cap #{job_stage} #{capistrano_action}  #{environment_options}"
     end
 
     def to_json

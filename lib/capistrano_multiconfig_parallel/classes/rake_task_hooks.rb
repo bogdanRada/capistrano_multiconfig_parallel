@@ -4,10 +4,11 @@ require_relative './output_stream'
 module CapistranoMulticonfigParallel
   # class used to handle the rake worker and sets all the hooks before and after running the worker
   class RakeTaskHooks
-    attr_accessor :task, :env
-    def initialize(env, task)
+    attr_accessor :task, :env, :config
+    def initialize(env, task, config = nil)
       @env = env
       @task = task
+      @config = config
     end
 
     def automatic_hooks(&block)
@@ -66,7 +67,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_id
-      @env[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
+      CapistranoMulticonfigParallel.capistrano_version_2? ? @config.options[:pre_vars][CapistranoMulticonfigParallel::ENV_KEY_JOB_ID] : @env[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
     end
 
     def rake_actor_id

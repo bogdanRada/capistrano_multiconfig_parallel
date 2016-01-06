@@ -16,7 +16,13 @@ module CapistranoMulticonfigParallel
         if arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
           run_the_application
         else
-          Capistrano::Application.new.run
+          if CapistranoMulticonfigParallel.capistrano_version_2?
+            require 'capistrano/cli'
+            Capistrano::CLI.execute
+          else
+            require 'capistrano/all'
+            Capistrano::Application.new.run
+          end
         end
       end
 

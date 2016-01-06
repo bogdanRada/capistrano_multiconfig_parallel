@@ -1,11 +1,16 @@
-require_relative './application_helper'
+require_relative './core_helper'
+require_relative './internal_helper'
+require_relative './parse_helper'
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module Configuration
     extend ActiveSupport::Concern
 
     included do
-      include CapistranoMulticonfigParallel::ApplicationHelper
+      include CapistranoMulticonfigParallel::CoreHelper
+      include CapistranoMulticonfigParallel::InternalHelper
+      include CapistranoMulticonfigParallel::ParseHelper
+      
       attr_reader :configuration
 
       def configuration

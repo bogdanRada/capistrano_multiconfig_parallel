@@ -8,21 +8,29 @@ module CapistranoMulticonfigParallel
   class << self
     attr_accessor :logger, :original_args
     include CapistranoMulticonfigParallel::Configuration
-    include CapistranoMulticonfigParallel::CoreHelper
+    include CapistranoMulticonfigParallel::GemHelper
 
     def enable_logging
       enable_file_logging
       set_celluloid_exception_handling
     end
 
-  private
+    def capistrano_version
+      find_loaded_gem_property('capistrano', 'version')
+    end
+
+    def capistrano_version_2?
+      verify_gem_version('capistrano', '3.0', operator: '<')
+    end
+
+    private
 
     def set_celluloid_exception_handling
       Celluloid.logger = logger
       Celluloid.task_class = Celluloid::TaskThread
       Celluloid.exception_handler do |ex|
         unless ex.is_a?(Interrupt)
-        rescue_error(ex, 'stderr')
+          rescue_error(ex, 'stderr')
         end
       end
     end

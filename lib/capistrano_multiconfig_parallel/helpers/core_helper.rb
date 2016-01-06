@@ -55,7 +55,7 @@ module CapistranoMulticonfigParallel
     def log_output_error(error, output, message)
       return if error_filtered?(error)
       puts message if output.present?
-      terminal_actor.errors.push(message) if terminal_actor.alive?
+      terminal_actor.errors.push(message) if terminal_actor.present? && terminal_actor.alive?
     end
 
     def format_error(exception)
