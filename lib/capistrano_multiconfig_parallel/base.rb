@@ -6,7 +6,7 @@ module CapistranoMulticonfigParallel
   GITFLOW_VERIFY_UPTODATE_TASK = 'gitflow:verify_up_to_date'
 
   class << self
-    attr_accessor :logger, :original_args, :invocation_chains
+    attr_accessor :logger, :original_args, :task_hooks
     include CapistranoMulticonfigParallel::Configuration
     include CapistranoMulticonfigParallel::CoreHelper
 
@@ -15,24 +15,15 @@ module CapistranoMulticonfigParallel
       set_celluloid_exception_handling
     end
 
-    def fetch_invocation_chains(job_id = nil)
-      @invocation_chains ||= {}
-      @invocation_chains[job_id] ||= [] if job_id.present?
-      job_id.present? ? @invocation_chains[job_id] : @invocation_chains
+    def task_hooks
+      @task_hooks ||= CapistranoMulticonfigParallel::RakeTreeNode.new('ROOT', 'ROOT Content')
     end
 
-    def get_job_invocation_chain(job_id, task = nil, position = nil)
-      tasks = fetch_invocation_chains(job_id)
-      position = position.present? ? position : tasks.size
-      fetch_invocation_chains(job_id).insert(position, task) if task.present? && job_chain_task_index(job_id, task).blank?
+    def task_hooks_tree
+      task_hooks.print_tree
     end
 
-    def job_chain_task_index(job_id, task_name)
-      return if job_id.blank? || task_name.blank?
-      fetch_invocation_chains(job_id).index(task_name)
-    end
-
-  private
+    private
 
     def set_celluloid_exception_handling
       Celluloid.logger = logger

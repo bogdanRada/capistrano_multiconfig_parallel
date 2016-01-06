@@ -19,6 +19,8 @@ require 'devnull'
 require 'inquirer'
 require 'rack'
 require 'method_source'
+require 'tree'
+require 'tree/binarytree'
 
 require 'logger'
 require 'fileutils'

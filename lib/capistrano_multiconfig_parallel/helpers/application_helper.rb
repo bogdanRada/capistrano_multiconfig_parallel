@@ -16,10 +16,6 @@ module CapistranoMulticonfigParallel
 
   module_function
 
-    def string_interpolated?(string)
-      string.include?('#{') || string.include?('+') || string.include?('<')
-    end
-
     def msg_for_stdin?(message)
       message['action'] == 'stdin'
     end

@@ -32,6 +32,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'devnull','~> 0.1', '>= 0.1'
   s.add_runtime_dependency 'rack', '~> 1.6', '>= 1.6'
   s.add_runtime_dependency 'method_source', '~> 0.8', '>= 0.8'
+  s.add_runtime_dependency 'rubytree', '~> 0.9', '>= 0.9.6'
 
 
   s.add_development_dependency 'rspec-rails', '~> 3.3', '>= 3.3'

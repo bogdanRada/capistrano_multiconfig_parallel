@@ -4,7 +4,7 @@ Rake::Task.class_eval do
   alias_method :original_enhance, :enhance
 
   def enhance(deps = nil, &block)
-    CapistranoMulticonfigParallel::RakeTaskHooks.new(ENV, self).rake_task_list.register_hooks(deps, &block)
+    CapistranoMulticonfigParallel::RakeInvocationChain.new(ENV, self).register_hooks(deps, &block)
     original_enhance(deps, &block)
   end
 

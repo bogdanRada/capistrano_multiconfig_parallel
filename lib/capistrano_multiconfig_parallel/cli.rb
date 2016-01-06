@@ -14,6 +14,12 @@ module CapistranoMulticonfigParallel
 
       def execute_start(arguments)
         if arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
+          capistrano = Capistrano::Application.new
+          Rake.application = capistrano
+          capistrano.init
+          capistrano.load_rakefile
+          CapistranoMulticonfigParallel.task_hooks_tree
+          exit(false)
           run_the_application
         else
           Capistrano::Application.new.run
