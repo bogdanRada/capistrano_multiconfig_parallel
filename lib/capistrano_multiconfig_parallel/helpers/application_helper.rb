@@ -1,10 +1,12 @@
 require_relative './core_helper'
 require_relative './internal_helper'
+require_relative './stages_helper'
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module ApplicationHelper
     include CapistranoMulticonfigParallel::InternalHelper
     include CapistranoMulticonfigParallel::CoreHelper
+    include CapistranoMulticonfigParallel::StagesHelper
 
     delegate :logger,
              :configuration,
