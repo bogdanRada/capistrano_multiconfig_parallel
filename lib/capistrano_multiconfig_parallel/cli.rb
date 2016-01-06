@@ -14,7 +14,6 @@ module CapistranoMulticonfigParallel
 
       def execute_start(arguments)
         if arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
-          require_relative './application'
           run_the_application
         else
           Capistrano::Application.new.run

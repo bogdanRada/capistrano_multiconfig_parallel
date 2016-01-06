@@ -27,9 +27,9 @@ module CapistranoMulticonfigParallel
       def fetch_cursor_position(table_size, position, previously_erased_screen)
         final_position = position || fetch_position
         terminal_rows = fetch_terminal_size
-        screen_erased = refetch_position?(table_size, terminal_rows, final_position)
-        if screen_erased == true
-          move_to_home! if previously_erased_screen != true
+        if previously_erased_screen == false && refetch_position?(table_size, terminal_rows, final_position)
+          screen_erased = true
+          move_to_home!
           final_position = fetch_position
           terminal_rows = fetch_terminal_size
         end

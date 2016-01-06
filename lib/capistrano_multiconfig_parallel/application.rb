@@ -1,12 +1,9 @@
-require 'capistrano/multiconfig/dsl'
 module CapistranoMulticonfigParallel
   # finds app dependencies, shows menu and delegates jobs to celluloid manager
   class Application
     include Celluloid
     include Celluloid::Logger
     include CapistranoMulticonfigParallel::ApplicationHelper
-    include Capistrano::DSL
-    include Capistrano::Multiconfig::DSL
 
     attr_reader :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
 

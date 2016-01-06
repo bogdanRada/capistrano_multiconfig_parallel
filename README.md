@@ -20,28 +20,26 @@ CAUTION!! PLEASE READ CAREFULLY!! Capistrano is not thread-safe. However in orde
 Requirements
 ------------
 
-1.	[Ruby 1.9.x or Ruby 2.x.x](http://www.ruby-lang.org)
-2.	[ActiveSuport >= 4.2.0](https://rubygems.org/gems/activesupport)
-3.	[celluloid-pmap >= 0.2.2](https://github.com/jwo/celluloid-pmap)
-4.	[celluloid_pubsub >= 0.1.0](https://github.com/bogdanRada/celluloid_pubsub)
-5.	[celluloid-websocket-client >= 0.0.1](https://github.com/jeremyd/celluloid-websocket-client)
-6.	[composable_state_machine >= 1.0.2](https://github.com/swoop-inc/composable_state_machine)
-7.	[terminal-table >= 1.5.2](https://github.com/tj/terminal-table)
-8.	[colorize >= 0.7](https://github.com/fazibear/colorize)
-9.	[eventmachine >= 1.0.3](https://github.com/eventmachine/eventmachine)
-10.	[right_popen >= 1.1.3](https://github.com/rightscale/right_popen)
-11.	[capistrano >= 3.0](https://github.com/capistrano/capistrano/)
-12.	[capistrano-multiconfig >= 3.0.8](https://github.com/railsware/capistrano-multiconfig)
-13.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
-14.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
-15.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
-16.	[rack >= 1.6](http://rack.github.io/)
-17.	[method_source >= 0.8](https://github.com/banister/method_source)
+1.	[ActiveSuport >= 4.2.0](https://rubygems.org/gems/activesupport)
+2.	[celluloid-pmap >= 0.2.2](https://github.com/jwo/celluloid-pmap)
+3.	[celluloid_pubsub >= 0.1.0](https://github.com/bogdanRada/celluloid_pubsub)
+4.	[celluloid-websocket-client >= 0.0.1](https://github.com/jeremyd/celluloid-websocket-client)
+5.	[composable_state_machine >= 1.0.2](https://github.com/swoop-inc/composable_state_machine)
+6.	[terminal-table >= 1.5.2](https://github.com/tj/terminal-table)
+7.	[colorize >= 0.7](https://github.com/fazibear/colorize)
+8.	[eventmachine >= 1.0.3](https://github.com/eventmachine/eventmachine)
+9.	[right_popen >= 1.1.3](https://github.com/rightscale/right_popen)
+10.	[capistrano >= 3.0](https://github.com/capistrano/capistrano/)
+11.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
+12.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
+13.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
+14.	[rack >= 1.6](http://rack.github.io/)
+15.	[method_source >= 0.8](https://github.com/banister/method_source)
 
 Compatibility
 -------------
 
-Rails >3.0 only. MRI 1.9.x, 2.x
+Rails >3.0 only. [MRI 1.9.x or 2.x](http://www.ruby-lang.org)
 
 Ruby 1.8 is not officially supported. We will accept further compatibilty pull-requests but no upcoming versions will be tested against it.
 
