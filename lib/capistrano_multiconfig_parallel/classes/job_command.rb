@@ -14,7 +14,7 @@ module CapistranoMulticonfigParallel
     end
 
     def filtered_env_keys
-      %w(STAGES ACTION)
+      filtered_env_keys_format(%w(STAGES ACTION))
     end
 
     def job_stage
@@ -27,15 +27,15 @@ module CapistranoMulticonfigParallel
     end
 
     def env_option_filtered?(key, filtered_keys_array = [])
-      filtered_env_keys.include?(key) || filtered_keys_array.include?(key.to_s)
+      filtered_env_keys.include?(env_key_format(key)) || filtered_keys_array.include?(key.to_s)
     end
 
     def setup_env_options(options = {})
       array_options = []
       env_options.each do |key, value|
-        array_options << "#{key}=#{value}" if value.present? && !env_option_filtered?(key, options.fetch(:filtered_keys, []))
+        array_options << "#{env_prefix} #{env_key_format(key)}=#{value}" if value.present? && !env_option_filtered?(key, options.fetch(:filtered_keys, []))
       end
-      array_options << '--trace' if app_debug_enabled?
+      array_options << trace_flag if app_debug_enabled?
       array_options
     end
 
@@ -45,8 +45,9 @@ module CapistranoMulticonfigParallel
     end
 
     def to_s
-      environment_options = setup_command_line.join(' ')
-      "cd #{detect_root} && RAILS_ENV=#{@stage}  bundle exec multi_cap #{job_stage} #{capistrano_action}  #{environment_options}"
+      configuration_options = CapistranoMulticonfigParallel.original_args.select { |arg| arg.include?('--') }
+      environment_options = setup_command_line(configuration_options).join(' ')
+      "cd #{detect_root} && RAILS_ENV=#{stage}  bundle exec multi_cap #{job_stage} #{capistrano_action}  #{environment_options}"
     end
 
     def to_json
@@ -54,8 +55,7 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_standard_deploy(action = nil)
-      command = build_capistrano_task(action)
-      run_shell_command(command)
+      run_shell_command(to_s)
     rescue => ex
       rescue_error(ex, 'stderr')
       execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
