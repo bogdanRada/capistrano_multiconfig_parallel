@@ -11,10 +11,13 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ParseHelper
     include CapistranoMulticonfigParallel::StagesHelper
     include CapistranoMulticonfigParallel::GemHelper
+    include CapistranoMulticonfigParallel::CapistranoHelper
 
     delegate :logger,
              :configuration,
              :configuration_valid?,
+             :capistrano_version_2?,
+             :capistrano_version,
              :original_args,
              to: :CapistranoMulticonfigParallel
 

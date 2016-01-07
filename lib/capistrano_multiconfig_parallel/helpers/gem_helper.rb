@@ -1,7 +1,7 @@
 module CapistranoMulticonfigParallel
+  # helper used to determine gem versions
   module GemHelper
-
-    module_function
+  module_function
 
     def find_loaded_gem(name)
       Gem.loaded_specs.values.find { |repo| repo.name == name }

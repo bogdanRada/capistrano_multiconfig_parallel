@@ -23,7 +23,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    private
+  private
 
     def output_stream
       CapistranoMulticonfigParallel::OutputStream
@@ -69,7 +69,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_id
-      CapistranoMulticonfigParallel.capistrano_version_2? ? @config.fetch(CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, nil) : @env[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
+      capistrano_version_2? ? @config.fetch(CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, nil) : @env[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
     end
 
     def rake_actor_id

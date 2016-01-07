@@ -1,7 +1,6 @@
 if CapistranoMulticonfigParallel.capistrano_version_2?
   require 'capistrano/cli'
   Capistrano::Configuration::Execution.class_eval do
-
     alias_method :original_execute_task, :execute_task
 
     def execute_task(task)
@@ -12,9 +11,7 @@ if CapistranoMulticonfigParallel.capistrano_version_2?
     end
   end
 
-
   Capistrano::Configuration::Callbacks.class_eval do
-
     alias_method :original_trigger, :trigger
 
     def trigger(event, task = nil)

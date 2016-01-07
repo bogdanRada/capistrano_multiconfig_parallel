@@ -28,7 +28,7 @@ module CapistranoMulticonfigParallel
       verify_gem_version('capistrano', '3.0', operator: '<')
     end
 
-    private
+  private
 
     def set_celluloid_exception_handling
       Celluloid.logger = logger

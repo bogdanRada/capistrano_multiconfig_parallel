@@ -17,14 +17,18 @@ module CapistranoMulticonfigParallel
         if arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
           run_the_application
         else
-          ARGV.reject!{ |arg| configuration.keys.map(&:to_s).include?(arg.split('=')[0].tr('--','')) }
-          if CapistranoMulticonfigParallel.capistrano_version_2?
-            require 'capistrano/cli'
-            Capistrano::CLI.execute
-          else
-            require 'capistrano/all'
-            Capistrano::Application.new.run
-          end
+          ARGV.reject! { |arg| configuration.keys.map(&:to_s).include?(arg.split('=')[0].tr('--', '')) }
+          run_capistrano
+        end
+      end
+
+      def run_capistrano
+        if capistrano_version_2?
+          require 'capistrano/cli'
+          Capistrano::CLI.execute
+        else
+          require 'capistrano/all'
+          Capistrano::Application.new.run
         end
       end
 

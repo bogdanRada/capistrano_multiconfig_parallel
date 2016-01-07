@@ -22,7 +22,6 @@ module CapistranoMulticonfigParallel
       # start SupervisionGroup
       @worker_supervisor = Celluloid::SupervisionGroup.run!
 
-
       # Get a handle on the SupervisionGroup::Member
       @mutex = Mutex.new
       # http://rubydoc.info/gems/celluloid/Celluloid/SupervisionGroup/Member

@@ -86,7 +86,7 @@ module CapistranoMulticonfigParallel
     end
 
     def action_key
-      CapistranoMulticonfigParallel.capistrano_version_2? ? 'action' : 'ACTION'
+      capistrano_version_2? ? 'action' : 'ACTION'
     end
 
     def verify_options_custom_command(options)
@@ -124,7 +124,7 @@ module CapistranoMulticonfigParallel
     end
 
     def stages_key
-     CapistranoMulticonfigParallel.capistrano_version_2? ? 'stages' : 'STAGES'
+      capistrano_version_2? ? 'stages' : 'STAGES'
     end
 
     def fetch_multi_stages
@@ -176,8 +176,9 @@ module CapistranoMulticonfigParallel
       end
       process_jobs
     end
+
     def boxes_key
-        CapistranoMulticonfigParallel.capistrano_version_2? ? 'box' : 'BOX'
+      capistrano_version_2? ? 'box' : 'BOX'
     end
 
     def call_task_deploy_app(options = {})
@@ -215,7 +216,6 @@ module CapistranoMulticonfigParallel
       terminate
     end
 
-    # rubocop:disable CyclomaticComplexity
     def prepare_job(options)
       options = options.stringify_keys
       app = options.fetch('app', '')

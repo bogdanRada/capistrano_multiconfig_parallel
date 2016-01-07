@@ -1,7 +1,7 @@
 module CapistranoMulticonfigParallel
+  # module used for parsing numbers, strings , arrays and hashes
   module ParseHelper
-
-    module_function
+  module_function
 
     def check_numeric(num)
       /^[0-9]+/.match(num.to_s)
@@ -40,6 +40,5 @@ module CapistranoMulticonfigParallel
       value = value.gsub(/\s+/, ' ').strip
       value
     end
-
   end
 end
