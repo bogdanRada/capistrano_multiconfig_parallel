@@ -5,7 +5,7 @@ module CapistranoMulticonfigParallel
     include Celluloid::Logger
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :stage_apps, :top_level_tasks, :jobs, :branch_backup, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
+    attr_reader :stage_apps, :top_level_tasks, :jobs, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
 
     def initialize
       Celluloid.boot
@@ -47,12 +47,6 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def backup_the_branch
-      return if custom_command? || @argv['BRANCH'].blank?
-      @branch_backup = @argv['BRANCH'].to_s
-      @argv['BRANCH'] = nil
-    end
-
     def custom_command?
       if multi_apps?
         !stages.include?(@top_level_tasks.first) && custom_commands.include?(@top_level_tasks.first)
@@ -91,8 +85,12 @@ module CapistranoMulticonfigParallel
       @top_level_tasks.push(Rake.application.default_task_name) if @top_level_tasks.blank?
     end
 
+    def action_key
+      CapistranoMulticonfigParallel.capistrano_version_2? ? 'action' : 'ACTION'
+    end
+
     def verify_options_custom_command(options)
-      options[:action] = @argv['ACTION'].present? ? @argv['ACTION'] : 'deploy'
+      options[:action] = @argv[action_key].present? ? @argv[action_key] : 'deploy'
       options
     end
 
@@ -107,7 +105,6 @@ module CapistranoMulticonfigParallel
       options = prepare_options(options)
       options = options.stringify_keys
       apps = @dependency_tracker.fetch_apps_needed_for_deployment(options['app'], options['action'])
-      backup_the_branch if multi_apps?
       deploy_multiple_apps(apps, options)
       deploy_app(options) if !custom_command? || !multi_apps?
     end
@@ -126,8 +123,12 @@ module CapistranoMulticonfigParallel
       find_loaded_gem('capistrano-gitflow').present?
     end
 
+    def stages_key
+     CapistranoMulticonfigParallel.capistrano_version_2? ? 'stages' : 'STAGES'
+    end
+
     def fetch_multi_stages
-      custom_stages = @argv['STAGES'].blank? ? '' : @argv['STAGES']
+      custom_stages = @argv[stages_key].blank? ? '' : @argv[stages_key]
       custom_stages = strip_characters_from_string(custom_stages).split(',').compact if custom_stages.present?
       custom_stages = custom_stages.present? ? custom_stages : [@default_stage]
       custom_stages
@@ -147,9 +148,7 @@ module CapistranoMulticonfigParallel
 
     def deploy_app(options = {})
       options = options.stringify_keys
-      branch = @branch_backup.present? ? @branch_backup : @argv['BRANCH'].to_s
       call_task_deploy_app({
-        branch: branch,
         app: options['app'],
         action: options['action']
       }.reverse_merge(options))
@@ -177,13 +176,17 @@ module CapistranoMulticonfigParallel
       end
       process_jobs
     end
+    def boxes_key
+        CapistranoMulticonfigParallel.capistrano_version_2? ? 'box' : 'BOX'
+    end
 
     def call_task_deploy_app(options = {})
       options = options.stringify_keys
-      main_box_name = @argv['BOX'].blank? ? '' : @argv['BOX']
+      main_box_name = @argv[boxes_key].blank? ? '' : @argv[boxes_key]
+      boxes = strip_characters_from_string(main_box_name).split(',').compact
       stage = options.fetch('stage', @default_stage)
-      if configuration.development_stages.include?(stage) && main_box_name.present? && /^[a-z0-9,]+/.match(main_box_name)
-        execute_on_multiple_boxes(main_box_name, options)
+      if configuration.development_stages.include?(stage) && boxes.present?
+        execute_on_multiple_boxes(boxes, options)
       else
         prepare_job(options)
       end
@@ -215,18 +218,17 @@ module CapistranoMulticonfigParallel
     # rubocop:disable CyclomaticComplexity
     def prepare_job(options)
       options = options.stringify_keys
-      branch_name = options.fetch('branch', {})
       app = options.fetch('app', '')
-      box = options['env_options']['BOX']
+      box = options['env_options'][boxes_key]
       message = box.present? ? "BOX #{box}:" : "stage #{options['stage']}:"
       env_opts = get_app_additional_env_options(app, message)
 
       options['env_options'] = options['env_options'].reverse_merge(env_opts)
 
-      env_options = branch_name.present? ? { 'BRANCH' => branch_name }.merge(options['env_options']) : options['env_options']
-      job_env_options = custom_command? && env_options['ACTION'].present? ? env_options.except('ACTION') : env_options
+      env_options = options['env_options']
+      job_env_options = custom_command? ? env_options.except(action_key) : env_options
       job = CapistranoMulticonfigParallel::Job.new(Actor.current, options.merge(
-                                                                    action: custom_command? && env_options['ACTION'].present? ? env_options['ACTION'] : options['action'],
+                                                                    action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
                                                                     env_options: job_env_options
 
       ))
@@ -253,10 +255,9 @@ module CapistranoMulticonfigParallel
       options
     end
 
-    def execute_on_multiple_boxes(main_box_name, options)
-      boxes = strip_characters_from_string(main_box_name).split(',').compact
+    def execute_on_multiple_boxes(boxes, options)
       boxes.each do |box_name|
-        options['env_options']['BOX'] = box_name
+        options['env_options'][boxes_key] = box_name
         prepare_job(options)
       end
     end
