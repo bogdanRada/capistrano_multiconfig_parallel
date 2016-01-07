@@ -1,9 +1,11 @@
 require_relative '../celluloid/rake_worker'
 require_relative './input_stream'
 require_relative './output_stream'
+require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class used to handle the rake worker and sets all the hooks before and after running the worker
   class RakeTaskHooks
+    include CapistranoMulticonfigParallel::ApplicationHelper
     attr_accessor :task, :env, :config
     def initialize(env, task, config = nil)
       @env = env
@@ -12,7 +14,7 @@ module CapistranoMulticonfigParallel
     end
 
     def automatic_hooks(&block)
-      if job_id.present?
+      if configuration.multi_secvential.to_s.downcase == 'false' && job_id.present?
         actor_start_working
         actor.wait_execution until actor.task_approved
         actor_execute_block(&block)
@@ -21,7 +23,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-  private
+    private
 
     def output_stream
       CapistranoMulticonfigParallel::OutputStream
@@ -67,7 +69,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_id
-      CapistranoMulticonfigParallel.capistrano_version_2? ? @config.options[:pre_vars][CapistranoMulticonfigParallel::ENV_KEY_JOB_ID] : @env[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
+      CapistranoMulticonfigParallel.capistrano_version_2? ? @config.fetch(CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, nil) : @env[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
     end
 
     def rake_actor_id

@@ -18,12 +18,12 @@ module CapistranoMulticonfigParallel
     end
 
     def verify_array_of_strings(value)
-      value.reject(&:blank?)
-      warn_array_without_strings(value)
+      value = verify_empty_options(value)
+      value.find { |row| !row.is_a?(String) }.present? ? warn_array_without_strings(value) : true
     end
 
     def warn_array_without_strings(value)
-      raise ArgumentError, 'the array must contain only task names' if value.find { |row| !row.is_a?(String) }
+      raise ArgumentError, "the array #{value} must contain only task names"
     end
 
     def check_hash_set(hash, props)

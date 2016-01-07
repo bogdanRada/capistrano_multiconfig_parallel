@@ -6,9 +6,14 @@ module CapistranoMulticonfigParallel
   GITFLOW_VERIFY_UPTODATE_TASK = 'gitflow:verify_up_to_date'
 
   class << self
-    attr_accessor :logger, :original_args
+    attr_accessor :logger, :original_args, :config, :config_keys
     include CapistranoMulticonfigParallel::Configuration
     include CapistranoMulticonfigParallel::GemHelper
+
+    def configuration
+      @config ||= fetch_configuration
+      @config
+    end
 
     def enable_logging
       enable_file_logging

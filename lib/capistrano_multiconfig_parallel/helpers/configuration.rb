@@ -4,19 +4,10 @@ require_relative './parse_helper'
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module Configuration
-    extend ActiveSupport::Concern
-
-    included do
       include CapistranoMulticonfigParallel::CoreHelper
       include CapistranoMulticonfigParallel::InternalHelper
       include CapistranoMulticonfigParallel::ParseHelper
-      
-      attr_reader :configuration
 
-      def configuration
-        @config ||= fetch_configuration
-        @config
-      end
 
       def fetch_configuration
         @fetched_config = Configliere::Param.new
@@ -45,6 +36,7 @@ module CapistranoMulticonfigParallel
         end
         @fetched_config.process_argv!
         @fetched_config.resolve!
+        @fetched_config
       end
 
       def verify_application_dependencies(value, props)
@@ -62,7 +54,11 @@ module CapistranoMulticonfigParallel
 
       def check_boolean(prop)
         value = get_prop_config(prop)
-        raise ArgumentError, "the property `#{prop}` must be boolean" unless %w(true false).include?(value.to_s.downcase)
+        if %w(true false).include?(value.to_s.downcase)
+          true
+        else
+          raise ArgumentError, "the property `#{prop}` must be boolean"
+        end
       end
 
       def configuration_valid?
@@ -71,14 +67,14 @@ module CapistranoMulticonfigParallel
 
       def check_boolean_props(props)
         props.each do |prop|
-          @check_config.send("#{prop}=", get_prop_config(prop)) if check_boolean(prop)
+          @check_config[prop] = get_prop_config(prop) if check_boolean(prop)
         end
       end
 
       def check_array_props(props)
         props.each do |prop|
           value = get_prop_config(prop)
-          @check_config.send("#{prop}=", value) if value_is_array?(value) && verify_array_of_strings(value)
+          @check_config[prop] = value if value_is_array?(value) && verify_array_of_strings(value)
         end
       end
 
@@ -91,11 +87,11 @@ module CapistranoMulticonfigParallel
         end
       end
 
+
       def check_configuration
         check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug websocket_server.use_redis terminal.clear_screen))
         check_array_props(%w(task_confirmations development_stages apply_stage_confirmation))
         verify_application_dependencies(@check_config['application_dependencies'], %w(app priority dependencies))
       end
-    end
   end
 end

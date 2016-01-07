@@ -48,7 +48,8 @@ module CapistranoMulticonfigParallel
     end
 
     def to_s
-      environment_options = setup_command_line.join(' ')
+      configuration_options = CapistranoMulticonfigParallel.original_args.select{ |arg| arg.include?('--') }
+      environment_options = setup_command_line(configuration_options).join(' ')
       "cd #{detect_root} && RAILS_ENV=#{stage}  bundle exec multi_cap #{job_stage} #{capistrano_action}  #{environment_options}"
     end
 
@@ -57,8 +58,7 @@ module CapistranoMulticonfigParallel
     end
 
     def execute_standard_deploy(action = nil)
-      command = build_capistrano_task(action)
-      run_shell_command(command)
+      run_shell_command(to_s)
     rescue => ex
       rescue_error(ex, 'stderr')
       execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'

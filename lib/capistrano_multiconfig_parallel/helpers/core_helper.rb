@@ -52,10 +52,14 @@ module CapistranoMulticonfigParallel
       Celluloid::Actor[:terminal_server]
     end
 
+    def terminal_errors?
+      terminal_actor.present? && terminal_actor.alive? && terminal_actor.errors.is_a?(Array)
+    end
+
     def log_output_error(error, output, message)
       return if error_filtered?(error)
       puts message if output.present?
-      terminal_actor.errors.push(message) if terminal_actor.present? && terminal_actor.alive?
+      terminal_actor.errors.push(message) if terminal_errors?
     end
 
     def format_error(exception)
