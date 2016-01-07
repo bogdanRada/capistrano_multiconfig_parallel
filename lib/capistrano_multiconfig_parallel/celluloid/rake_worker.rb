@@ -80,7 +80,7 @@ module CapistranoMulticonfigParallel
       elsif msg_for_stdin?(message)
         stdin_approval(message)
       else
-        show_warning "unknown action: #{message.inspect}"
+        show_warning "unknown message: #{message.inspect}"
       end
     end
 
@@ -103,16 +103,16 @@ module CapistranoMulticonfigParallel
       if @job_id == message['job_id']
         @stdin_result = message.fetch('result', '')
       else
-        show_warning "unknown invocation #{message.inspect}"
+        show_warning "unknown stdin_approval #{message.inspect}"
       end
     end
 
     def task_approval(message)
       return unless msg_for_task?(message)
-      if @job_id == message['job_id'] && message['task'] == task_name && message['approved'] == 'yes'
+      if @job_id == message['job_id'] && message['task'].to_s == task_name.to_s && message['approved'] == 'yes'
         @task_approved = true
       else
-        show_warning "unknown invocation #{message.inspect}"
+        show_warning "unknown task_approval #{message.inspect} #{task_data}"
       end
     end
 

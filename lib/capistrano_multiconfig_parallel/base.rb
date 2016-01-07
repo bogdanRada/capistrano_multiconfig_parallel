@@ -6,13 +6,26 @@ module CapistranoMulticonfigParallel
   GITFLOW_VERIFY_UPTODATE_TASK = 'gitflow:verify_up_to_date'
 
   class << self
-    attr_accessor :logger, :original_args
+    attr_accessor :logger, :original_args, :config, :config_keys
     include CapistranoMulticonfigParallel::Configuration
-    include CapistranoMulticonfigParallel::CoreHelper
+    include CapistranoMulticonfigParallel::GemHelper
+
+    def configuration
+      @config ||= fetch_configuration
+      @config
+    end
 
     def enable_logging
       enable_file_logging
       set_celluloid_exception_handling
+    end
+
+    def capistrano_version
+      find_loaded_gem_property('capistrano', 'version')
+    end
+
+    def capistrano_version_2?
+      verify_gem_version('capistrano', '3.0', operator: '<')
     end
 
   private
@@ -22,7 +35,7 @@ module CapistranoMulticonfigParallel
       Celluloid.task_class = Celluloid::TaskThread
       Celluloid.exception_handler do |ex|
         unless ex.is_a?(Interrupt)
-        rescue_error(ex, 'stderr')
+          rescue_error(ex, 'stderr')
         end
       end
     end

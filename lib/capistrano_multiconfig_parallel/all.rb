@@ -28,15 +28,18 @@ require 'io/console'
 
 # capistrano requirements
 require 'rake'
-require 'capistrano/all'
 
 # fix error with not files that can not be found
 Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 
-%w(classes helpers celluloid initializers).each do |folder_name|
+%w(helpers classes celluloid core_ext).each do |folder_name|
   Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
 end
 
 require_relative './version'
 require_relative './base'
 require_relative './application'
+
+%w(initializers).each do |folder_name|
+  Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
+end

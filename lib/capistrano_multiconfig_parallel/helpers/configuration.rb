@@ -1,96 +1,95 @@
-require_relative './application_helper'
+require_relative './core_helper'
+require_relative './internal_helper'
+require_relative './parse_helper'
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module Configuration
-    extend ActiveSupport::Concern
+    include CapistranoMulticonfigParallel::CoreHelper
+    include CapistranoMulticonfigParallel::InternalHelper
+    include CapistranoMulticonfigParallel::ParseHelper
 
-    included do
-      include CapistranoMulticonfigParallel::ApplicationHelper
-      attr_reader :configuration
+    def fetch_configuration
+      @fetched_config = Configliere::Param.new
+      setup_default_config
+      setup_configuration
+    end
 
-      def configuration
-        @config ||= fetch_configuration
-        @config
+    def setup_default_config
+      default_internal_config.each do |array_param|
+        @fetched_config.define array_param[0], array_param[1].symbolize_keys
       end
+    end
 
-      def fetch_configuration
-        @fetched_config = Configliere::Param.new
-        setup_default_config
-        setup_configuration
+    def setup_configuration
+      @fetched_config.read config_file if File.file?(config_file)
+      @fetched_config.use :commandline
+
+      @fetched_config.use :config_block
+      validate_configuration
+    end
+
+    def validate_configuration
+      @fetched_config.finally do |config|
+        check_configuration(config)
       end
+      @fetched_config.process_argv!
+      @fetched_config.resolve!
+      @fetched_config
+    end
 
-      def setup_default_config
-        default_internal_config.each do |array_param|
-          @fetched_config.define array_param[0], array_param[1].symbolize_keys
-        end
+    def verify_application_dependencies(value, props)
+      return unless value.is_a?(Array)
+      value.reject { |val| val.blank? || !val.is_a?(Hash) }
+      wrong = check_array_of_hash(value, props.map(&:to_sym))
+      raise ArgumentError, "invalid configuration for #{wrong.inspect}" if wrong.present?
+    end
+
+    def check_array_of_hash(value, props)
+      value.find do|hash|
+        check_hash_set(hash, props)
       end
+    end
 
-      def setup_configuration
-        @fetched_config.read config_file if File.file?(config_file)
-        @fetched_config.use :commandline
-
-        @fetched_config.use :config_block
-        validate_configuration
+    def check_boolean(prop)
+      value = get_prop_config(prop)
+      if %w(true false).include?(value.to_s.downcase)
+        true
+      else
+        raise ArgumentError, "the property `#{prop}` must be boolean"
       end
+    end
 
-      def validate_configuration
-        @fetched_config.finally do |config|
-          @check_config = config.stringify_keys
-          check_configuration
-        end
-        @fetched_config.process_argv!
-        @fetched_config.resolve!
+    def configuration_valid?
+      configuration
+    end
+
+    def check_boolean_props(props)
+      props.each do |prop|
+        @check_config[prop] = get_prop_config(prop) if check_boolean(prop)
       end
+    end
 
-      def verify_application_dependencies(value, props)
-        return unless value.is_a?(Array)
-        value.reject { |val| val.blank? || !val.is_a?(Hash) }
-        wrong = check_array_of_hash(value, props.map(&:to_sym))
-        raise ArgumentError, "invalid configuration for #{wrong.inspect}" if wrong.present?
-      end
-
-      def check_array_of_hash(value, props)
-        value.find do|hash|
-          check_hash_set(hash, props)
-        end
-      end
-
-      def check_boolean(prop)
+    def check_array_props(props)
+      props.each do |prop|
         value = get_prop_config(prop)
-        raise ArgumentError, "the property `#{prop}` must be boolean" unless %w(true false).include?(value.to_s.downcase)
+        @check_config[prop] = value if value_is_array?(value) && verify_array_of_strings(value)
       end
+    end
 
-      def configuration_valid?
-        configuration
+    def get_prop_config(prop)
+      config = @check_config
+      if prop.include?('.')
+        multi_level_prop(config, prop)
+      else
+        config[prop]
       end
+    end
 
-      def check_boolean_props(props)
-        props.each do |prop|
-          @check_config.send("#{prop}=", get_prop_config(prop)) if check_boolean(prop)
-        end
-      end
-
-      def check_array_props(props)
-        props.each do |prop|
-          value = get_prop_config(prop)
-          @check_config.send("#{prop}=", value) if value_is_array?(value) && verify_array_of_strings(value)
-        end
-      end
-
-      def get_prop_config(prop)
-        config = @check_config
-        if prop.include?('.')
-          multi_level_prop(config, prop)
-        else
-          config[prop]
-        end
-      end
-
-      def check_configuration
-        check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug websocket_server.use_redis terminal.clear_screen))
-        check_array_props(%w(task_confirmations development_stages apply_stage_confirmation))
-        verify_application_dependencies(@check_config['application_dependencies'], %w(app priority dependencies))
-      end
+    def check_configuration(config)
+      @check_config = config.stringify_keys
+      check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug websocket_server.use_redis terminal.clear_screen))
+      check_array_props(%w(task_confirmations development_stages apply_stage_confirmation))
+      verify_application_dependencies(@check_config['application_dependencies'], %w(app priority dependencies))
     end
   end
 end
