@@ -100,6 +100,7 @@ module CapistranoMulticonfigParallel
       @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(Actor.current)
       @default_stage = configuration.development_stages.present? ? configuration.development_stages.first : 'development'
       @condition = Celluloid::Condition.new
+      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
     end
 
     def collect_jobs(options = {}, &_block)
@@ -189,7 +190,6 @@ module CapistranoMulticonfigParallel
     end
 
     def run_async_jobs
-      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
       return unless @jobs.present?
       @jobs.pmap do |job|
         @manager.async.delegate_job(job)

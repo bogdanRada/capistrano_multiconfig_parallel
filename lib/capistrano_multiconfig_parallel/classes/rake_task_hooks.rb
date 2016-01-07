@@ -14,7 +14,7 @@ module CapistranoMulticonfigParallel
     end
 
     def automatic_hooks(&block)
-      if configuration.multi_secvential.to_s.downcase == 'false' && job_id.present?
+      if configuration.multi_secvential.to_s.downcase == 'false' && job_id.present? && @task.present?
         actor_start_working
         actor.wait_execution until actor.task_approved
         actor_execute_block(&block)

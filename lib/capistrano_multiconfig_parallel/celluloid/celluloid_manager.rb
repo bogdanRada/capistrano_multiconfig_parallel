@@ -16,10 +16,13 @@ module CapistranoMulticonfigParallel
     trap_exit :worker_died
 
     def initialize(job_manager)
-      # start SupervisionGroup
-      @worker_supervisor = Celluloid::SupervisionGroup.run!
       @job_manager = job_manager
       @registration_complete = false
+      return if configuration.multi_secvential.to_s.downcase == 'true'
+      # start SupervisionGroup
+      @worker_supervisor = Celluloid::SupervisionGroup.run!
+
+
       # Get a handle on the SupervisionGroup::Member
       @mutex = Mutex.new
       # http://rubydoc.info/gems/celluloid/Celluloid/SupervisionGroup/Member
