@@ -29,8 +29,8 @@ module CapistranoMulticonfigParallel
     end
 
     def validate_configuration
-      @fetched_config.finally do |_config|
-        check_configuration
+      @fetched_config.finally do |config|
+        check_configuration(config)
       end
       @fetched_config.process_argv!
       @fetched_config.resolve!
@@ -85,7 +85,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def check_configuration
+    def check_configuration(config)
       @check_config = config.stringify_keys
       check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug websocket_server.use_redis terminal.clear_screen))
       check_array_props(%w(task_confirmations development_stages apply_stage_confirmation))

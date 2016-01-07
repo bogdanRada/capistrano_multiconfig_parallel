@@ -3,6 +3,7 @@ require_relative './internal_helper'
 require_relative './stages_helper'
 require_relative './gem_helper'
 require_relative './parse_helper'
+require_relative './capistrano_helper'
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module ApplicationHelper
