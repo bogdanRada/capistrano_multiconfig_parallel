@@ -29,6 +29,10 @@ module CapistranoMulticonfigParallel
       default_internal_configuration_params(new_config)
     end
 
+    def default_config_keys
+       default_internal_config.map{ |array| array[0].to_s }
+     end
+
     def default_internal_configuration_params(new_config)
       array = []
       new_config.each do |hash|
