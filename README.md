@@ -17,6 +17,13 @@ IMPORTANT! The whole reason for this gem was for using [Caphub](https://github.c
 
 CAUTION!! PLEASE READ CAREFULLY!! Capistrano is not thread-safe. However in order to work around this problem, each of the task is executing inside a thread that spawns a new process in order to run capistrano tasks The thread monitors the process. This works well, however if the tasks you are executing is working with files, you might get into deadlocks because multiple proceses try to access same resource. Instead of using files , please consider using StringIO instead.
 
+NEW Improvements in version 1.0.0
+---------------------------------
+
+-	added support for Capistrano version 2
+-	a lot of refactoring and bug fixes
+-	removed Branch variable ( this needs to be passed when asked for additional env options for each job!!!).
+
 Requirements
 ------------
 
@@ -29,11 +36,12 @@ Requirements
 7.	[colorize >= 0.7](https://github.com/fazibear/colorize)
 8.	[eventmachine >= 1.0.3](https://github.com/eventmachine/eventmachine)
 9.	[right_popen >= 1.1.3](https://github.com/rightscale/right_popen)
-10.	[capistrano >= 3.0](https://github.com/capistrano/capistrano/)
+10.	[capistrano >= 2.0](https://github.com/capistrano/capistrano/)
 11.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
 12.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
 13.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
 14.	[rack >= 1.6](http://rack.github.io/)
+15.	[rake >= 10.4](https://github.com/ruby/rake)
 
 Compatibility
 -------------
@@ -157,13 +165,13 @@ development_stages:
 #<development_stage> - the name of one of the stages you previously configured
 #<task_name> - the capistrano task that you want to execute ( example: 'deploy' )
 
-bundle exec multi_cap  <development_stage> <task_name>   BOX=<box_name>,<box_name>
+bundle exec multi_cap  <development_stage> <task_name>   BOX=<box_name>,<box_name>  
 
 ```
 
-If a branch is specified using **BRANCH=name** it will deploy same branch to all sandboxes The branch environment variable is then passed to the capistrano task
+For Capistrano 2 please use **-S box=<box_name>,<box_name>**
 
-Also the script will ask if there are any other environment variables that user might want to pass to each of the sandboxes separately.
+The script will ask if there are any other environment variables that user might want to pass to each of the sandboxes separately.
 
 ### 1.2) Deploying the application to multiple stages ( Using the customized command "deploy_multi_stages")
 
@@ -174,9 +182,7 @@ bundle exec multi_cap deploy_multi_stages  STAGES=development, staging, producti
 
 NOTE: IF you want to execute a different command on all stages, you can specify environment variable **ACTION=task_name** either when you specify the STAGES, or can be done individually for each task when prompted about additional ENV options
 
-If a branch is specified using **BRANCH=name** it will deploy same branch to all stages.The branch environment variable is then passed to the capistrano task
-
-Also the script will ask if there are any other environment variables that user might want to pass to each of the stages separately.
+The script will ask if there are any other environment variables that user might want to pass to each of the stages separately.
 
 If you use **capistrano-gitflow**, the workers will first deploy to all the other stages and only after staging is tagged , will trigger a new worker to start deploying to production
 
@@ -228,7 +234,7 @@ Demo:
 
 NOTE: IF you want to execute a different command on all stages, you can specify environment variable **ACTION=task_name** either when you specify the STAGES, or can be done individually for each task when prompted about additional ENV options
 
-If a branch is specified using **BRANCH=branch_name** it will deploy same branch to all stages.The branch environment variable is then passed to the capistrano task If you want different branches , capistrano will ask for additional ENV options for each stage, and can be specified then for each stage
+The script will ask for additional ENV options for each stage.
 
 If you use **capistrano-gitflow**, the workers will first deploy to all the other stages and only after staging is tagged , will trigger a new worker to start deploying to production
 
