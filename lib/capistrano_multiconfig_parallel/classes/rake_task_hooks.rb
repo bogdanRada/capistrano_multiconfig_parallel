@@ -23,6 +23,10 @@ module CapistranoMulticonfigParallel
       end
     end
 
+    def actor
+      Celluloid::Actor[rake_actor_id]
+    end
+
   private
 
     def output_stream
@@ -35,8 +39,9 @@ module CapistranoMulticonfigParallel
 
     def before_hooks
       stringio = StringIO.new
-      output_stream.hook(stringio)
-      input_stream.hook(actor, stringio)
+      output = output_stream.hook(stringio)
+      input = input_stream.hook(actor, stringio)
+      [input, output]
     end
 
     def after_hooks
@@ -62,10 +67,6 @@ module CapistranoMulticonfigParallel
     def supervise_actor
       return unless actor.blank?
       CapistranoMulticonfigParallel::RakeWorker.supervise_as(rake_actor_id)
-    end
-
-    def actor
-      Celluloid::Actor[rake_actor_id]
     end
 
     def job_id

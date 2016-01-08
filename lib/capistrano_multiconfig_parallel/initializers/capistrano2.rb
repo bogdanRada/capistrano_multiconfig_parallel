@@ -1,5 +1,15 @@
 if CapistranoMulticonfigParallel.capistrano_version_2?
   require 'capistrano/cli'
+
+  HighLine.class_eval do
+    alias_method :original_ask, :ask
+
+    def ask(question, _answer_type = String, &_details)
+      rake = CapistranoMulticonfigParallel::RakeTaskHooks.new(ENV, nil, CapistranoMulticonfigParallel.original_args_hash)
+      rake.actor.user_prompt_needed?(question)
+    end
+  end
+
   Capistrano::Configuration::Execution.class_eval do
     alias_method :original_execute_task, :execute_task
 
@@ -21,4 +31,5 @@ if CapistranoMulticonfigParallel.capistrano_version_2?
       end
     end
   end
+
 end
