@@ -18,7 +18,7 @@ module CapistranoMulticonfigParallel
     end
 
     def write(*args)
-      @stringio.print(*args)
+      @stringio.write(*args)
       @real.write(*args)
       @real.flush
     end

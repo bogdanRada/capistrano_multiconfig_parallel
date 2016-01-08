@@ -16,7 +16,7 @@ module CapistranoMulticonfigParallel
     end
 
     def trace_flag
-      capistrano_version_2? ? '--debug' : '--trace'
+      capistrano_version_2? ? '--verbose' : '--trace'
     end
   end
 end

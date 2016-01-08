@@ -64,7 +64,6 @@ module CapistranoMulticonfigParallel
   private
 
     def run_shell_command(command)
-      puts("\n\n\n Executing '#{command}' \n\n\n .")
       sh("#{command}")
     end
   end
