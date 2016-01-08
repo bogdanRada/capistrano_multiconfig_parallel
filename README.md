@@ -22,7 +22,7 @@ NEW Improvements in version 1.0.2
 
 -	added support for Capistrano version 2 (Capistrano 3 was already supported)
 -	a lot of refactoring and bug fixes
--	removed Branch variable ( this needs to be passed when asked for additional env options for each job!!!).
+-	removed BRANCH variable ( this needs to be passed when asked for additional env options for each job!!!) ( for Capistrano 2 should be **-S branch=<branch_name>**, for Capistrano 3 should be **BRANCH=<branch_name>**, or could be something else depending on your configuration).
 
 Requirements
 ------------
