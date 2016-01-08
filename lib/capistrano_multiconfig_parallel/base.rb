@@ -20,6 +20,10 @@ module CapistranoMulticonfigParallel
       set_celluloid_exception_handling
     end
 
+    def original_args_hash
+      multi_fetch_argv(original_args.dup)
+    end
+
     def capistrano_version
       find_loaded_gem_property('capistrano', 'version')
     end
