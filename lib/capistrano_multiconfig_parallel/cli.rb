@@ -17,7 +17,7 @@ module CapistranoMulticonfigParallel
         if arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
           run_the_application
         else
-          ARGV.reject! { |arg| default_config_keys.include?(arg.split('=')[0].tr('--', '')) }
+          ARGV.reject! { |arg| arg_is_in_default_config?(arg) }
           run_capistrano
         end
       end

@@ -55,7 +55,7 @@ module CapistranoMulticonfigParallel
     end
 
     def task_name
-      @task.name
+      @task.respond_to?(:name) ? @task.name : @task
     end
 
     def task_data

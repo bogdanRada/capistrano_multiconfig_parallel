@@ -30,8 +30,12 @@ module CapistranoMulticonfigParallel
     end
 
     def default_config_keys
-       default_internal_config.map{ |array| array[0].to_s }
-     end
+      default_internal_config.map { |array| array[0].to_s }
+    end
+
+    def arg_is_in_default_config?(arg)
+      default_config_keys.find { |key| key == arg.split('=')[0].tr('--', '') }.present?
+    end
 
     def default_internal_configuration_params(new_config)
       array = []

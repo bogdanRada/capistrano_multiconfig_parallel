@@ -9,7 +9,7 @@ module CapistranoMulticonfigParallel
     attr_accessor :task, :env, :config
     def initialize(env, task, config = nil)
       @env = env
-      @task = task
+      @task = task.respond_to?(:fully_qualified_name) ? task.fully_qualified_name : task
       @config = config
     end
 
