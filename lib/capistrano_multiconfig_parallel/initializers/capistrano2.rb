@@ -1,5 +1,17 @@
 if CapistranoMulticonfigParallel.capistrano_version_2?
   require 'capistrano/cli'
+
+  Capistrano::CLI::UI::ClassMethods.class_eval do
+    alias_method :original_ui, :ui
+
+    def ui
+      rake = CapistranoMulticonfigParallel::RakeTaskHooks.new(ENV, nil, CapistranoMulticonfigParallel.original_args_hash)
+      input_stream, output_stream = rake.before_hooks
+      @ui = HighLine.new(input_stream, output_stream)
+    end
+
+  end
+
   Capistrano::Configuration::Execution.class_eval do
     alias_method :original_execute_task, :execute_task
 
@@ -11,6 +23,8 @@ if CapistranoMulticonfigParallel.capistrano_version_2?
     end
   end
 
+
+
   Capistrano::Configuration::Callbacks.class_eval do
     alias_method :original_trigger, :trigger
 
@@ -21,4 +35,6 @@ if CapistranoMulticonfigParallel.capistrano_version_2?
       end
     end
   end
+
+
 end

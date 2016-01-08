@@ -23,6 +23,18 @@ module CapistranoMulticonfigParallel
       end
     end
 
+    def before_hooks
+      stringio = StringIO.new
+      output = output_stream.hook(stringio)
+      input = input_stream.hook(actor, stringio)
+      [input, output]
+    end
+
+    def after_hooks
+      input_stream.unhook
+      output_stream.unhook
+    end
+
   private
 
     def output_stream
@@ -31,12 +43,6 @@ module CapistranoMulticonfigParallel
 
     def input_stream
       CapistranoMulticonfigParallel::InputStream
-    end
-
-    def before_hooks
-      stringio = StringIO.new
-      output_stream.hook(stringio)
-      input_stream.hook(actor, stringio)
     end
 
     def after_hooks
