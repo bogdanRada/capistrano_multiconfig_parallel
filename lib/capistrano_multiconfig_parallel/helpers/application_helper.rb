@@ -33,8 +33,8 @@ module CapistranoMulticonfigParallel
     end
 
     def get_question_details(data)
-      /(.*)\?*\s*\:*\s*(\([^)]*\))*/m =~ data
-      [regex_last_match(1), regex_last_match(2)]
+      matches = /(.*)\?*\s*\:*\s*(\([^)]*\))*/m.match(data).captures
+      [matches[0], matches[1]]
     end
 
     def setup_command_line_standard(*args)

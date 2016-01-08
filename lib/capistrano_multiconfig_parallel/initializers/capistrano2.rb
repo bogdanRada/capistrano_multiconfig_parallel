@@ -1,15 +1,13 @@
 if CapistranoMulticonfigParallel.capistrano_version_2?
   require 'capistrano/cli'
 
-  Capistrano::CLI::UI::ClassMethods.class_eval do
-    alias_method :original_ui, :ui
+  HighLine.class_eval do
+    alias_method :original_ask, :ask
 
-    def ui
+    def ask(question, _answer_type = String, &_details)
       rake = CapistranoMulticonfigParallel::RakeTaskHooks.new(ENV, nil, CapistranoMulticonfigParallel.original_args_hash)
-      input_stream, output_stream = rake.before_hooks
-      @ui = HighLine.new(input_stream, output_stream)
+      rake.actor.user_prompt_needed?(question)
     end
-
   end
 
   Capistrano::Configuration::Execution.class_eval do
@@ -23,8 +21,6 @@ if CapistranoMulticonfigParallel.capistrano_version_2?
     end
   end
 
-
-
   Capistrano::Configuration::Callbacks.class_eval do
     alias_method :original_trigger, :trigger
 
@@ -35,6 +31,5 @@ if CapistranoMulticonfigParallel.capistrano_version_2?
       end
     end
   end
-
 
 end
