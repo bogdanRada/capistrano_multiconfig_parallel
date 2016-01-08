@@ -10,7 +10,7 @@ module CapistranoMulticonfigParallel
     def initialize
       Celluloid.boot
       CapistranoMulticonfigParallel.enable_logging
-      @stage_apps = multi_apps? ? stages.map { |stage| stage.split(':').reverse[1] }.uniq : []
+      @stage_apps = multi_apps? ? app_names_from_stages : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
       @jobs = []
     end
@@ -49,14 +49,10 @@ module CapistranoMulticonfigParallel
 
     def custom_command?
       if multi_apps?
-        !stages.include?(@top_level_tasks.first) && custom_commands.include?(@top_level_tasks.first)
+         custom_commands.include?(@top_level_tasks.first)
       else
-        !stages.include?(@top_level_tasks.second) && stages.include?(@top_level_tasks.first) && custom_commands.include?(@top_level_tasks.second)
+         custom_commands.include?(@top_level_tasks.second)
       end
-    end
-
-    def multi_apps?
-      stages.find { |stage| stage.include?(':') }.present?
     end
 
     def verify_valid_data

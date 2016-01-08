@@ -5,6 +5,27 @@ module CapistranoMulticonfigParallel
   module_function
 
     def stages
+      independent_deploy? ? fetch_stages_from_file : fetch_stages_app
+    end
+
+    def multi_apps?
+      independent_deploy? ? true : stages.find { |stage| stage.include?(':') }.present?
+    end
+
+    def fetch_stages_from_file
+      configuration.application_dependencies.map { |hash| hash[:app] }
+    end
+
+    def app_names_from_stages
+      independent_deploy? ? fetch_stages_from_file : stages.map { |stage| stage.split(':').reverse[1] }.uniq
+    end
+
+    def independent_deploy?
+      app_with_no_path = configuration.application_dependencies.find { |hash| hash[:path].blank? }
+      configuration.config_file_path.present? && app_with_no_path.blank? ? true : false
+    end
+
+    def fetch_stages_app
       fetch_stages_paths do |paths|
         checks_paths(paths)
       end

@@ -110,12 +110,9 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def config_file
-      File.join(detect_root.to_s, 'config', 'multi_cap.yml')
-    end
-
     def log_directory
-      File.join(detect_root.to_s, 'log')
+      configuration.log_dir = configuration.log_dir.present? ? configuration.log_dir : nil
+      configuration.log_dir || File.join(detect_root.to_s, 'log')
     end
 
     def main_log_file
