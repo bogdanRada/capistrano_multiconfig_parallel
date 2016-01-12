@@ -3,6 +3,16 @@ module CapistranoMulticonfigParallel
   module CoreHelper
   module_function
 
+    def multi_fetch_argv(args)
+      options = {}
+      args.each do |arg|
+        if arg =~ /^(\w+)=(.*)$/m
+          options[Regexp.last_match(1)] = Regexp.last_match(2)
+        end
+      end
+      options
+    end
+
     def app_debug_enabled?
       configuration.multi_debug.to_s.downcase == 'true'
     end

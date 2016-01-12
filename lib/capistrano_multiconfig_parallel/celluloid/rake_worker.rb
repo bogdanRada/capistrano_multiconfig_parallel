@@ -123,10 +123,11 @@ module CapistranoMulticonfigParallel
 
     def user_prompt_needed?(data)
       question, default = get_question_details(data)
+      log_to_file("Rake worker #{@job_id} tries to determine question #{data.inspect} #{question.inspect} #{default.inspect}")
       return if question.blank? || @action != 'invoke'
       publish_to_worker(action: 'stdout',
                         question: question,
-                        default: default.delete('()'),
+                        default: default.present? ? default.delete('()') : '',
                         job_id: @job_id)
       wait_for_stdin_input
     end
