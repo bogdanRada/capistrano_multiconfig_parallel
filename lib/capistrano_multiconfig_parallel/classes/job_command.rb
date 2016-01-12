@@ -33,7 +33,7 @@ module CapistranoMulticonfigParallel
     def setup_env_options(options = {})
       array_options = []
       env_options.each do |key, value|
-        array_options << "#{env_prefix} #{env_key_format(key)}=#{value}" if value.present? && !env_option_filtered?(key, options.fetch(:filtered_keys, []))
+        array_options << "#{env_prefix(key)} #{env_key_format(key)}=#{value}" if value.present? && !env_option_filtered?(key, options.fetch(:filtered_keys, []))
       end
       array_options << trace_flag if app_debug_enabled?
       array_options

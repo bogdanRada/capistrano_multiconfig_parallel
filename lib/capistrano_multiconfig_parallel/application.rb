@@ -48,11 +48,7 @@ module CapistranoMulticonfigParallel
     end
 
     def custom_command?
-      if multi_apps?
-        !stages.include?(@top_level_tasks.first) && custom_commands.include?(@top_level_tasks.first)
-      else
-        !stages.include?(@top_level_tasks.second) && stages.include?(@top_level_tasks.first) && custom_commands.include?(@top_level_tasks.second)
-      end
+      custom_commands.include?(@top_level_tasks.first)
     end
 
     def multi_apps?

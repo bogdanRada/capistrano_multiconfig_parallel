@@ -62,8 +62,17 @@ module CapistranoMulticonfigParallel
       return if @exit_status.blank?
       @timer.cancel
       @job.exit_status = @exit_status
+      print_error_if_exist
       log_to_file("worker #{@job_id} startsnotify finished with exit status #{@exit_status.inspect}")
       @actor.async.notify_finished(@exit_status)
+    end
+
+    def print_error_if_exist
+      [@job.stderr_buffer].each do |buffer|
+        buffer.rewind
+        data = buffer.read
+        log_output_error(nil, 'stderr', "Child process for worker #{@job_id} died for reason: #{data}") if data.present?
+      end
     end
 
     def start_async_deploy
@@ -93,6 +102,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_read_stderr(data)
+      @job.save_stderr_error(data)
       io_callback('stderr', data)
     end
 

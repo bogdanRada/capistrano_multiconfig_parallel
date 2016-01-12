@@ -10,7 +10,7 @@ module CapistranoMulticonfigParallel
     include Celluloid::Logger
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated
+    attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated, :stderr_buffer
 
     attr_reader :worker_supervisor, :workers
     trap_exit :worker_died
@@ -33,6 +33,7 @@ module CapistranoMulticonfigParallel
       # Get a handle on the PoolManager
       # http://rubydoc.info/gems/celluloid/Celluloid/PoolManager
       # @workers = workers_pool.actor
+      @stderr_buffer = StringIO.new
       @conditions = []
       @jobs = {}
       @job_to_worker = {}
@@ -188,7 +189,7 @@ module CapistranoMulticonfigParallel
 
     def can_tag_staging?
       @job_manager.can_tag_staging? &&
-        @jobs.find { |_job_id, job| job['env'] == 'production' }.blank?
+        @jobs.find { |_job_id, job| job.stage == 'production' }.blank?
     end
 
     def dispatch_new_job(job, options = {})

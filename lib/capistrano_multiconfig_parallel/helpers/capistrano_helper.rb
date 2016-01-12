@@ -7,8 +7,8 @@ module CapistranoMulticonfigParallel
       capistrano_version_2? ? keys.map(&:downcase) : keys
     end
 
-    def env_prefix
-      capistrano_version_2? ? '-S' : ''
+    def env_prefix(key)
+      key != CapistranoMulticonfigParallel::ENV_KEY_JOB_ID && capistrano_version_2? ? '-S' : ''
     end
 
     def env_key_format(key)

@@ -4,9 +4,11 @@ if CapistranoMulticonfigParallel.capistrano_version_2?
   HighLine.class_eval do
     alias_method :original_ask, :ask
 
-    def ask(question, _answer_type = String, &_details)
-      rake = CapistranoMulticonfigParallel::RakeTaskHooks.new(ENV, nil, CapistranoMulticonfigParallel.original_args_hash)
-      rake.actor.user_prompt_needed?(question)
+    def ask(question, answer_type = String, &details)
+      rake = CapistranoMulticonfigParallel::RakeTaskHooks.new(nil)
+      rake.print_question?(question) do
+        original_ask(question, answer_type, &details)
+      end
     end
   end
 
@@ -14,7 +16,7 @@ if CapistranoMulticonfigParallel.capistrano_version_2?
     alias_method :original_execute_task, :execute_task
 
     def execute_task(task)
-      rake = CapistranoMulticonfigParallel::RakeTaskHooks.new(ENV, task, self)
+      rake = CapistranoMulticonfigParallel::RakeTaskHooks.new(task)
       rake.automatic_hooks do
         original_execute_task(task)
       end
@@ -25,7 +27,7 @@ if CapistranoMulticonfigParallel.capistrano_version_2?
     alias_method :original_trigger, :trigger
 
     def trigger(event, task = nil)
-      rake = CapistranoMulticonfigParallel::RakeTaskHooks.new(ENV, task, self)
+      rake = CapistranoMulticonfigParallel::RakeTaskHooks.new(task)
       rake.automatic_hooks do
         original_trigger(event, task)
       end

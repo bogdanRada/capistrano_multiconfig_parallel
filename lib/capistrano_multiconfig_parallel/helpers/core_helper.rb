@@ -67,7 +67,7 @@ module CapistranoMulticonfigParallel
     end
 
     def log_output_error(error, output, message)
-      return if error_filtered?(error)
+      return if message.blank? || error_filtered?(error)
       puts message if output.present?
       terminal_actor.errors.push(message) if terminal_errors?
     end

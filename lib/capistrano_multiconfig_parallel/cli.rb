@@ -10,14 +10,15 @@ module CapistranoMulticonfigParallel
         before_start
         arguments = multi_fetch_argv(original_args)
         configuration_valid?
-        execute_start(arguments)
+        execute_start(arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID])
       end
 
-      def execute_start(arguments)
-        if arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID].blank?
+      def execute_start(job_id)
+        if job_id.blank?
           run_the_application
         else
           ARGV.reject! { |arg| arg_is_in_default_config?(arg) }
+          log_to_file("worker #{job_id} runs with ARGV #{ARGV.inspect}", job_id: job_id)
           run_capistrano
         end
       end
