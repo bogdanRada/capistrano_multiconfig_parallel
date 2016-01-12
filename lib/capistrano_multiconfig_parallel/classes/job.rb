@@ -5,7 +5,7 @@ module CapistranoMulticonfigParallel
   class Job
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :options
+    attr_reader :options, :application, :manager
     attr_writer :status, :exit_status
 
     delegate :job_stage,
@@ -15,10 +15,20 @@ module CapistranoMulticonfigParallel
              :setup_command_line,
              to: :command
 
+    delegate :stderr_buffer,
+             to: :manager
+
     def initialize(application, options)
       @options = options.stringify_keys
       @application = application
       @manager = @application.manager
+    end
+
+    def save_stderr_error(data)
+      stderr_buffer.rewind
+      old_data = stderr_buffer.read.dup
+      new_data = old_data.to_s + data
+      stderr_buffer.write(new_data) if new_data.include?('aborted!')
     end
 
     def env_variable

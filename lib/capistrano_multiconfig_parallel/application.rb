@@ -48,11 +48,7 @@ module CapistranoMulticonfigParallel
     end
 
     def custom_command?
-      if multi_apps?
-         custom_commands.include?(@top_level_tasks.first)
-      else
-         custom_commands.include?(@top_level_tasks.second)
-      end
+      custom_commands.include?(@top_level_tasks.first)
     end
 
     def verify_valid_data

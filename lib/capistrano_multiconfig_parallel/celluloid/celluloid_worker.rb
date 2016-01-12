@@ -95,13 +95,9 @@ module CapistranoMulticonfigParallel
     end
 
     def check_child_proces
-      if !defined?(@child_process) || @child_process.nil?
-        @child_process = CapistranoMulticonfigParallel::ChildProcess.new
-        Actor.current.link @child_process
-      else
-        @client.unsubscribe("rake_worker_#{@job_id}_count")
-        @child_process.exit_status = nil
-      end
+      @child_process = CapistranoMulticonfigParallel::ChildProcess.new
+      Actor.current.link @child_process
+      @child_process
     end
 
     def on_close(code, reason)

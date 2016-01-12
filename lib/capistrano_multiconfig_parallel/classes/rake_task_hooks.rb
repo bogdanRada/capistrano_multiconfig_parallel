@@ -7,10 +7,9 @@ module CapistranoMulticonfigParallel
   class RakeTaskHooks
     include CapistranoMulticonfigParallel::ApplicationHelper
     attr_accessor :task, :env, :config
-    def initialize(env, task, config = nil)
-      @env = env
+    def initialize(task)
+      @env = CapistranoMulticonfigParallel.original_args_hash
       @task = task.respond_to?(:fully_qualified_name) ? task.fully_qualified_name : task
-      @config = config
     end
 
     def automatic_hooks(&block)
@@ -23,11 +22,19 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def actor
-      Celluloid::Actor[rake_actor_id]
+    def print_question?(question)
+      if job_id.present?
+        actor.user_prompt_needed?(question)
+      else
+        yield if block.given?
+      end
     end
 
   private
+
+    def actor
+      Celluloid::Actor[rake_actor_id]
+    end
 
     def output_stream
       CapistranoMulticonfigParallel::OutputStream
@@ -70,7 +77,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_id
-      capistrano_version_2? ? @config.fetch(CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, nil) : @env[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
+      @env.fetch(CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, nil)
     end
 
     def rake_actor_id
