@@ -6,9 +6,9 @@ module CapistranoMulticonfigParallel
   # class used to handle the rake worker and sets all the hooks before and after running the worker
   class RakeTaskHooks
     include CapistranoMulticonfigParallel::ApplicationHelper
-    attr_accessor :task, :env, :config
+    attr_accessor :job_id, :task
     def initialize(task)
-      @env = CapistranoMulticonfigParallel.original_args_hash
+      @job_id = CapistranoMulticonfigParallel.job_id
       @task = task.respond_to?(:fully_qualified_name) ? task.fully_qualified_name : task
     end
 
@@ -74,10 +74,6 @@ module CapistranoMulticonfigParallel
     def supervise_actor
       return unless actor.blank?
       CapistranoMulticonfigParallel::RakeWorker.supervise_as(rake_actor_id)
-    end
-
-    def job_id
-      @env.fetch(CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, nil)
     end
 
     def rake_actor_id

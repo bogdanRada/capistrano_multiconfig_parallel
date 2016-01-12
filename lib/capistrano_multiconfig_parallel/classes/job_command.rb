@@ -7,7 +7,7 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :job
-    delegate :app, :stage, :action, :task_arguments, :env_options, to: :job
+    delegate :app, :stage, :action, :task_arguments, :env_options, :path, to: :job
 
     def initialize(job)
       @job = job
@@ -32,10 +32,20 @@ module CapistranoMulticonfigParallel
 
     def setup_env_options(options = {})
       array_options = []
+      filtered_keys = options.delete(:filtered_keys) || []
       env_options.each do |key, value|
-        array_options << "#{env_prefix(key)} #{env_key_format(key)}=#{value}" if value.present? && !env_option_filtered?(key, options.fetch(:filtered_keys, []))
+        array_options << "#{env_prefix(key)} #{env_key_format(key)}=#{value}" if value.present? && !env_option_filtered?(key, filtered_keys )
       end
       array_options << trace_flag if app_debug_enabled?
+      array_options.concat(set_flags_for_job(options))
+      array_options
+    end
+
+    def set_flags_for_job(options)
+      array_options = []
+      options.each do |key, value|
+        array_options << "--#{key}=#{value}"
+      end
       array_options
     end
 
@@ -45,9 +55,10 @@ module CapistranoMulticonfigParallel
     end
 
     def to_s
-      configuration_options = CapistranoMulticonfigParallel.original_args.select { |arg| arg.include?('--') }
-      environment_options = setup_command_line(configuration_options).join(' ')
-      "cd #{detect_root} && RAILS_ENV=#{stage}  bundle exec multi_cap #{job_stage} #{capistrano_action}  #{environment_options}"
+      job_path = path || detect_root
+      config_flags = configuration.slice('log_dir', 'config_dir').merge("path" => job_path )
+      environment_options = setup_command_line(configuration.slice('log_dir', 'config_dir')).join(' ')
+      "cd #{job_path} && RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action}  #{environment_options}"
     end
 
     def to_json

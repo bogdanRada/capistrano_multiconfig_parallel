@@ -43,7 +43,7 @@ module CapistranoMulticonfigParallel
       options = options.stringify_keys
       return unless applications.present?
       applications.each do |app|
-        deploy_app(options.merge('app' => app['app']))
+        deploy_app(options.merge('app' => app['app'], 'path' => app.fetch('path', nil)))
       end
     end
 
@@ -96,9 +96,9 @@ module CapistranoMulticonfigParallel
     def collect_jobs(options = {}, &_block)
       options = prepare_options(options)
       options = options.stringify_keys
-      apps = @dependency_tracker.fetch_apps_needed_for_deployment(options['app'], options['action'])
+      apps, app_options = @dependency_tracker.fetch_apps_needed_for_deployment(options['app'], options['action'])
       deploy_multiple_apps(apps, options)
-      deploy_app(options) if !custom_command? || !multi_apps?
+      deploy_app(options.merge(app_options)) if !custom_command? || !multi_apps?
     end
 
     def process_jobs
@@ -221,7 +221,8 @@ module CapistranoMulticonfigParallel
       job_env_options = custom_command? ? env_options.except(action_key) : env_options
       job = CapistranoMulticonfigParallel::Job.new(Actor.current, options.merge(
                                                                     action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
-                                                                    env_options: job_env_options
+                                                                    env_options: job_env_options,
+                                                                    path: options.fetch('path', nil)
 
       ))
       @jobs << job

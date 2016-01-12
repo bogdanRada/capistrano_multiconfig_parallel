@@ -22,7 +22,7 @@ module CapistranoMulticonfigParallel
 
     def independent_deploy?
       app_with_no_path = configuration.application_dependencies.find { |hash| hash[:path].blank? }
-      configuration.config_file_path.present? && app_with_no_path.blank? ? true : false
+      configuration.config_dir.present? && app_with_no_path.blank? ? true : false
     end
 
     def fetch_stages_app

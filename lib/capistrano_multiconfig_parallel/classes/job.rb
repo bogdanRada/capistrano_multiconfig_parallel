@@ -9,14 +9,14 @@ module CapistranoMulticonfigParallel
     attr_writer :status, :exit_status
 
     delegate :job_stage,
-             :capistrano_action,
-             :build_capistrano_task,
-             :execute_standard_deploy,
-             :setup_command_line,
-             to: :command
+    :capistrano_action,
+    :build_capistrano_task,
+    :execute_standard_deploy,
+    :setup_command_line,
+    to: :command
 
     delegate :stderr_buffer,
-             to: :manager
+    to: :manager
 
     def initialize(application, options)
       @options = options.stringify_keys
@@ -81,6 +81,7 @@ module CapistranoMulticonfigParallel
       { name: 'action', default: '' },
       { name: 'task_arguments', default: [] },
       { name: 'env_options', default: {} },
+      { name: 'path', default: nil },
       { name: 'status', default: :unstarted },
       { name: 'exit_status', default: nil }
     ].each do |hash|

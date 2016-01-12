@@ -22,7 +22,8 @@ module CapistranoMulticonfigParallel
 
     def setup_configuration
       @fetched_config.use :commandline
-
+      @fetched_config.process_argv!
+      read_config_file
       @fetched_config.use :config_block
       validate_configuration
     end
@@ -31,17 +32,16 @@ module CapistranoMulticonfigParallel
       @fetched_config.finally do |config|
         check_configuration(config)
       end
-      @fetched_config.process_argv!
       @fetched_config.resolve!
-      read_config_file
       @fetched_config
     end
 
     def read_config_file
-      @fetched_config.config_file_path = @fetched_config.config_file_path.present? ? @fetched_config.config_file_path : nil
-      config_file = @fetched_config.config_file_path || File.join(detect_root.to_s, 'config', 'multi_cap.yml')
-      file_config = File.file?(config_file) ? YAML.load_file(config_file) : {}
-      @fetched_config.reverse_merge(file_config)
+      @fetched_config.config_dir = @fetched_config.config_dir.present? ? File.expand_path(@fetched_config.config_dir) : try_detect_file('multi_cap.yml')
+      config_file_path = @fetched_config.config_dir.present? ? File.join(@fetched_config.config_dir, 'multi_cap.yml') : nil
+      config_file = File.expand_path(config_file_path || File.join(detect_root.to_s, 'config', 'multi_cap.yml'))
+      @fetched_config.log_dir = File.dirname(config_file)
+      @fetched_config.read config_file if File.file?(config_file)
     end
 
     def verify_application_dependencies(value, props)

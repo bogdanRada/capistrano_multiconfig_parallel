@@ -18,6 +18,9 @@ module CapistranoMulticonfigParallel
           run_the_application
         else
           ARGV.reject! { |arg| arg_is_in_default_config?(arg) }
+          ARGV << trace_flag if app_debug_enabled?
+          raise configuration.inspect
+          Dir.chdir(root)
           log_to_file("worker #{job_id} runs with ARGV #{ARGV.inspect}", job_id: job_id)
           run_capistrano
         end

@@ -34,21 +34,20 @@ default_config:
     default: './log/multi_cap_websocket.log'
     required: false
 
-  - name: 'config_file_path'
+  - name: 'config_dir'
     type: 'filename'
     description: >-
       The path where the config file is located. If file is not provided,
       will raise exception if Capfile is not found in the current directory
       from where the script is running
-    default: nil
+    default: ''
     required: false
 
   - name: 'log_dir'
     type: 'filename'
     description: >-
-      The path of the directory where log files will be created. If is not provided,
-      by default will use the log directory from the root folder where Capfile is placed
-    default: nil
+      The path where the log files will be created
+    default: ''
     required: false
 
   - name: 'development_stages'
