@@ -4,7 +4,7 @@ module CapistranoMulticonfigParallel
   module_function
 
     def filtered_env_keys_format(keys)
-      capistrano_version_2? ? keys.map(&:downcase) : keys
+      keys.map { |key| env_key_format(key) }
     end
 
     def env_prefix(key)
@@ -17,6 +17,14 @@ module CapistranoMulticonfigParallel
 
     def trace_flag
       capistrano_version_2? ? '--verbose' : '--trace'
+    end
+
+    def setup_flags_for_job(options)
+      array_options = []
+      options.each do |key, value|
+        array_options << "--#{key}=#{value}"
+      end
+      array_options
     end
   end
 end

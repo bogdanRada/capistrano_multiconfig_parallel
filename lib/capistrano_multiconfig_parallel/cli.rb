@@ -18,7 +18,7 @@ module CapistranoMulticonfigParallel
           run_the_application
         else
           ARGV.reject! { |arg| arg_is_in_default_config?(arg) }
-          app_path = ARGV.find {|arg| arg.include?('--path')}
+          app_path = ARGV.find { |arg| arg.include?('--path') }
           ARGV.delete(app_path)
           log_to_file("worker #{job_id} runs with ARGV #{ARGV.inspect}", job_id: job_id)
           run_capistrano(app_path, job_id)
@@ -29,7 +29,7 @@ module CapistranoMulticonfigParallel
         real_path = app_path.split('=')[1]
         ARGV << trace_flag if app_debug_enabled?
         arguments = multi_fetch_argv(ARGV.dup)
-        array_arguments = arguments.map {|key, value| "#{env_prefix(capistrano_version_2)} #{filtered_env_keys_format(cap_key_format, key)}=#{value}" }
+        array_arguments = arguments.map { |key, value| "#{env_prefix(capistrano_version_2)} #{filtered_env_keys_format(cap_key_format, key)}=#{value}" }
         command = <<-CMD
         bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env { %x[cd #{real_path} && bundle install && RAILS_ENV=production bundle exec cap #{array_arguments.join(' ')}] } "
         CMD

@@ -7,7 +7,7 @@ module CapistranoMulticonfigParallel
   class RakeTaskHooks
     include CapistranoMulticonfigParallel::ApplicationHelper
     attr_accessor :job_id, :task
-    def initialize(task)
+    def initialize(task = nil)
       @job_id = CapistranoMulticonfigParallel.job_id
       @task = task.respond_to?(:fully_qualified_name) ? task.fully_qualified_name : task
     end

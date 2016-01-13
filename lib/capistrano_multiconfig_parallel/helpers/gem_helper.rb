@@ -1,15 +1,15 @@
 module CapistranoMulticonfigParallel
   # helper used to determine gem versions
   module GemHelper
-    module_function
+  module_function
 
-    def find_loaded_gem(name)
-      Gem.loaded_specs.values.find { |repo| repo.name == name }
+    def find_loaded_gem(name, property = nil)
+      gem_spec = Gem.loaded_specs.values.find { |repo| repo.name == name }
+      property.present? ? gem_spec.send(property) : gem_spec
     end
 
     def find_loaded_gem_property(gem_name, property = 'version')
-      gem_spec = find_loaded_gem(gem_name)
-      gem_spec.respond_to?(property) ? gem_spec.send(property) : nil
+      find_loaded_gem(gem_name, property)
     end
 
     def fetch_gem_version(gem_name)
@@ -26,8 +26,7 @@ module CapistranoMulticonfigParallel
     def verify_gem_version(gem_version, version, options = {})
       options.stringify_keys!
       version = get_parsed_version(version)
-      gem_version = gem_version.to_f
-      gem_version.blank? ? false : gem_version.send(options.fetch('operator', '<='), version)
+      get_parsed_version(gem_version).send(options.fetch('operator', '<='), version)
     end
   end
 end

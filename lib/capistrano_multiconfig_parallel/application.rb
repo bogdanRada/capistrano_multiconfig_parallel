@@ -52,7 +52,7 @@ module CapistranoMulticonfigParallel
     end
 
     def verify_valid_data
-      return  if  @top_level_tasks != ['default']
+      return if @top_level_tasks != ['default']
       puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
       exit(false)
     end
@@ -112,7 +112,7 @@ module CapistranoMulticonfigParallel
     end
 
     def tag_staging_exists? # check exists task from capistrano-gitflow
-      @jobs.find { |job| job.has_gitflow? }.present?
+      @jobs.find(&:gitflow?).present?
     end
 
     def stages_key
@@ -155,7 +155,7 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_environments
-      @jobs.map { |job| job.stage }
+      @jobs.map(&:stage)
     end
 
     def run
@@ -220,9 +220,9 @@ module CapistranoMulticonfigParallel
       env_options = options['env_options']
       job_env_options = custom_command? ? env_options.except(action_key) : env_options
       job = CapistranoMulticonfigParallel::Job.new(Actor.current, options.merge(
-      action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
-      env_options: job_env_options,
-      path: options.fetch('path', nil)
+                                                                    action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
+                                                                    env_options: job_env_options,
+                                                                    path: options.fetch('path', nil)
 
       ))
       @jobs << job

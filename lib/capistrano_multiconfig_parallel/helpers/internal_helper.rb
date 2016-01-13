@@ -1,7 +1,7 @@
 module CapistranoMulticonfigParallel
   # internal helpers for logging mostly
   module InternalHelper
-    module_function
+  module_function
 
     def multi_level_prop(config, prop)
       prop.split('.').each { |new_prop| config = config[new_prop] }
