@@ -68,11 +68,21 @@ module CapistranoMulticonfigParallel
     end
 
     def to_s
-      config_flags = [] #CapistranoMulticonfigParallel.configuration_flags.merge('path' => job_path)
+      config_flags = CapistranoMulticonfigParallel.configuration_flags
       environment_options = setup_command_line(config_flags).join(' ')
     #  "cd #{job_path} && bundle install && RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action} #{environment_options}"
+    #{}<<-CMD
+    #  bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env { %x[cd #{job_path} && bundle install && RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}] } "
+    #CMD
+    #gem install capistrano_multiconfig_parallel --version "#{CapistranoMulticonfigParallel.gem_version}" && \
     <<-CMD
-      bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env { %x[cd #{job_path} && bundle install && RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}] } "
+      bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env {
+        %x[ cd #{job_path} && \
+            gem uninstall capistrano_multiconfig_parallel --force && \
+            gem install --local /home/raul/workspace/github/capistrano_multiconfig_parallel/capistrano_multiconfig_parallel-2.0.0.gem && \
+            bundle install && \
+            RAILS_ENV=#{stage} multi_cap #{job_stage} #{capistrano_action} #{environment_options}
+        ]}"
     CMD
     end
 
