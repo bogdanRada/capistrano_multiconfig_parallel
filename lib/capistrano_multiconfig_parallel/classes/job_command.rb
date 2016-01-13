@@ -62,28 +62,25 @@ module CapistranoMulticonfigParallel
       path || detect_root
     end
 
-    def gitflow?
-      gitflow = `cd #{job_path} && bundle show capistrano-gitflow`
-      gitflow.include?("Could not find") ? false : true
-    end
+
 
     def to_s
       config_flags = CapistranoMulticonfigParallel.configuration_flags
       environment_options = setup_command_line(config_flags).join(' ')
-    #  "cd #{job_path} && bundle install && RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action} #{environment_options}"
+      "cd #{job_path} && BUNDLE_GEMFILE=#{job_path}/Gemfile bundle install && BUNDLE_GEMFILE=#{job_path}/Gemfile RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action} #{environment_options}"
     #{}<<-CMD
     #  bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env { %x[cd #{job_path} && bundle install && RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}] } "
     #CMD
     #gem install capistrano_multiconfig_parallel --version "#{CapistranoMulticonfigParallel.gem_version}" && \
-    <<-CMD
-      bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env {
-        %x[ cd #{job_path} && \
-            gem uninstall capistrano_multiconfig_parallel --force && \
-            gem install --local /home/raul/workspace/github/capistrano_multiconfig_parallel/capistrano_multiconfig_parallel-2.0.0.gem && \
-            bundle install && \
-            RAILS_ENV=#{stage} multi_cap #{job_stage} #{capistrano_action} #{environment_options}
-        ]}"
-    CMD
+    # <<-CMD
+    #   bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env {
+    #     %x[ cd #{job_path} && \
+    #         gem uninstall capistrano_multiconfig_parallel --force && \
+    #         gem install --local /home/raul/workspace/github/capistrano_multiconfig_parallel/capistrano_multiconfig_parallel-2.0.0.gem && \
+    #         bundle install && \
+    #         RAILS_ENV=#{stage} multi_cap #{job_stage} #{capistrano_action} #{environment_options}
+    #     ]}"
+    # CMD
     end
 
     def to_json

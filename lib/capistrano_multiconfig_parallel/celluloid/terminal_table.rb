@@ -37,7 +37,9 @@ module CapistranoMulticonfigParallel
 
     def notify_time_change(_channel, _message)
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_heaadings)
+      puts [_channel, _message].inspect
       jobs = setup_table_jobs(table)
+      puts jobs.inspect
       display_table_on_terminal(table, jobs)
     end
 

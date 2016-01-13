@@ -13,23 +13,25 @@ module CapistranoMulticonfigParallel
              :build_capistrano_task,
              :execute_standard_deploy,
              :setup_command_line,
-             :gitflow?,
              to: :command
 
-    delegate :stderr_buffer,
-             to: :manager
+    # delegate :stderr_buffer,
+    #          to: :manager
 
     def initialize(application, options)
       @options = options.stringify_keys
       @application = application
       @manager = @application.manager
     end
+    def gitflow?
+      false
+    end
 
     def save_stderr_error(data)
-      stderr_buffer.rewind
-      old_data = stderr_buffer.read.dup
-      new_data = old_data.to_s + data
-      stderr_buffer.write(new_data) if new_data.include?('aborted!') || new_data.include?('Terminating')
+      # stderr_buffer.rewind
+      # old_data = stderr_buffer.read.dup
+      # new_data = old_data.to_s + data
+      # stderr_buffer.write(new_data) if new_data.include?('aborted!') || new_data.include?('Terminating')
     end
 
     def env_variable
@@ -69,7 +71,7 @@ module CapistranoMulticonfigParallel
     def worker_state
       worker_obj = worker
       default = status.to_s.upcase.red
-      worker_obj.present? && worker_obj.alive? ? worker_obj.worker_state : default
+      worker_obj.alive? ? worker_obj.worker_state : default
     end
 
     def id

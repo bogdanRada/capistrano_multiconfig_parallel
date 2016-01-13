@@ -112,7 +112,7 @@ module CapistranoMulticonfigParallel
     end
 
     def tag_staging_exists? # check exists task from capistrano-gitflow
-      @jobs.find(&:gitflow?).present?
+      false #@jobs.find(&:gitflow?).present?
     end
 
     def stages_key
@@ -154,9 +154,6 @@ module CapistranoMulticonfigParallel
       fetch_app_additional_env_options(app_additional_env_options)
     end
 
-    def worker_environments
-      @jobs.map(&:stage)
-    end
 
     def run
       options = {}
