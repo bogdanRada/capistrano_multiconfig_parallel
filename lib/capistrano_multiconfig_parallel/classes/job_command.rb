@@ -70,11 +70,7 @@ module CapistranoMulticonfigParallel
     def to_s
       config_flags = [] #CapistranoMulticonfigParallel.configuration_flags.merge('path' => job_path)
       environment_options = setup_command_line(config_flags).join(' ')
-      #{}"cd #{job_path} && bundle install && RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
-      command = <<-CMD
-      bundle exec ruby -e "require 'bundler' ; require 'capistrano_multiconfig_parallel/all';  Bundler.with_clean_env { %x[cd #{job_path} && bundle install && RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}] } "
-      CMD
-      command
+      "cd #{job_path} && bundle install && RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action} #{environment_options}"
     end
 
     def to_json
