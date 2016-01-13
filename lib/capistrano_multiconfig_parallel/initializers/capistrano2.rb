@@ -5,7 +5,7 @@ if CapistranoMulticonfigParallel.capistrano_version_2?
     alias_method :original_ask, :ask
 
     def ask(question, answer_type = String, &details)
-      rake = CapistranoMulticonfigParallel::RakeTaskHooks.new(nil)
+      rake = CapistranoMulticonfigParallel::RakeTaskHooks.new
       rake.print_question?(question) do
         original_ask(question, answer_type, &details)
       end

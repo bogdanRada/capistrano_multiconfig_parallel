@@ -74,7 +74,7 @@ module CapistranoMulticonfigParallel
     end
 
     def fail_capfile_not_found(root)
-      fail "Can't detect Capfile in the  application root".red if pathname_is_root?(root)
+      fail "Can't detect Capfile in the  application root".red if root.blank?
     end
 
     def pwd_parent_dir
@@ -93,11 +93,10 @@ module CapistranoMulticonfigParallel
       root.children.find { |file| check_file(file, filename) }.present? || pathname_is_root?(root)
     end
 
-    def try_detect_capfile
+    def try_detect_file(filename = 'capfile')
       root = pwd_parent_dir
-      root = root.parent until find_file_in_directory(root, 'capfile')
-      fail_capfile_not_found(root)
-      root
+      root = root.parent until find_file_in_directory(root, filename)
+      pathname_is_root?(root) ? nil : root
     end
 
     def detect_root
@@ -106,7 +105,9 @@ module CapistranoMulticonfigParallel
       elsif defined?(::Rails)
         ::Rails.root
       else
-        try_detect_capfile
+        root = try_detect_file
+        fail_capfile_not_found(root)
+        root
       end
     end
 

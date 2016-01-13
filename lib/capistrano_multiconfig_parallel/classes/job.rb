@@ -28,7 +28,7 @@ module CapistranoMulticonfigParallel
       stderr_buffer.rewind
       old_data = stderr_buffer.read.dup
       new_data = old_data.to_s + data
-      stderr_buffer.write(new_data) if new_data.include?('aborted!')
+      stderr_buffer.write(new_data) if new_data.include?('aborted!') || new_data.include?('Terminating')
     end
 
     def env_variable

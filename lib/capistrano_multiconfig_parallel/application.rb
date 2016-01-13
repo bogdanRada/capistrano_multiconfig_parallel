@@ -159,7 +159,7 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_environments
-      @jobs.map { |job| job['env'] }
+      @jobs.map(&:stage)
     end
 
     def run

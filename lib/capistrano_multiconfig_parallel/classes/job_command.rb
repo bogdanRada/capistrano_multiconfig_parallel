@@ -32,11 +32,16 @@ module CapistranoMulticonfigParallel
 
     def setup_env_options(options = {})
       array_options = []
+      filtered_keys = options.delete(:filtered_keys) || []
       env_options.each do |key, value|
-        array_options << "#{env_prefix(key)} #{env_key_format(key)}=#{value}" if value.present? && !env_option_filtered?(key, options.fetch(:filtered_keys, []))
+        array_options << "#{env_prefix(key)} #{env_key_format(key)}=#{value}" if value.present? && !env_option_filtered?(key, filtered_keys)
       end
+      setup_remaining_flags(array_options, options)
+    end
+
+    def setup_remaining_flags(array_options, options)
       array_options << trace_flag if app_debug_enabled?
-      array_options
+      array_options.concat(setup_flags_for_job(options))
     end
 
     def setup_command_line(*args)
@@ -45,7 +50,7 @@ module CapistranoMulticonfigParallel
     end
 
     def to_s
-      configuration_options = CapistranoMulticonfigParallel.original_args.select { |arg| arg.include?('--') }
+      configuration_options = CapistranoMulticonfigParallel.configuration_flags
       environment_options = setup_command_line(configuration_options).join(' ')
       "cd #{detect_root} && RAILS_ENV=#{stage}  bundle exec multi_cap #{job_stage} #{capistrano_action}  #{environment_options}"
     end
