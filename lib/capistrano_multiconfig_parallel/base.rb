@@ -15,6 +15,14 @@ module CapistranoMulticonfigParallel
       @config
     end
 
+    def configuration_flags
+      flags = default_internal_config.each_with_object({}) do |array_item, hash|
+        hash[array_item[0].to_s] = get_prop_config(array_item[0].to_s, configuration)
+        hash
+      end
+      flags.except('application_dependencies', 'task_confirmations','development_stages','apply_stage_confirmation')
+    end
+
     def enable_logging
       enable_file_logging
       set_celluloid_exception_handling
@@ -33,10 +41,10 @@ module CapistranoMulticonfigParallel
     end
 
     def capistrano_version_2?
-      verify_gem_version('capistrano', '3.0', operator: '<')
+      verify_gem_version(capistrano_version, '3.0', operator: '<')
     end
 
-  private
+    private
 
     def set_celluloid_exception_handling
       Celluloid.logger = logger

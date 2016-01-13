@@ -34,7 +34,7 @@ module CapistranoMulticonfigParallel
       array_options = []
       filtered_keys = options.delete(:filtered_keys) || []
       env_options.each do |key, value|
-        array_options << "#{env_prefix(key)} #{env_key_format(key)}=#{value}" if value.present? && !env_option_filtered?(key, filtered_keys )
+        array_options << "#{key}=#{value}" if value.present? && !env_option_filtered?(key, filtered_keys )
       end
       array_options << trace_flag if app_debug_enabled?
       array_options.concat(set_flags_for_job(options))
@@ -54,11 +54,23 @@ module CapistranoMulticonfigParallel
       setup_env_options(options).concat(new_arguments)
     end
 
+    def job_capistrano_version
+      `cd #{job_path} && bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)' | grep  -Po  '([0-9.]+)'`
+    end
+
+    def job_path
+      path || detect_root
+    end
+
+    def has_gitflow?
+      gitflow = `cd #{job_path} && bundle show capistrano-gitflow`
+      gitflow.present?
+    end
+
     def to_s
-      job_path = path || detect_root
-      config_flags = configuration.slice('log_dir', 'config_dir').merge("path" => job_path )
-      environment_options = setup_command_line(configuration.slice('log_dir', 'config_dir')).join(' ')
-      "cd #{job_path} && RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action}  #{environment_options}"
+      config_flags = CapistranoMulticonfigParallel.configuration_flags.merge('path' => job_path )
+      environment_options = setup_command_line(config_flags).join(' ')
+      "RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action}  #{environment_options}"
     end
 
     def to_json

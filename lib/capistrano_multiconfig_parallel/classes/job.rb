@@ -13,6 +13,7 @@ module CapistranoMulticonfigParallel
     :build_capistrano_task,
     :execute_standard_deploy,
     :setup_command_line,
+    :has_gitflow?,
     to: :command
 
     delegate :stderr_buffer,

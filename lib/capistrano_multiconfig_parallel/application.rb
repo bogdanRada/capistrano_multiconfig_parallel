@@ -78,7 +78,7 @@ module CapistranoMulticonfigParallel
     end
 
     def action_key
-      capistrano_version_2? ? 'action' : 'ACTION'
+      'ACTION'
     end
 
     def verify_options_custom_command(options)
@@ -112,11 +112,11 @@ module CapistranoMulticonfigParallel
     end
 
     def tag_staging_exists? # check exists task from capistrano-gitflow
-      find_loaded_gem('capistrano-gitflow').present?
+      @jobs.find { |job| job.has_gitflow? }.present?
     end
 
     def stages_key
-      capistrano_version_2? ? 'stages' : 'STAGES'
+      'STAGES'
     end
 
     def fetch_multi_stages
@@ -155,7 +155,7 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_environments
-      @jobs.map { |job| job['env'] }
+      @jobs.map { |job| job.stage }
     end
 
     def run
@@ -170,7 +170,7 @@ module CapistranoMulticonfigParallel
     end
 
     def boxes_key
-      capistrano_version_2? ? 'box' : 'BOX'
+      'BOX'
     end
 
     def call_task_deploy_app(options = {})
@@ -220,9 +220,9 @@ module CapistranoMulticonfigParallel
       env_options = options['env_options']
       job_env_options = custom_command? ? env_options.except(action_key) : env_options
       job = CapistranoMulticonfigParallel::Job.new(Actor.current, options.merge(
-                                                                    action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
-                                                                    env_options: job_env_options,
-                                                                    path: options.fetch('path', nil)
+      action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
+      env_options: job_env_options,
+      path: options.fetch('path', nil)
 
       ))
       @jobs << job
