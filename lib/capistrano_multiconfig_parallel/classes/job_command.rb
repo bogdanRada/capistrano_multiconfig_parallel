@@ -15,7 +15,7 @@ module CapistranoMulticonfigParallel
     end
 
     def filtered_env_keys
-      filtered_env_keys_format(%w(STAGES ACTION), @cap_version2)
+      %w(STAGES ACTION)
     end
 
     def bundle_gemfile_env
