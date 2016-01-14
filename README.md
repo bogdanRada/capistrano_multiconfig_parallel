@@ -244,7 +244,7 @@ The script will ask for additional ENV options for each stage.
 
 If you use **capistrano-gitflow**, the workers will first deploy to all the other stages and only after staging is tagged , will trigger a new worker to start deploying to production
 
-### 2.2) Deploying multiple applications from a central location:
+### 2.2) Deploying multiple applications from a central location [deploy-from-central-location]
 
 This works like described in section **[2) Multiple applications](#2-multiple-apps--like-caphub-)** ), but now the **application_dependencies** Array can also have a **path** key inside each item that should point to the DocumentRoot of that application, and the configuration now accepts two new arguments **config_dir** ( this should point to the directory where the file **multi_cap.yml** resides) and **log_dir**( this can be used if you want your logs created in different directory)
 
