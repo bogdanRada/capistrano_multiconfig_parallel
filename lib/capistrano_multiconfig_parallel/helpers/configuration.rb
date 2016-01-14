@@ -37,6 +37,7 @@ module CapistranoMulticonfigParallel
     end
 
     def read_config_file
+      return if CapistranoMulticonfigParallel.original_args.present? && CapistranoMulticonfigParallel.original_args.include?('--help')
       @fetched_config.config_dir = @fetched_config.config_dir.present? ? File.expand_path(@fetched_config.config_dir) : try_detect_file('multi_cap.yml')
       config_file_path = @fetched_config.config_dir.present? ? File.join(@fetched_config.config_dir, 'multi_cap.yml') : nil
       config_file = File.expand_path(config_file_path || File.join(detect_root.to_s, 'config', 'multi_cap.yml'))

@@ -129,6 +129,14 @@ Available command line options when executing a command
 
 	-	Enables the clear screen to happen before the table status is displayed on screen
 
+-	--config_dir
+
+	-	The directory where the config file (multi_cap.yml) is located. The gem will try to detect if file exist in current directory from where the script is runnning
+
+-	--log_dir
+
+	-	The path where the log files will be created. By default it depends on the **config_dir**. It will create a **log** directory in the same directory as the configuration directory
+
 -	--development_stages
 
 	-	if option is present and has value an ARRAY of STRINGS, each of them will be used as a development stage
