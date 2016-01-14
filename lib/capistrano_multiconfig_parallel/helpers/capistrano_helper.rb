@@ -8,15 +8,15 @@ module CapistranoMulticonfigParallel
     end
 
     def env_prefix(key, version = capistrano_version_2?)
-      key != CapistranoMulticonfigParallel::ENV_KEY_JOB_ID && version.present? ? '-S' : ''
+      key != CapistranoMulticonfigParallel::ENV_KEY_JOB_ID && version == true ? '-S' : ''
     end
 
     def env_key_format(key, version = capistrano_version_2?)
-      version.present? ? key.downcase : key
+      version == true ? key.downcase : key
     end
 
     def trace_flag(version  = capistrano_version_2?)
-      version.present? ? '--verbose' : '--trace'
+      version == true ? '--verbose' : '--trace'
     end
 
     def setup_flags_for_job(options)

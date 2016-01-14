@@ -6,24 +6,29 @@ module CapistranoMulticonfigParallel
     include FileUtils
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :job
+    attr_reader :job, :job_capistrano_version, :cap_version2
     delegate :app, :stage, :action, :task_arguments, :env_options, :path, to: :job
 
     def initialize(job)
       @job = job
+      @cap_version2 = legacy_capistrano? ? true : false
     end
 
     def filtered_env_keys
-      filtered_env_keys_format(%w(STAGES ACTION), job_capistrano_version)
+      filtered_env_keys_format(%w(STAGES ACTION), @cap_version2)
     end
 
-    def multi_apps?
-      multiconfig = `cd #{job_path} && bundle show capistrano-multiconfig`
-      multiconfig.include?("Could not find") ? false : true
+    def bundle_gemfile_env
+      "BUNDLE_GEMFILE=#{job_path}/Gemfile"
+    end
+
+    def gitflow
+     gitflow = `cd #{job_path} && #{bundle_gemfile_env} bundle show capistrano-gitflow`
+     @gitflow ||= gitflow.include?("Could not find") ? false : true
     end
 
     def job_stage
-      multi_apps? && app.present? ? "#{app}:#{stage}" : "#{stage}"
+      multi_apps?(job_path) && app.present? ? "#{app}:#{stage}" : "#{stage}"
     end
 
     def capistrano_action
@@ -39,13 +44,13 @@ module CapistranoMulticonfigParallel
       array_options = []
       filtered_keys = options.delete(:filtered_keys) || []
       env_options.each do |key, value|
-        array_options << "#{env_prefix(key,job_capistrano_version)} #{env_key_format(key, job_capistrano_version)}=#{value}" if value.present? && !env_option_filtered?(key, filtered_keys)
+        array_options << "#{env_prefix(key, @cap_version2)} #{env_key_format(key, @cap_version2)}=#{value}" if value.present? && !env_option_filtered?(key, filtered_keys)
       end
       setup_remaining_flags(array_options, options)
     end
 
     def setup_remaining_flags(array_options, options)
-      array_options << trace_flag(job_capistrano_version) if app_debug_enabled?
+      array_options << trace_flag(@cap_version2) if app_debug_enabled?
       array_options.concat(setup_flags_for_job(options))
     end
 
@@ -55,32 +60,22 @@ module CapistranoMulticonfigParallel
     end
 
     def job_capistrano_version
-      `cd #{job_path} && bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)' | grep  -Po  '([0-9.]+)'`
+      @job_capistrano_version ||= `cd #{job_path} && #{bundle_gemfile_env} bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)' | grep  -Po  '([0-9.]+)'`
+      @job_capistrano_version = strip_characters_from_string(@job_capistrano_version)
+    end
+
+    def legacy_capistrano?
+      verify_gem_version(job_capistrano_version, '3.0', operator: '<')
     end
 
     def job_path
       path || detect_root
     end
 
-
-
     def to_s
       config_flags = CapistranoMulticonfigParallel.configuration_flags
       environment_options = setup_command_line(config_flags).join(' ')
-      "cd #{job_path} && BUNDLE_GEMFILE=#{job_path}/Gemfile bundle install && BUNDLE_GEMFILE=#{job_path}/Gemfile RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action} #{environment_options}"
-    #{}<<-CMD
-    #  bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env { %x[cd #{job_path} && bundle install && RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}] } "
-    #CMD
-    #gem install capistrano_multiconfig_parallel --version "#{CapistranoMulticonfigParallel.gem_version}" && \
-    # <<-CMD
-    #   bundle exec ruby -e "require 'bundler' ;   Bundler.with_clean_env {
-    #     %x[ cd #{job_path} && \
-    #         gem uninstall capistrano_multiconfig_parallel --force && \
-    #         gem install --local /home/raul/workspace/github/capistrano_multiconfig_parallel/capistrano_multiconfig_parallel-2.0.0.gem && \
-    #         bundle install && \
-    #         RAILS_ENV=#{stage} multi_cap #{job_stage} #{capistrano_action} #{environment_options}
-    #     ]}"
-    # CMD
+      "cd #{job_path} && #{bundle_gemfile_env} bundle install && #{bundle_gemfile_env} RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action} #{environment_options}"
     end
 
     def to_json

@@ -112,7 +112,7 @@ module CapistranoMulticonfigParallel
     end
 
     def tag_staging_exists? # check exists task from capistrano-gitflow
-      false #@jobs.find(&:gitflow?).present?
+      @jobs.find(&:gitflow).present?
     end
 
     def stages_key

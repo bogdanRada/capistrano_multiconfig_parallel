@@ -167,10 +167,10 @@ module CapistranoMulticonfigParallel
         worker = get_worker_for_job(job_id)
         if worker.alive?
           worker.publish_rake_event('approved' => 'yes',
-                                    'action' => 'invoke',
-                                    'job_id' => job.id,
-                                    'task' => task
-                                   )
+          'action' => 'invoke',
+          'job_id' => job.id,
+          'task' => task
+          )
         end
       end
     end
@@ -189,7 +189,7 @@ module CapistranoMulticonfigParallel
 
     def can_tag_staging?
       @job_manager.can_tag_staging? &&
-        @jobs.find { |_job_id, job| job.stage == 'production' }.blank?
+      @jobs.find { |_job_id, job| job.stage == 'production' }.blank?
     end
 
     def dispatch_new_job(job, options = {})

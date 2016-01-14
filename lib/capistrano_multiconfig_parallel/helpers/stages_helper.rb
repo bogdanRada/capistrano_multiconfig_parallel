@@ -2,14 +2,14 @@ module CapistranoMulticonfigParallel
   # module used to fetch the stages (code taken from https://github.com/railsware/capistrano-multiconfig)
   # TODO: find a way to remove this and still be compatible with capistrano 2.x
   module StagesHelper
-  module_function
+    module_function
 
-    def stages
-      independent_deploy? ? fetch_stages_from_file : fetch_stages_app
+    def stages(path = nil)
+      path.blank? && independent_deploy? ? fetch_stages_from_file : fetch_stages_app(path)
     end
 
-    def multi_apps?
-      independent_deploy? ? true : stages.find { |stage| stage.include?(':') }.present?
+    def multi_apps?(path = nil)
+      path.blank? && independent_deploy? ? true : stages(path).find { |stage| stage.include?(':') }.present?
     end
 
     def fetch_stages_from_file
@@ -25,8 +25,8 @@ module CapistranoMulticonfigParallel
       configuration.config_dir.present? && app_with_no_path.blank? ? true : false
     end
 
-    def fetch_stages_app
-      fetch_stages_paths do |paths|
+    def fetch_stages_app(path)
+      fetch_stages_paths(path) do |paths|
         checks_paths(paths)
       end
     end
@@ -44,15 +44,15 @@ module CapistranoMulticonfigParallel
       paths.any? { |another| another != path && another.start_with?(path + ':') }
     end
 
-    def stages_paths
-      stages_root = File.expand_path(File.join(detect_root, 'config/deploy'))
+    def stages_paths(path)
+      stages_root = File.expand_path(File.join(path || detect_root, 'config/deploy'))
       Dir["#{stages_root}/**/*.rb"].map do |file|
         file.slice(stages_root.size + 1..-4).tr('/', ':')
       end
     end
 
-    def fetch_stages_paths
-      stages_paths.tap { |paths| yield paths if block_given? }
+    def fetch_stages_paths(path)
+      stages_paths(path).tap { |paths| yield paths if block_given? }
     end
   end
 end
