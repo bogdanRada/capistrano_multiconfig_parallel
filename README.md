@@ -248,6 +248,8 @@ If you use **capistrano-gitflow**, the workers will first deploy to all the othe
 
 This works like described in section **[2) Multiple applications](#2-multiple-apps--like-caphub-)** ), but now the **application_dependencies** Array can also have a **path** key inside each item that should point to the DocumentRoot of that application, and the configuration now accepts two new arguments **config_dir** ( this should point to the directory where the file **multi_cap.yml** resides) and **log_dir**( this can be used if you want your logs created in different directory)
 
+This will only work if all applications listed in the configuration file have the gem **capistrano_multiconfig_parallel** as part of their Gemfile.
+
 Example of configuration: - create a directory anywhere (e.g.**mkdir /tmp/app**\) - create a Gemfile and add only this two lines:
 
 ```ruby
@@ -256,7 +258,7 @@ source 'http://rubygems.org'
 gem 'capistrano_multiconfig_parallel'
 ```
 
-Then create a file called **multi_cap.yml** in the root folder and create a configuration like this
+Then create a file called **multi_cap.yml** in the root folder and create a configuration like this.
 
 ```yaml
    ---
