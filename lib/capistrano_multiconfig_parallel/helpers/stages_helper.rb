@@ -1,6 +1,6 @@
 module CapistranoMulticonfigParallel
   # module used to fetch the stages (code taken from https://github.com/railsware/capistrano-multiconfig)
-  # TODO: find a way to remove this and still be compatible with capistrano 2.x
+  # but refactored to be able to detect stages from multiple paths
   module StagesHelper
   module_function
 

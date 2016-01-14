@@ -30,7 +30,7 @@ module CapistranoMulticonfigParallel
     end
 
     def original_args_hash
-      multi_fetch_argv(original_args.dup)
+      multi_fetch_argv((original_args || ARGV).dup)
     end
 
     def job_id

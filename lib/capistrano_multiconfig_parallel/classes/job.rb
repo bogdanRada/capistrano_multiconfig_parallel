@@ -15,8 +15,8 @@ module CapistranoMulticonfigParallel
              :gitflow,
              to: :command
 
-     delegate :stderr_buffer,
-              to: :manager
+    delegate :stderr_buffer,
+             to: :manager
 
     def initialize(application, options)
       @options = options.stringify_keys
