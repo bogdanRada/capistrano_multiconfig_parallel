@@ -88,7 +88,7 @@ module CapistranoMulticonfigParallel
     end
 
     def syncronized_confirmation?
-      !@job_manager.can_tag_staging?
+      !@job_manager.can_tag_staging? && !@job_manager.tag_staging_exists?
     end
 
     def apply_confirmation_for_job(job)
@@ -188,7 +188,7 @@ module CapistranoMulticonfigParallel
     end
 
     def can_tag_staging?
-      @job_manager.can_tag_staging? &&
+      @job_manager.can_tag_staging?  && @job_manager.tag_staging_exists? &&
       @jobs.find { |_job_id, job| job.stage == 'production' }.blank?
     end
 

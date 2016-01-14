@@ -33,7 +33,6 @@ module CapistranoMulticonfigParallel
     def run_custom_command(options)
       custom_stages = fetch_multi_stages
       return if custom_stages.blank?
-      custom_stages = check_multi_stages(custom_stages)
       custom_stages.each do |stage|
         collect_jobs(options.merge('stage' => stage))
       end
@@ -131,11 +130,7 @@ module CapistranoMulticonfigParallel
     end
 
     def can_tag_staging?
-      wants_deploy_production? && tag_staging_exists? && fetch_multi_stages.include?('staging')
-    end
-
-    def check_multi_stages(custom_stages)
-      can_tag_staging? ? custom_stages.reject { |u| u == 'production' } : custom_stages
+      wants_deploy_production? && fetch_multi_stages.include?('staging')
     end
 
     def deploy_app(options = {})
@@ -187,7 +182,7 @@ module CapistranoMulticonfigParallel
       @jobs.pmap do |job|
         @manager.async.delegate_job(job)
       end
-      unless can_tag_staging?
+      unless can_tag_staging? && tag_staging_exists?
         until @manager.registration_complete
           sleep(0.1) # keep current thread alive
         end
@@ -222,7 +217,7 @@ module CapistranoMulticonfigParallel
                                                                     path: options.fetch('path', nil)
 
       ))
-      @jobs << job
+      @jobs << job unless can_tag_staging? && job.stage == 'production' && job.gitflow.present?
     end
 
     def prepare_options(options)
