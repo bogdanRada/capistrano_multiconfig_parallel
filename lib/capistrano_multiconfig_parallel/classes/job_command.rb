@@ -73,7 +73,8 @@ module CapistranoMulticonfigParallel
     end
 
     def command_prefix
-      "cd #{job_path} && #{bundle_gemfile_env} bundle install"
+      bundle_install = path.present? ? "&& #{bundle_gemfile_env} bundle install" : ''
+      "cd #{job_path} #{bundle_install}"
     end
 
     def to_s

@@ -74,11 +74,16 @@ module CapistranoMulticonfigParallel
         end
         wait_task_confirmations
       end
+      terminal_show
       condition = @workers_terminated.wait
       until condition.present?
         sleep(0.1) # keep current thread alive
       end
       log_to_file("all jobs have completed #{condition}")
+      terminal_show
+    end
+
+    def terminal_show
       Celluloid::Actor[:terminal_server].async.notify_time_change(CapistranoMulticonfigParallel::TerminalTable.topic, type: 'output') if Celluloid::Actor[:terminal_server].alive?
     end
 

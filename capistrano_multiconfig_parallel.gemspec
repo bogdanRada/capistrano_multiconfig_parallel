@@ -34,8 +34,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'rake', '~> 10.4', '>= 10.4'
 
   s.add_development_dependency 'rspec-rails', '~> 3.3', '>= 3.3'
-  s.add_development_dependency 'guard', '~> 2.13', '>= 2.13'
-  s.add_development_dependency 'guard-rspec', '~> 4.6', '>= 4.6'
   s.add_development_dependency 'simplecov', '~> 0.10', '>= 0.10'
   s.add_development_dependency 'simplecov-summary', '~> 0.0.4', '>= 0.0.4'
   s.add_development_dependency 'mocha', '~> 1.1', '>= 1.1'
@@ -49,5 +47,4 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'redcarpet', '~> 3.3', '>= 3.3'
   s.add_development_dependency 'github-markup', '~> 1.3', '>= 1.3.3'
   s.add_development_dependency 'inch', '~> 0.6', '>= 0.6'
-  s.add_development_dependency 'guard-inch', '~> 0.1', '>= 0.1.0'
 end
