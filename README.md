@@ -21,7 +21,7 @@ NEW Improvements in version 1.1.0
 ---------------------------------
 
 -	a lot of refactoring and bug fixes
--	added posibility to run the deployments from a single directory and is described at section **[2.2) Deploying multiple applications from a central location](#deploy-from-central-location)**
+-	added posibility to run the deployments from a single directory and is described at section **[2.2) Deploying multiple applications from a central location](#22-deploying-multiple-applications-from-a-central-location)**
 
 NEW Improvements in version 1.0.5
 ---------------------------------
