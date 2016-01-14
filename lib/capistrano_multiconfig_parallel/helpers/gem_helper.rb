@@ -5,7 +5,7 @@ module CapistranoMulticonfigParallel
 
     def find_loaded_gem(name, property = nil)
       gem_spec = Gem.loaded_specs.values.find { |repo| repo.name == name }
-      property.present? ? gem_spec.send(property) : gem_spec
+      gem_spec.present? && property.present? ? gem_spec.send(property) : gem_spec
     end
 
     def find_loaded_gem_property(gem_name, property = 'version')
@@ -18,6 +18,7 @@ module CapistranoMulticonfigParallel
     end
 
     def get_parsed_version(version)
+      return 0 if version.blank?
       version = version.to_s.split('.')
       version.pop until version.size == 2
       version.join('.').to_f
