@@ -149,7 +149,6 @@ module CapistranoMulticonfigParallel
       fetch_app_additional_env_options(app_additional_env_options)
     end
 
-
     def run
       options = {}
       if custom_command?
@@ -217,7 +216,11 @@ module CapistranoMulticonfigParallel
                                                                     path: options.fetch('path', nil)
 
       ))
-      @jobs << job unless can_tag_staging? && job.stage == 'production' && job.gitflow.present?
+      @jobs << job unless job_can_tag_staging?(job)
+    end
+
+    def job_can_tag_staging?(job)
+      can_tag_staging? && job.stage == 'production' && job.gitflow.present?
     end
 
     def prepare_options(options)

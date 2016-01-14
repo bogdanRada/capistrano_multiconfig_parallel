@@ -1,7 +1,7 @@
 module CapistranoMulticonfigParallel
   # helper methods used for capistrano actions
   module CapistranoHelper
-    module_function
+  module_function
 
     def filtered_env_keys_format(keys, version = capistrano_version_2?)
       keys.map { |key| env_key_format(key, version) }
@@ -15,7 +15,7 @@ module CapistranoMulticonfigParallel
       version == true ? key.downcase : key
     end
 
-    def trace_flag(version  = capistrano_version_2?)
+    def trace_flag(version = capistrano_version_2?)
       version == true ? '--verbose' : '--trace'
     end
 

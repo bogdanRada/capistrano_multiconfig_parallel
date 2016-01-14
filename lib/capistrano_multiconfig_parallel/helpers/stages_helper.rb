@@ -2,7 +2,7 @@ module CapistranoMulticonfigParallel
   # module used to fetch the stages (code taken from https://github.com/railsware/capistrano-multiconfig)
   # TODO: find a way to remove this and still be compatible with capistrano 2.x
   module StagesHelper
-    module_function
+  module_function
 
     def stages(path = nil)
       path.blank? && independent_deploy? ? fetch_stages_from_file : fetch_stages_app(path)
@@ -44,10 +44,14 @@ module CapistranoMulticonfigParallel
       paths.any? { |another| another != path && another.start_with?(path + ':') }
     end
 
+    def stages_root(path)
+      File.expand_path(File.join(path || detect_root, 'config/deploy'))
+    end
+
     def stages_paths(path)
-      stages_root = File.expand_path(File.join(path || detect_root, 'config/deploy'))
-      Dir["#{stages_root}/**/*.rb"].map do |file|
-        file.slice(stages_root.size + 1..-4).tr('/', ':')
+      root_stages = stages_root(path)
+      Dir["#{root_stages}/**/*.rb"].map do |file|
+        file.slice(root_stages.size + 1..-4).tr('/', ':')
       end
     end
 

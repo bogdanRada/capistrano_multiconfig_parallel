@@ -40,7 +40,7 @@ module CapistranoMulticonfigParallel
       @fetched_config.config_dir = @fetched_config.config_dir.present? ? File.expand_path(@fetched_config.config_dir) : try_detect_file('multi_cap.yml')
       config_file_path = @fetched_config.config_dir.present? ? File.join(@fetched_config.config_dir, 'multi_cap.yml') : nil
       config_file = File.expand_path(config_file_path || File.join(detect_root.to_s, 'config', 'multi_cap.yml'))
-      @fetched_config.log_dir = File.dirname(config_file)
+      @fetched_config.log_dir = config_file_path.present? ? File.dirname(config_file) : File.dirname(File.dirname(config_file))
       @fetched_config.read config_file if File.file?(config_file)
     end
 
@@ -91,10 +91,18 @@ module CapistranoMulticonfigParallel
       end
     end
 
+    def check_directories(props)
+      props.each do |prop|
+        value = get_prop_config(prop)
+        @check_config[prop] = value if value.present? && File.directory?(value)
+      end
+    end
+
     def check_configuration(config)
       @check_config = config.stringify_keys
       check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug websocket_server.use_redis terminal.clear_screen))
       check_array_props(%w(task_confirmations development_stages apply_stage_confirmation))
+      check_directories(%w(log_dir config_dir))
       verify_application_dependencies(@check_config['application_dependencies'], %w(app priority dependencies))
     end
   end

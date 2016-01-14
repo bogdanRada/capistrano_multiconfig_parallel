@@ -38,7 +38,7 @@ module CapistranoMulticonfigParallel
     def notify_time_change(_channel, _message)
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_heaadings)
       jobs = setup_table_jobs(table)
-     display_table_on_terminal(table, jobs)
+      display_table_on_terminal(table, jobs)
     end
 
     def rescue_exception(ex)
@@ -72,10 +72,10 @@ module CapistranoMulticonfigParallel
 
     def setup_table_jobs(table)
       jobs = @manager.alive? ? @manager.jobs.dup : []
-       jobs.each do |job_id, job|
-         table.add_row(job.terminal_row)
-         table.add_separator if jobs.keys.last != job_id
-       end
+      jobs.each do |job_id, job|
+        table.add_row(job.terminal_row)
+        table.add_separator if jobs.keys.last != job_id
+      end
       jobs
     end
 

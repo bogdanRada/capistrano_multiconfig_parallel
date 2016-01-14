@@ -6,12 +6,12 @@ module CapistranoMulticonfigParallel
     include FileUtils
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :job, :job_capistrano_version, :cap_version2
+    attr_reader :job, :job_capistrano_version, :legacy_capistrano
     delegate :app, :stage, :action, :task_arguments, :env_options, :path, to: :job
 
     def initialize(job)
       @job = job
-      @cap_version2 = legacy_capistrano? ? true : false
+      @legacy_capistrano = legacy_capistrano? ? true : false
     end
 
     def filtered_env_keys
@@ -23,8 +23,8 @@ module CapistranoMulticonfigParallel
     end
 
     def gitflow
-     gitflow = `cd #{job_path} && #{bundle_gemfile_env} bundle show capistrano-gitflow`
-     @gitflow ||= gitflow.include?("Could not find") ? false : true
+      gitflow = `cd #{job_path} && #{bundle_gemfile_env} bundle show capistrano-gitflow`
+      @gitflow ||= gitflow.include?('Could not find') ? false : true
     end
 
     def job_stage
@@ -44,13 +44,13 @@ module CapistranoMulticonfigParallel
       array_options = []
       filtered_keys = options.delete(:filtered_keys) || []
       env_options.each do |key, value|
-        array_options << "#{env_prefix(key, @cap_version2)} #{env_key_format(key, @cap_version2)}=#{value}" if value.present? && !env_option_filtered?(key, filtered_keys)
+        array_options << "#{env_prefix(key, @legacy_capistrano)} #{env_key_format(key, @legacy_capistrano)}=#{value}" if value.present? && !env_option_filtered?(key, filtered_keys)
       end
       setup_remaining_flags(array_options, options)
     end
 
     def setup_remaining_flags(array_options, options)
-      array_options << trace_flag(@cap_version2) if app_debug_enabled?
+      array_options << trace_flag(@legacy_capistrano) if app_debug_enabled?
       array_options.concat(setup_flags_for_job(options))
     end
 
@@ -89,7 +89,7 @@ module CapistranoMulticonfigParallel
       execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
     end
 
-    private
+  private
 
     def run_shell_command(command)
       sh("#{command}")

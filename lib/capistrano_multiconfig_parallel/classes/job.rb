@@ -15,6 +15,9 @@ module CapistranoMulticonfigParallel
              :gitflow,
              to: :command
 
+     delegate :stderr_buffer,
+              to: :manager
+
     def initialize(application, options)
       @options = options.stringify_keys
       @application = application
@@ -23,10 +26,10 @@ module CapistranoMulticonfigParallel
 
     def save_stderr_error(data)
       return unless @manager.alive?
-      @manager.stderr_buffer.rewind
-      old_data = @manager.stderr_buffer.read.dup
+      stderr_buffer.rewind
+      old_data = stderr_buffer.read.dup
       new_data = old_data.to_s + data
-      @manager.stderr_buffer.write(new_data) if new_data.include?('aborted!') || new_data.include?('Terminating')
+      stderr_buffer.write(new_data) if new_data.include?('aborted!') || new_data.include?('Terminating')
     end
 
     def env_variable

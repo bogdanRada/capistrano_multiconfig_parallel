@@ -112,7 +112,6 @@ module CapistranoMulticonfigParallel
     end
 
     def log_directory
-      configuration.log_dir = configuration.log_dir.present? ? configuration.log_dir : nil
       log_dir = configuration.log_dir || detect_root.to_s
       File.join(log_dir.to_s, 'log')
     end
