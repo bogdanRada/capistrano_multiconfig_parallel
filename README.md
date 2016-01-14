@@ -21,7 +21,7 @@ NEW Improvements in version 1.1.0
 ---------------------------------
 
 -	a lot of refactoring and bug fixes
--	added posibility to run the deployments from a single directory and is described at section **[2.1) Multiple applications](#2-multiple-apps--like-caphub-)**
+-	added posibility to run the deployments from a single directory and is described at section **[2.2) Deploying multiple applications from a central location](#deploy-from-central-location)**
 
 NEW Improvements in version 1.0.5
 ---------------------------------
@@ -179,7 +179,7 @@ For Capistrano 2 application, the jobs will receive **-S box=<box_name>,<box_nam
 
 The script will ask if there are any other environment variables that user might want to pass to each of the sandboxes separately.
 
-### 1.2) Deploying the application to multiple stages ( Using the customized command "deploy_multi_stages")
+### 2.1) Deploying the application to multiple stages ( Using the customized command "deploy_multi_stages")
 
 ```shell
 
