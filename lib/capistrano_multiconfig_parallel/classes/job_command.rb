@@ -23,8 +23,8 @@ module CapistranoMulticonfigParallel
     end
 
     def gitflow
-      gitflow = `cd #{job_path} && #{bundle_gemfile_env} bundle show capistrano-gitflow`
-      @gitflow ||= gitflow.include?('Could not find') ? false : true
+       gitflow = `#{command_prefix} && #{bundle_gemfile_env} bundle show capistrano-gitflow`
+       @gitflow ||= gitflow.include?('Could not find') ? false : true
     end
 
     def job_stage
@@ -60,7 +60,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_capistrano_version
-      @job_capistrano_version ||= `cd #{job_path} && #{bundle_gemfile_env} bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)' | grep  -Po  '([0-9.]+)'`
+      @job_capistrano_version ||= `#{command_prefix} && #{bundle_gemfile_env} bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)' | grep  -Po  '([0-9.]+)'`
       @job_capistrano_version = strip_characters_from_string(@job_capistrano_version)
     end
 
@@ -72,10 +72,14 @@ module CapistranoMulticonfigParallel
       path || detect_root
     end
 
+    def command_prefix
+      "cd #{job_path} && #{bundle_gemfile_env} bundle install"
+    end
+
     def to_s
       config_flags = CapistranoMulticonfigParallel.configuration_flags
-      environment_options = setup_command_line(config_flags).join(' ')
-      "cd #{job_path} && #{bundle_gemfile_env} bundle install && #{bundle_gemfile_env} RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action} #{environment_options}"
+      environment_options = setup_command_line.join(' ')
+      "#{command_prefix} && #{bundle_gemfile_env} RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action} #{environment_options}"
     end
 
     def to_json
