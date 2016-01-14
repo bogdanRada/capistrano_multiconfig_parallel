@@ -9,14 +9,14 @@ module CapistranoMulticonfigParallel
     attr_writer :status, :exit_status
 
     delegate :job_stage,
-    :capistrano_action,
-    :execute_standard_deploy,
-    :setup_command_line,
-    :gitflow,
-    to: :command
+             :capistrano_action,
+             :execute_standard_deploy,
+             :setup_command_line,
+             :gitflow,
+             to: :command
 
     delegate :stderr_buffer,
-    to: :manager
+             to: :manager
 
     def initialize(application, options)
       @options = options.stringify_keys
@@ -29,7 +29,7 @@ module CapistranoMulticonfigParallel
       stderr_buffer.rewind
       old_data = stderr_buffer.read.dup
       new_data = old_data.to_s + data
-      stderr_buffer.write(new_data) if ['aborted!', 'Terminating', 'Error'].any?{ |word| new_data.include?(word) }
+      stderr_buffer.write(new_data) if ['aborted!', 'Terminating', 'Error'].any? { |word| new_data.include?(word) }
     end
 
     def env_variable

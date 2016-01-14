@@ -23,8 +23,8 @@ module CapistranoMulticonfigParallel
     end
 
     def gitflow
-       gitflow = `#{command_prefix} && #{bundle_gemfile_env} bundle show capistrano-gitflow`
-       @gitflow ||= gitflow.include?('Could not find') ? false : true
+      gitflow = `#{command_prefix} && #{bundle_gemfile_env} bundle show capistrano-gitflow`
+      @gitflow ||= gitflow.include?('Could not find') ? false : true
     end
 
     def job_stage
@@ -78,7 +78,7 @@ module CapistranoMulticonfigParallel
 
     def to_s
       config_flags = CapistranoMulticonfigParallel.configuration_flags
-      environment_options = setup_command_line.join(' ')
+      environment_options = setup_command_line(config_flags).join(' ')
       "#{command_prefix} && #{bundle_gemfile_env} RAILS_ENV=#{stage} bundle exec multi_cap #{job_stage} #{capistrano_action} #{environment_options}"
     end
 
