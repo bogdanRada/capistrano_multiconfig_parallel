@@ -10,7 +10,7 @@ module CapistranoMulticonfigParallel
     def initialize
       Celluloid.boot
       CapistranoMulticonfigParallel.enable_logging
-      @stage_apps = multi_apps? ? stages.map { |stage| stage.split(':').reverse[1] }.uniq : []
+      @stage_apps = multi_apps? ? app_names_from_stages : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
       @jobs = []
     end
@@ -33,7 +33,6 @@ module CapistranoMulticonfigParallel
     def run_custom_command(options)
       custom_stages = fetch_multi_stages
       return if custom_stages.blank?
-      custom_stages = check_multi_stages(custom_stages)
       custom_stages.each do |stage|
         collect_jobs(options.merge('stage' => stage))
       end
@@ -43,7 +42,7 @@ module CapistranoMulticonfigParallel
       options = options.stringify_keys
       return unless applications.present?
       applications.each do |app|
-        deploy_app(options.merge('app' => app['app']))
+        deploy_app(options.merge('app' => app['app'], 'path' => app.fetch('path', nil)))
       end
     end
 
@@ -51,12 +50,8 @@ module CapistranoMulticonfigParallel
       custom_commands.include?(@top_level_tasks.first)
     end
 
-    def multi_apps?
-      stages.find { |stage| stage.include?(':') }.present?
-    end
-
     def verify_valid_data
-      return  if  @top_level_tasks != ['default']
+      return if @top_level_tasks != ['default']
       puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
       exit(false)
     end
@@ -82,7 +77,7 @@ module CapistranoMulticonfigParallel
     end
 
     def action_key
-      capistrano_version_2? ? 'action' : 'ACTION'
+      'ACTION'
     end
 
     def verify_options_custom_command(options)
@@ -100,9 +95,9 @@ module CapistranoMulticonfigParallel
     def collect_jobs(options = {}, &_block)
       options = prepare_options(options)
       options = options.stringify_keys
-      apps = @dependency_tracker.fetch_apps_needed_for_deployment(options['app'], options['action'])
+      apps, app_options = @dependency_tracker.fetch_apps_needed_for_deployment(options['app'], options['action'])
       deploy_multiple_apps(apps, options)
-      deploy_app(options) if !custom_command? || !multi_apps?
+      deploy_app(options.merge(app_options)) if !custom_command? || !multi_apps?
     end
 
     def process_jobs
@@ -116,11 +111,11 @@ module CapistranoMulticonfigParallel
     end
 
     def tag_staging_exists? # check exists task from capistrano-gitflow
-      find_loaded_gem('capistrano-gitflow').present?
+      @jobs.find(&:gitflow).present?
     end
 
     def stages_key
-      capistrano_version_2? ? 'stages' : 'STAGES'
+      'STAGES'
     end
 
     def fetch_multi_stages
@@ -135,11 +130,7 @@ module CapistranoMulticonfigParallel
     end
 
     def can_tag_staging?
-      wants_deploy_production? && tag_staging_exists? && fetch_multi_stages.include?('staging')
-    end
-
-    def check_multi_stages(custom_stages)
-      can_tag_staging? ? custom_stages.reject { |u| u == 'production' } : custom_stages
+      wants_deploy_production? && fetch_multi_stages.include?('staging')
     end
 
     def deploy_app(options = {})
@@ -158,10 +149,6 @@ module CapistranoMulticonfigParallel
       fetch_app_additional_env_options(app_additional_env_options)
     end
 
-    def worker_environments
-      @jobs.map(&:stage)
-    end
-
     def run
       options = {}
       if custom_command?
@@ -174,7 +161,7 @@ module CapistranoMulticonfigParallel
     end
 
     def boxes_key
-      capistrano_version_2? ? 'box' : 'BOX'
+      'BOX'
     end
 
     def call_task_deploy_app(options = {})
@@ -194,7 +181,7 @@ module CapistranoMulticonfigParallel
       @jobs.pmap do |job|
         @manager.async.delegate_job(job)
       end
-      unless can_tag_staging?
+      unless can_tag_staging? && tag_staging_exists?
         until @manager.registration_complete
           sleep(0.1) # keep current thread alive
         end
@@ -225,10 +212,15 @@ module CapistranoMulticonfigParallel
       job_env_options = custom_command? ? env_options.except(action_key) : env_options
       job = CapistranoMulticonfigParallel::Job.new(Actor.current, options.merge(
                                                                     action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
-                                                                    env_options: job_env_options
+                                                                    env_options: job_env_options,
+                                                                    path: options.fetch('path', nil)
 
       ))
-      @jobs << job
+      @jobs << job unless job_can_tag_staging?(job)
+    end
+
+    def job_can_tag_staging?(job)
+      can_tag_staging? && job.stage == 'production' && job.gitflow.present?
     end
 
     def prepare_options(options)

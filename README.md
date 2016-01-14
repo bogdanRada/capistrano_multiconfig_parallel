@@ -17,6 +17,12 @@ IMPORTANT! The whole reason for this gem was for using [Caphub](https://github.c
 
 CAUTION!! PLEASE READ CAREFULLY!! Capistrano is not thread-safe. However in order to work around this problem, each of the task is executing inside a thread that spawns a new process in order to run capistrano tasks The thread monitors the process. This works well, however if the tasks you are executing is working with files, you might get into deadlocks because multiple proceses try to access same resource. Instead of using files , please consider using StringIO instead.
 
+NEW Improvements in version 1.1.0
+---------------------------------
+
+-	a lot of refactoring and bug fixes
+-	added posibility to run the deployments from a single directory and is described at section **[2.2) Deploying multiple applications from a central location](#22-deploying-multiple-applications-from-a-central-location)**
+
 NEW Improvements in version 1.0.5
 ---------------------------------
 
@@ -169,11 +175,11 @@ bundle exec multi_cap  <development_stage> <task_name>   BOX=<box_name>,<box_nam
 
 ```
 
-For Capistrano 2 please use **-S box=<box_name>,<box_name>**
+For Capistrano 2 application, the jobs will receive **-S box=<box_name>,<box_name>**, although you will use **BOX** when running the command. This so that i can maintain compatibility between versions
 
 The script will ask if there are any other environment variables that user might want to pass to each of the sandboxes separately.
 
-### 1.2) Deploying the application to multiple stages ( Using the customized command "deploy_multi_stages")
+### 2.1) Deploying the application to multiple stages ( Using the customized command "deploy_multi_stages")
 
 ```shell
 
@@ -221,7 +227,7 @@ bundle exec multi_cap foo2:development deploy
 
 Will ask user if he wants to deploy the apps "foo" and "bar" , since they appear in the dependencies list for the application "foo2"
 
-### 1.2) Deploying multiple application to multiple stages ( Using the customized command "deploy_multi_stages")
+### 2.1) Deploying multiple application to multiple stages ( Using the customized command "deploy_multi_stages")
 
 ```shell
 
@@ -237,6 +243,49 @@ NOTE: IF you want to execute a different command on all stages, you can specify 
 The script will ask for additional ENV options for each stage.
 
 If you use **capistrano-gitflow**, the workers will first deploy to all the other stages and only after staging is tagged , will trigger a new worker to start deploying to production
+
+### 2.2) [Deploying multiple applications from a central location](#deploy-from-central-location)
+
+This works like described in section **[2) Multiple applications](#2-multiple-apps--like-caphub-)** ), but now the **application_dependencies** Array can also have a **path** key inside each item that should point to the DocumentRoot of that application, and the configuration now accepts two new arguments **config_dir** ( this should point to the directory where the file **multi_cap.yml** resides) and **log_dir**( this can be used if you want your logs created in different directory)
+
+This will only work if all applications listed in the configuration file have the gem **capistrano_multiconfig_parallel** as part of their Gemfile.
+
+Example of configuration: - create a directory anywhere (e.g.**mkdir /tmp/app**\) - create a Gemfile and add only this two lines:
+
+```ruby
+source 'http://rubygems.org'
+
+gem 'capistrano_multiconfig_parallel'
+```
+
+Then create a file called **multi_cap.yml** in the root folder and create a configuration like this.
+
+```yaml
+   ---
+   application_dependencies:
+       - app: foo'
+         priority: 1
+         path: /some/path/to/foo
+         dependencies: []
+       - app: bar
+         priority: 1
+         path: /some/path/to/bar
+         dependencies:
+           - foo
+       - app: foo2
+         priority: 1
+         path: /some/path/to/foo2
+         dependencies:
+           - foo
+           - bar
+   ---
+```
+
+and then you can run like you would normally do
+
+```shell
+bundle exec multi_cap foo2:development deploy
+```
 
 Known Limitations
 -----------------

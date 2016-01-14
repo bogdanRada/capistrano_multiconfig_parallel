@@ -10,9 +10,9 @@ module CapistranoMulticonfigParallel
 
     delegate :job_stage,
              :capistrano_action,
-             :build_capistrano_task,
              :execute_standard_deploy,
              :setup_command_line,
+             :gitflow,
              to: :command
 
     delegate :stderr_buffer,
@@ -25,10 +25,11 @@ module CapistranoMulticonfigParallel
     end
 
     def save_stderr_error(data)
+      return unless @manager.alive?
       stderr_buffer.rewind
       old_data = stderr_buffer.read.dup
       new_data = old_data.to_s + data
-      stderr_buffer.write(new_data) if new_data.include?('aborted!') || new_data.include?('Terminating')
+      stderr_buffer.write(new_data) if ['aborted!', 'Terminating', 'Error'].any? { |word| new_data.include?(word) }
     end
 
     def env_variable
@@ -68,7 +69,7 @@ module CapistranoMulticonfigParallel
     def worker_state
       worker_obj = worker
       default = status.to_s.upcase.red
-      worker_obj.present? && worker_obj.alive? ? worker_obj.worker_state : default
+      worker_obj.alive? ? worker_obj.worker_state : default
     end
 
     def id
@@ -81,6 +82,7 @@ module CapistranoMulticonfigParallel
       { name: 'action', default: '' },
       { name: 'task_arguments', default: [] },
       { name: 'env_options', default: {} },
+      { name: 'path', default: nil },
       { name: 'status', default: :unstarted },
       { name: 'exit_status', default: nil }
     ].each do |hash|

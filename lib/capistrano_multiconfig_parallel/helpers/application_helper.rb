@@ -39,8 +39,7 @@ module CapistranoMulticonfigParallel
 
     def setup_command_line_standard(*args)
       options = args.extract_options!
-      args.select(&:present?)
-      [args, options]
+      [args.select(&:present?), options]
     end
 
     def wrap_string(string, options = {})

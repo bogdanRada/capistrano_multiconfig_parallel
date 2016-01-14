@@ -11,7 +11,7 @@ module CapistranoMulticonfigParallel
     end
 
     def fetch_apps_needed_for_deployment(application, action)
-      return [] unless @job_manager.multi_apps?
+      return [[], {}] unless @job_manager.multi_apps?
       if @job_manager.custom_command?
         show_interactive_menu(action)
       else
@@ -22,14 +22,17 @@ module CapistranoMulticonfigParallel
   private
 
     def fetch_application_dependencies(application, action)
-      return [] if configuration.application_dependencies.blank? || application.blank?
+      return [[], {}] if configuration.application_dependencies.blank? || application.blank?
       applications = get_applications_to_deploy(action, [application.camelcase])
+      app_options = applications.find { |hash| hash['app'] == application }.dup
       applications.delete_if { |hash| hash['app'] == application }
+      [applications, app_options]
     end
 
     def show_interactive_menu(action)
       apps_selected = CapistranoMulticonfigParallel::InteractiveMenu.new(available_apps).fetch_menu
-      get_applications_to_deploy(action, apps_selected)
+      apps = get_applications_to_deploy(action, apps_selected)
+      [apps, {}]
     end
 
     def application_dependencies
@@ -103,7 +106,7 @@ module CapistranoMulticonfigParallel
       if action_confirmed?(apps_deploy_confirmation)
         return applications_to_deploy
       else
-        return []
+        return applications_to_deploy
       end
     end
   end

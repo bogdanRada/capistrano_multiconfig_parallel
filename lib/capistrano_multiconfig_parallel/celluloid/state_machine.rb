@@ -45,7 +45,7 @@ module CapistranoMulticonfigParallel
   private
 
     def actor_notify_state_change(current_state, event, new_state)
-      @actor.send_msg(CapistranoMulticonfigParallel::TerminalTable.topic, type: 'event', message: "Going from #{current_state} to #{new_state}  due to a #{event} event")
+      @actor.send_msg(CapistranoMulticonfigParallel::TerminalTable.topic, type: 'event', new_state: new_state, message: "Going from #{current_state} to #{new_state}  due to a #{event} event")
     end
   end
 end
