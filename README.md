@@ -266,6 +266,12 @@ source 'http://rubygems.org'
 gem 'capistrano_multiconfig_parallel'
 ```
 
+or you could install it directly from command line:
+
+```shell
+gem install capistrano_multiconfig_parallel
+```
+
 Then create a file called **multi_cap.yml** in the root folder and create a configuration like this.
 
 ```yaml
