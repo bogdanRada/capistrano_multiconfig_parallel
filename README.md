@@ -295,10 +295,10 @@ Then create a file called **multi_cap.yml** in the root folder and create a conf
    ---
 ```
 
-and then you can run like you would normally do
+and then you can run like you would normally do: (Apppend **bundle exec** to the below command only if you have a Gemfile)
 
 ```shell
-bundle exec multi_cap foo2:development deploy
+multi_cap foo2:development deploy
 ```
 
 Known Limitations
