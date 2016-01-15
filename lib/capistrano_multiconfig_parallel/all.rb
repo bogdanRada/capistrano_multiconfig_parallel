@@ -1,8 +1,10 @@
 require 'rubygems'
 require 'bundler'
 require 'bundler/setup'
+
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/module/delegation'
 require 'active_support/concern'
 
 require 'celluloid/autostart'
@@ -18,6 +20,7 @@ require 'configliere'
 require 'devnull'
 require 'inquirer'
 require 'rack'
+require 'rake'
 
 require 'logger'
 require 'fileutils'
@@ -26,19 +29,16 @@ require 'yaml'
 require 'stringio'
 require 'io/console'
 
-# capistrano requirements
-require 'rake'
-
 # fix error with not files that can not be found
-Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
+ Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 
 %w(helpers classes celluloid core_ext).each do |folder_name|
   Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
 end
 
-require_relative './version'
-require_relative './base'
-require_relative './application'
+%w(version base application).each do |filename|
+  Gem.find_files("capistrano_multiconfig_parallel/#{filename}.rb").each { |path| require path }
+end
 
 %w(initializers).each do |folder_name|
   Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
