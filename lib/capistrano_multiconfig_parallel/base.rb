@@ -38,11 +38,11 @@ module CapistranoMulticonfigParallel
     end
 
     def capistrano_version
-      find_loaded_gem_property('capistrano', 'version')
+      find_loaded_gem_property
     end
 
     def capistrano_version_2?
-      capistrano_version.blank? ? false : verify_gem_version(capistrano_version, '3.0', operator: '<')
+      capistrano_version.blank? ? nil : verify_gem_version(capistrano_version, '3.0', operator: '<')
     end
 
   private

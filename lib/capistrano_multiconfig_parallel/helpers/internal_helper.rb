@@ -30,7 +30,7 @@ module CapistranoMulticonfigParallel
     end
 
     def default_config_keys
-      default_internal_config.map { |array| array[0].to_s }.concat([CapistranoMulticonfigParallel::ENV_KEY_JOB_ID])
+      default_internal_config.map { |array| array[0].to_s }.concat([CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, 'job_path'])
     end
 
     def arg_is_in_default_config?(arg)

@@ -19,16 +19,25 @@ module CapistranoMulticonfigParallel
         else
           ARGV.reject! { |arg| arg_is_in_default_config?(arg) }
           log_to_file("worker #{job_id} runs with ARGV #{ARGV.inspect}", job_id: job_id)
+          require_capistrano
           run_capistrano
         end
       end
 
+      def require_capistrano
+        job_path = CapistranoMulticonfigParallel.configuration[:job_path] || detect_root
+        capistrano_path = gem_path('capistrano', job_path)
+        $LOAD_PATH.unshift(File.join(capistrano_path, 'lib'))
+        cap_file = capistrano_version_2? ? 'capistrano/cli' : 'capistrano/all'
+        raise job_path.inspect
+        raise Gem.find_files("lib/#{cap_file}.rb").inspect#.each{|file| require file}
+        Gem.find_files('capistrano_multiconfig_parallel/initializers/**/*.rb').each { |path| require path }
+      end
+
       def run_capistrano
         if capistrano_version_2?
-          require 'capistrano/cli'
           Capistrano::CLI.execute
         else
-          require 'capistrano/all'
           Capistrano::Application.new.run
         end
       end

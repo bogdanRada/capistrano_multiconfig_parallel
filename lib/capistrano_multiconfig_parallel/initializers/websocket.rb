@@ -1,5 +1,5 @@
 require 'celluloid/websocket/client/connection'
-# DIRTY HACK TO make websocket-driver to not use Capistrano::DSL env
+# make websocket-driver to not use Capistrano::DSL env
 Celluloid::WebSocket::Client::Connection.class_eval do
   def env
     env_hash = ENV.each_with_object({}) do |(key, value), memo|

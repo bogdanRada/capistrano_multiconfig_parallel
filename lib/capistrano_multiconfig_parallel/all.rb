@@ -10,6 +10,7 @@ require 'active_support/concern'
 require 'celluloid/autostart'
 require 'celluloid/pmap'
 
+
 require 'composable_state_machine'
 require 'eventmachine'
 require 'right_popen'
@@ -20,7 +21,6 @@ require 'configliere'
 require 'devnull'
 require 'inquirer'
 require 'rack'
-require 'rake'
 
 require 'logger'
 require 'fileutils'
@@ -38,8 +38,4 @@ end
 
 %w(version base application).each do |filename|
   Gem.find_files("capistrano_multiconfig_parallel/#{filename}.rb").each { |path| require path }
-end
-
-%w(initializers).each do |folder_name|
-  Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
 end
