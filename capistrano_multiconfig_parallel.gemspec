@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
 
   s.add_runtime_dependency 'celluloid-pmap', '~> 0.2', '>= 0.2.2'
-  s.add_runtime_dependency 'celluloid_pubsub', '~> 0.4', '>= 0.4.4'
+  s.add_runtime_dependency 'celluloid_pubsub', '~> 0.4', '>= 0.4.7'
   s.add_runtime_dependency 'celluloid-websocket-client', '~> 0.0', '>= 0.0.1'
   s.add_runtime_dependency 'composable_state_machine', '~> 1.0', '>= 1.0.2'
   s.add_runtime_dependency 'terminal-table', '~> 1.5', '>= 1.5.2'
@@ -33,17 +33,14 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'rack', '~> 1.6', '>= 1.6'
   s.add_runtime_dependency 'rake', '~> 10.4', '>= 10.4'
 
-  s.add_development_dependency 'rspec-rails', '~> 3.3', '>= 3.3'
-  s.add_development_dependency 'simplecov', '~> 0.10', '>= 0.10'
+  s.add_development_dependency 'rspec', '~> 3.4', '>= 3.4'
+  s.add_development_dependency 'simplecov', '~> 0.11', '>= 0.11'
   s.add_development_dependency 'simplecov-summary', '~> 0.0.4', '>= 0.0.4'
   s.add_development_dependency 'mocha', '~> 1.1', '>= 1.1'
   s.add_development_dependency 'coveralls', '~> 0.7', '>= 0.7'
-  s.add_development_dependency 'rvm-tester', '~> 1.1', '>= 1.1'
 
-  s.add_development_dependency 'rubocop', '~> 0.33', '>= 0.33'
-  s.add_development_dependency 'reek', '~> 3.7', '>= 3.7'
+
   s.add_development_dependency 'yard', '~> 0.8', '>= 0.8.7'
-  s.add_development_dependency 'yard-rspec', '~> 0.1', '>= 0.1'
   s.add_development_dependency 'redcarpet', '~> 3.3', '>= 3.3'
   s.add_development_dependency 'github-markup', '~> 1.3', '>= 1.3.3'
   s.add_development_dependency 'inch', '~> 0.6', '>= 0.6'
