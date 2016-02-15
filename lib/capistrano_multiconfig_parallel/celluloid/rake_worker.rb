@@ -1,10 +1,8 @@
-require_relative '../helpers/application_helper'
+require_relative '../helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # class that handles the rake task and waits for approval from the celluloid worker
   class RakeWorker
-    include Celluloid
-    include Celluloid::Logger
-    include CapistranoMulticonfigParallel::ApplicationHelper
+    include CapistranoMulticonfigParallel::BaseActorHelper
 
     attr_reader :client, :job_id, :action, :task,
                 :task_approved, :successfull_subscription,

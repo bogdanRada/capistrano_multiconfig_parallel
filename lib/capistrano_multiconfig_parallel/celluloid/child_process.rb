@@ -1,11 +1,8 @@
-require_relative '../helpers/application_helper'
-require_relative '../helpers/core_helper'
+require_relative '../helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # class that is used to execute the capistrano tasks and it is invoked by the celluloid worker
   class ChildProcess
-    include Celluloid
-    include Celluloid::Logger
-    include CapistranoMulticonfigParallel::ApplicationHelper
+    include CapistranoMulticonfigParallel::BaseActorHelper
 
     attr_accessor :options, :job, :actor, :job_id, :exit_status, :pid, :process
 

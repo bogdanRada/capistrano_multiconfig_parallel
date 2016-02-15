@@ -1,15 +1,11 @@
 require_relative './celluloid_worker'
 require_relative './terminal_table'
 require_relative './web_server'
-require_relative '../helpers/application_helper'
+require_relative '../helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # manager class that handles workers
   class CelluloidManager
-    include Celluloid
-    include Celluloid::Notifications
-    include Celluloid::Logger
-    include CapistranoMulticonfigParallel::ApplicationHelper
-
+    include CapistranoMulticonfigParallel::BaseActorHelper
     attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated, :stderr_buffer
 
     attr_reader :worker_supervisor, :workers
@@ -20,16 +16,16 @@ module CapistranoMulticonfigParallel
       @registration_complete = false
       return if configuration.multi_secvential.to_s.downcase == 'true'
       # start SupervisionGroup
-      @worker_supervisor = Celluloid::SupervisionGroup.run!
+      @worker_supervisor = setup_supervision_group
 
       # Get a handle on the SupervisionGroup::Member
       @mutex = Mutex.new
       # http://rubydoc.info/gems/celluloid/Celluloid/SupervisionGroup/Member
-      @workers = @worker_supervisor.pool(CapistranoMulticonfigParallel::CelluloidWorker, as: :workers, size: 10)
+      @workers = setup_pool_of_actor(@worker_supervisor, actor_name: :workers, type: CapistranoMulticonfigParallel::CelluloidWorker, size: 10)
       Actor.current.link @workers
-      @worker_supervisor.supervise_as(:terminal_server, CapistranoMulticonfigParallel::TerminalTable, Actor.current, @job_manager, configuration.fetch(:terminal, {}))
-      @worker_supervisor.supervise_as(:web_server, CapistranoMulticonfigParallel::WebServer, [websocket_config])
-
+      setup_actor_supervision(@worker_supervisor, actor_name: :terminal_server, type: CapistranoMulticonfigParallel::TerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
+      setup_actor_supervision(@worker_supervisor, actor_name: :web_server, type: CapistranoMulticonfigParallel::WebServer, args: websocket_config)
+      
       # Get a handle on the PoolManager
       # http://rubydoc.info/gems/celluloid/Celluloid/PoolManager
       # @workers = workers_pool.actor
