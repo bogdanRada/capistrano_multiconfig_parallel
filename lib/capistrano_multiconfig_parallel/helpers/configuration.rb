@@ -84,6 +84,13 @@ module CapistranoMulticonfigParallel
       end
     end
 
+    def check_string_props(props)
+      props.each do |prop|
+        value = get_prop_config(prop)
+        @check_config[prop] = value if value.is_a?(String)
+      end
+    end
+
     def get_prop_config(prop, config = @check_config)
       if prop.include?('.')
         multi_level_prop(config, prop)
@@ -101,7 +108,8 @@ module CapistranoMulticonfigParallel
 
     def check_configuration(config)
       @check_config = config.stringify_keys
-      check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug websocket_server.use_redis terminal.clear_screen))
+      check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug terminal.clear_screen))
+      check_string_props(%w(websocket_server.adapter))
       check_array_props(%w(task_confirmations development_stages apply_stage_confirmation))
       check_directories(%w(log_dir config_dir))
       verify_application_dependencies(@check_config['application_dependencies'], %w(app priority dependencies))

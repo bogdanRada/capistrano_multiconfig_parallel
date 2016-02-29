@@ -58,7 +58,7 @@ module CapistranoMulticonfigParallel
 
     def find_config_type(type)
       type = type.to_s
-      %w(boolean filename).include?(type) ? type.delete(':').to_sym : type.constantize
+      %w(boolean filename string).include?(type) ? type.delete(':').to_sym : type.constantize
     end
 
     def find_env_multi_cap_root

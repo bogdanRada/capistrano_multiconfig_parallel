@@ -84,7 +84,7 @@ multi_debug: true
 multi_secvential: false
 websocket_server:
   enable_debug: false
-  use_redis: false
+  adapter: ''
   log_file_path: './log/multi_cap_websocket.log'
 terminal:
   clear_screen: false  
@@ -117,9 +117,9 @@ Available command line options when executing a command
 
 	-	if option is present and has value TRUE, will enable debugging of websocket communication between the workers
 
--	--websocket_server.use_redis
+-	--websocket_server.adapter
 
-	-	Enables use of redis reactor for publish subscribe communication
+	-	Can be specified a different adapter for the websocket reactor class used for publish subscribe communication
 
 -	--websocket_server.log_file_path
 
