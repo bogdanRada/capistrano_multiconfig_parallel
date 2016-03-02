@@ -5,37 +5,37 @@ module CapistranoMulticonfigParallel
 
     module ClassMethods
       class << self
-      include CapistranoMulticonfigParallel::ApplicationHelper
-      attr_reader :config
+        include CapistranoMulticonfigParallel::ApplicationHelper
+        attr_reader :config
 
 
-      def config
-        {
-          'logger_class' => celluloid_logger_class
-        }
-      end
+        def config
+          {
+            'logger_class' => celluloid_logger_class
+          }
+        end
 
-      def celluloid_logger_class
-        if version_less_than_seventeen?
-          Celluloid::Logger
-        else
-          Celluloid::Internals::Logger
+        def celluloid_logger_class
+          if version_less_than_seventeen?
+            Celluloid::Logger
+          else
+            Celluloid::Internals::Logger
+          end
+        end
+
+        def celluloid_version
+          find_loaded_gem_property('celluloid', 'version')
+        end
+
+        def version_less_than_seventeen?
+          verify_gem_version('celluloid', '0.17', operator: '<')
         end
       end
-
-      def celluloid_version
-        find_loaded_gem_property('celluloid', 'version')
-      end
-
-      def version_less_than_seventeen?
-        verify_gem_version('celluloid', '0.17', operator: '<')
-      end
-    end
     end
 
     module InstanceMethods
       delegate :version_less_than_seventeen?,
-               to: :'CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods'
+      to: :'CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods'
 
       def setup_actor_supervision(class_name, options)
         arguments = options[:args].is_a?(Array) ? options[:args] : [options[:args]]
