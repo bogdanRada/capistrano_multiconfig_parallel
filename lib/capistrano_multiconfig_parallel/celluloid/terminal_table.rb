@@ -1,12 +1,9 @@
 
-require_relative '../helpers/application_helper'
+require_relative '../helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # class used to display the progress of each worker on terminal screen using a table
   class TerminalTable
-    include Celluloid
-    include Celluloid::Notifications
-    include Celluloid::Logger
-    include CapistranoMulticonfigParallel::ApplicationHelper
+  include CapistranoMulticonfigParallel::BaseActorHelper
 
     attr_reader :options, :errors, :manager, :position, :job_manager, :terminal_rows, :screen_erased
 

@@ -1,14 +1,13 @@
+require_relative './helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # finds app dependencies, shows menu and delegates jobs to celluloid manager
   class Application
-    include Celluloid
-    include Celluloid::Logger
-    include CapistranoMulticonfigParallel::ApplicationHelper
+    include CapistranoMulticonfigParallel::BaseActorHelper
 
     attr_reader :stage_apps, :top_level_tasks, :jobs, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
 
     def initialize
-      Celluloid.boot
+      Celluloid.boot unless Celluloid.running?
       CapistranoMulticonfigParallel.enable_logging
       @stage_apps = multi_apps? ? app_names_from_stages : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
