@@ -20,8 +20,14 @@ module CapistranoMulticonfigParallel
     def get_parsed_version(version)
       return 0 if version.blank?
       version = version.to_s.split('.')
-      version.pop until version.size == 2
+      version = format_gem_version(version)
       version.join('.').to_f
+    end
+
+    def format_gem_version(version)
+      return version if version.size <= 2
+      version.pop until version.size == 2
+      version
     end
 
     def verify_gem_version(gem_version, version, options = {})
