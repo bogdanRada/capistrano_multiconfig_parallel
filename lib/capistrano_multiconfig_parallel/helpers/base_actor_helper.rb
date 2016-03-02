@@ -67,11 +67,11 @@ module CapistranoMulticonfigParallel
 
 
     def self.included(base)
-      base.include Celluloid
-      base.include Celluloid::Notifications
-      base.include CapistranoMulticonfigParallel::ApplicationHelper
-      base.include CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods.config['logger_class']
-      base.include CapistranoMulticonfigParallel::BaseActorHelper::InstanceMethods
+      base.send(:include, Celluloid)
+      base.send(:include, Celluloid::Notifications)
+      base.send(:include, CapistranoMulticonfigParallel::ApplicationHelper)
+      base.send(:include, CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods.config['logger_class'])
+      base.send(:include, CapistranoMulticonfigParallel::BaseActorHelper::InstanceMethods)
     end
 
   end
