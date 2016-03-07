@@ -87,7 +87,7 @@ module CapistranoMulticonfigParallel
     end
 
     def signal_complete
-      if managers_alive? && @manager.all_workers_finished?
+      if managers_alive? && @manager.all_workers_finished? && @manager.workers_terminated.instance_variable_get("@waiters").blank?
         @job_manager.condition.signal('completed') if @job_manager.alive?
       elsif !managers_alive?
         terminate

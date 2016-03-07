@@ -59,7 +59,7 @@ module CapistranoMulticonfigParallel
     end
 
     def all_workers_finished?
-      @jobs.all? { |_job_id, job| job.work_done? }
+      @jobs.all? { |_job_id, job| job.work_done?   }
     end
 
     def process_jobs
@@ -68,7 +68,7 @@ module CapistranoMulticonfigParallel
         @job_to_worker.pmap do |_job_id, worker|
           worker.async.start_task
         end
-        async.wait_task_confirmations
+        wait_task_confirmations
       end
       terminal_show
       condition = @workers_terminated.wait
@@ -125,7 +125,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def wait_condition_for_task(job_id,  task)
+    def wait_condition_for_task(job_id, task)
       @job_to_condition[job_id][task][:condition].wait
     end
 
@@ -138,7 +138,7 @@ module CapistranoMulticonfigParallel
           result = wait_condition_for_task(job_id, task)
           results << result
         end
-        if results.size == @jobs.size && !all_workers_finished?
+        if results.size == @jobs.size
           confirm_task_approval(results, task)
         end
       end
