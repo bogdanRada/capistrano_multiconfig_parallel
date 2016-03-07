@@ -138,7 +138,7 @@ module CapistranoMulticonfigParallel
           result = wait_condition_for_task(job_id, task)
           results << result
         end
-        if results.size == @jobs.size
+        if results.size == @jobs.size && !all_workers_finished?
           confirm_task_approval(results, task)
         end
       end
