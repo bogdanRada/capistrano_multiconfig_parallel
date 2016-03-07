@@ -69,7 +69,7 @@ module CapistranoMulticonfigParallel
     def worker_state
       worker_obj = worker
       default = status.to_s.upcase.red
-      worker_obj.alive? ? worker_obj.worker_state : default
+      worker_obj.present? && worker_obj.alive? ? worker_obj.worker_state : default
     end
 
     def id
