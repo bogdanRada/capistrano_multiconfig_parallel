@@ -118,6 +118,10 @@ module CapistranoMulticonfigParallel
       !worker.alive?
     end
 
+    def work_done?
+      finished? || crashed?
+    end
+
     def to_json
       hash = {}
       %w(id app stage action task_arguments env_options status exit_status).each do |key|

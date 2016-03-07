@@ -25,7 +25,7 @@ module CapistranoMulticonfigParallel
       Actor.current.link @workers
       setup_actor_supervision(@worker_supervisor, actor_name: :terminal_server, type: CapistranoMulticonfigParallel::TerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
       setup_actor_supervision(@worker_supervisor, actor_name: :web_server, type: CapistranoMulticonfigParallel::WebServer, args: websocket_config)
-      
+
       # Get a handle on the PoolManager
       # http://rubydoc.info/gems/celluloid/Celluloid/PoolManager
       # @workers = workers_pool.actor
@@ -59,7 +59,7 @@ module CapistranoMulticonfigParallel
     end
 
     def all_workers_finished?
-      @jobs.all? { |_job_id, job| job.finished? || job.crashed? }
+      @jobs.all? { |_job_id, job| job.work_done? }
     end
 
     def process_jobs
@@ -68,7 +68,7 @@ module CapistranoMulticonfigParallel
         @job_to_worker.pmap do |_job_id, worker|
           worker.async.start_task
         end
-        wait_task_confirmations
+        async.wait_task_confirmations
       end
       terminal_show
       condition = @workers_terminated.wait
@@ -125,7 +125,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def wait_condition_for_task(job_id, task)
+    def wait_condition_for_task(job_id,  task)
       @job_to_condition[job_id][task][:condition].wait
     end
 
@@ -138,7 +138,7 @@ module CapistranoMulticonfigParallel
           result = wait_condition_for_task(job_id, task)
           results << result
         end
-        if results.size == @jobs.size
+        if results.size == @jobs.size && !all_workers_finished?
           confirm_task_approval(results, task)
         end
       end
