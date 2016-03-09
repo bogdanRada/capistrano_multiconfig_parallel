@@ -165,7 +165,7 @@ module CapistranoMulticonfigParallel
       log_to_file("worker #{job_id} tries to terminate with exit_status #{exit_status}")
       @manager.mark_completed_remaining_tasks(@job)
       update_machine_state('FINISHED') if exit_status == 0
-      @manager.workers_terminated.signal('completed') if @manager.alive? && @manager.all_workers_finished?
+      @manager.workers_terminated.signal('completed') if @manager.present? && @manager.alive? && @manager.all_workers_finished?
     end
 
     def notify_finished(exit_status)
