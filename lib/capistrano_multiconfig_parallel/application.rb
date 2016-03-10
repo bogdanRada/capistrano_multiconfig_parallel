@@ -16,9 +16,9 @@ module CapistranoMulticonfigParallel
 
     def start
       verify_app_dependencies if multi_apps? && configuration.application_dependencies.present?
+      initialize_data
       verify_valid_data
       check_before_starting
-      initialize_data
       run
     end
 
@@ -50,9 +50,10 @@ module CapistranoMulticonfigParallel
     end
 
     def verify_valid_data
-      return if @top_level_tasks != ['default']
-      puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
-      exit(false)
+      if @top_level_tasks == ['default'] || (multi_apps? && !@top_level_tasks.first.to_s.include?(':') )
+        puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
+        exit(false)
+      end
     end
 
     def initialize_data
