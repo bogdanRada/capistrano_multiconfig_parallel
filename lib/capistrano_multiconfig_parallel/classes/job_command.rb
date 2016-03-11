@@ -6,12 +6,12 @@ module CapistranoMulticonfigParallel
     include FileUtils
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :job, :job_capistrano_version, :legacy_capistrano
+    attr_reader :job, :legacy_capistrano
     delegate :app, :stage, :action, :task_arguments, :env_options, :path, to: :job
 
     def initialize(job)
       @job = job
-      @legacy_capistrano = legacy_capistrano? ? true : false
+      @legacy_capistrano ||= legacy_capistrano?(job_path) ? true : false
     end
 
     def filtered_env_keys
@@ -33,7 +33,7 @@ module CapistranoMulticonfigParallel
     end
 
     def env_option_filtered?(key, filtered_keys_array = [])
-      filtered_env_keys.include?(env_key_format(key)) || filtered_keys_array.include?(key.to_s)
+      filtered_env_keys.include?(env_key_format(key, @legacy_capistrano)) || filtered_keys_array.include?(key.to_s)
     end
 
     def setup_env_options(options = {})
@@ -53,15 +53,6 @@ module CapistranoMulticonfigParallel
     def setup_command_line(*args)
       new_arguments, options = setup_command_line_standard(*args)
       setup_env_options(options).concat(new_arguments)
-    end
-
-    def job_capistrano_version
-      @job_capistrano_version ||= find_gem_version_from_path(job_path)
-      @job_capistrano_version = strip_characters_from_string(@job_capistrano_version)
-    end
-
-    def legacy_capistrano?
-      verify_gem_version(job_capistrano_version, '3.0', operator: '<')
     end
 
     def job_path

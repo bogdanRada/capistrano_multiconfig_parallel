@@ -37,12 +37,13 @@ module CapistranoMulticonfigParallel
       original_args_hash.fetch(CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, nil)
     end
 
-    def capistrano_version
-      find_loaded_gem_property
+    def job_capistrano_version(job_path)
+      job_capistrano_version = find_gem_version_from_path(job_path)
+      strip_characters_from_string(job_capistrano_version)
     end
 
-    def capistrano_version_2?
-      capistrano_version.blank? ? nil : verify_gem_version(capistrano_version, '3.0', operator: '<')
+    def legacy_capistrano?(job_path)
+      verify_gem_version(job_capistrano_version(job_path), '3.0', operator: '<')
     end
 
   private

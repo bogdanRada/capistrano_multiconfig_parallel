@@ -17,9 +17,9 @@ module CapistranoMulticonfigParallel
     delegate :logger,
              :configuration,
              :configuration_valid?,
-             :capistrano_version_2?,
-             :capistrano_version,
              :original_args,
+             :job_capistrano_version,
+             :legacy_capistrano?,
              to: :CapistranoMulticonfigParallel
 
   module_function
