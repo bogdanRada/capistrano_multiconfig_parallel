@@ -22,7 +22,7 @@ module CapistranoMulticonfigParallel
           job_path = CapistranoMulticonfigParallel.configuration[:job_path] || detect_root
           capistrano_path = gem_path('capistrano', job_path)
           require_capistrano(capistrano_path, job_path)
-          run_capistrano(job_path)
+          run_capistrano(job_id, job_path)
         end
       end
 
@@ -31,8 +31,9 @@ module CapistranoMulticonfigParallel
         Gem.find_files('capistrano_multiconfig_parallel/initializers/**/*.rb').each { |path| require path }
       end
 
-      def run_capistrano(job_path)
-        `cd #{job_path} && bin/cap #{ARGV.join(' ')}`
+      def run_capistrano(job_id, job_path)
+        log_to_file("worker #{job_id} runs cd #{job_path} && #{bundle_gemfile_env(job_path)} RAILS_ENV=#{CapistranoMulticonfigParallel.configuration[:stage]} bundle exec bin/cap #{ARGV.join(' ')}", job_id: job_id)
+        `cd #{job_path} && #{bundle_gemfile_env(job_path)} RAILS_ENV=#{CapistranoMulticonfigParallel.configuration[:stage]} bundle exec bin/cap #{ARGV.join(' ')}`
       end
 
       def before_start

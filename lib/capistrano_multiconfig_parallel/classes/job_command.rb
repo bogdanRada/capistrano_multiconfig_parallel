@@ -66,7 +66,7 @@ module CapistranoMulticonfigParallel
 
     def to_s
       config_flags = CapistranoMulticonfigParallel.configuration_flags
-      environment_options = setup_command_line(config_flags.merge("job_path" => job_path)).join(' ')
+      environment_options = setup_command_line(config_flags.merge("job_path" => job_path, 'stage' => stage)).join(' ')
       "#{command_prefix} && multi_cap #{job_stage} #{capistrano_action} #{environment_options}"
     end
 
