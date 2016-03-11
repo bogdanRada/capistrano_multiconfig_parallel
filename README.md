@@ -1,7 +1,7 @@
 capistrano_multiconfig_parallel
 ===============================
 
-[![Gem Version](https://badge.fury.io/rb/capistrano_multiconfig_parallel.svg)](http://badge.fury.io/rb/capistrano_multiconfig_parallel) [![Repo Size](https://reposs.herokuapp.com/?path=bogdanRada/capistrano_multiconfig_parallel)](https://github.com/bogdanRada/capistrano_multiconfig_parallel) [![Gem Downloads](https://ruby-gem-downloads-badge.herokuapp.com/capistrano_multiconfig_parallel?type=total&style=dynamic)](https://github.com/bogdanRada/capistrano_multiconfig_parallel) [![Maintenance Status](http://stillmaintained.com/bogdanRada/capistrano_multiconfig_parallel.png)](https://github.com/bogdanRada/capistrano_multiconfig_parallel)
+[![Gem Version](https://badge.fury.io/rb/capistrano_multiconfig_parallel.svg)](http://badge.fury.io/rb/capistrano_multiconfig_parallel) [![Repo Size](https://reposs.herokuapp.com/?path=bogdanRada/capistrano_multiconfig_parallel)](https://github.com/bogdanRada/capistrano_multiconfig_parallel) [![Gem Downloads](https://ruby-gem-downloads-badge.herokuapp.com/capistrano_multiconfig_parallel?type=total&style=dynamic)](https://github.com/bogdanRada/capistrano_multiconfig_parallel) [![Analytics](https://ga-beacon.appspot.com/UA-72570203-1/bogdanRada/capistrano_multiconfig_parallel)](https://github.com/bogdanRada/capistrano_multiconfig_parallel) [![Join the chat at https://gitter.im/bogdanRada/capistrano_multiconfig_parallel](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bogdanRada/capistrano_multiconfig_parallel?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 DEMO
 ----
@@ -16,6 +16,11 @@ CapistranoMulticonfigParallel is a simple ruby implementation that allows you to
 IMPORTANT! The whole reason for this gem was for using [Caphub](https://github.com/railsware/caphub) in a more easy way and allowing you to run tasks in parallel for multiple aplications . However this can be used for normal applications also, if you want for example to deploy your app to multiple sandboxes on development environment or even deploy in parallel to multiple stages.
 
 CAUTION!! PLEASE READ CAREFULLY!! Capistrano is not thread-safe. However in order to work around this problem, each of the task is executing inside a thread that spawns a new process in order to run capistrano tasks The thread monitors the process. This works well, however if the tasks you are executing is working with files, you might get into deadlocks because multiple proceses try to access same resource. Instead of using files , please consider using StringIO instead.
+
+NEW Improvements in version 1.2.0
+---------------------------------
+
+-	support for Celluloid 0.17 was added
 
 NEW Improvements in version 1.1.0
 ---------------------------------
@@ -84,7 +89,7 @@ multi_debug: true
 multi_secvential: false
 websocket_server:
   enable_debug: false
-  use_redis: false
+  adapter: ''
   log_file_path: './log/multi_cap_websocket.log'
 terminal:
   clear_screen: false  
@@ -117,9 +122,9 @@ Available command line options when executing a command
 
 	-	if option is present and has value TRUE, will enable debugging of websocket communication between the workers
 
--	--websocket_server.use_redis
+-	--websocket_server.adapter
 
-	-	Enables use of redis reactor for publish subscribe communication
+	-	Can be specified a different adapter for the websocket reactor class used for publish subscribe communication
 
 -	--websocket_server.log_file_path
 

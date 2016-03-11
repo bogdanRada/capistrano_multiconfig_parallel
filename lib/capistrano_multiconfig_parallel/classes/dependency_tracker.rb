@@ -24,9 +24,10 @@ module CapistranoMulticonfigParallel
     def fetch_application_dependencies(application, action)
       return [[], {}] if configuration.application_dependencies.blank? || application.blank?
       applications = get_applications_to_deploy(action, [application.camelcase])
-      app_options = applications.find { |hash| hash['app'] == application }.dup
+      applications = applications.present? ? applications : []
+      app_options = applications.find { |hash| hash['app'] == application }.try(:dup)
       applications.delete_if { |hash| hash['app'] == application }
-      [applications, app_options]
+      [applications, (app_options || {})]
     end
 
     def show_interactive_menu(action)

@@ -1,14 +1,17 @@
 
-require_relative '../helpers/application_helper'
+require_relative '../helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # class used to display the progress of each worker on terminal screen using a table
   class TerminalTable
-    include Celluloid
-    include Celluloid::Notifications
-    include Celluloid::Logger
-    include CapistranoMulticonfigParallel::ApplicationHelper
+  include CapistranoMulticonfigParallel::BaseActorHelper
 
     attr_reader :options, :errors, :manager, :position, :job_manager, :terminal_rows, :screen_erased
+
+    delegate :workers_terminated,
+             to: :manager
+
+    delegate :condition,
+             to: :job_manager
 
     def self.topic
       'sshkit_terminal'
@@ -71,7 +74,7 @@ module CapistranoMulticonfigParallel
     end
 
     def setup_table_jobs(table)
-      jobs = @manager.alive? ? @manager.jobs.dup : []
+      jobs = managers_alive? ? @manager.jobs.dup : []
       jobs.each do |job_id, job|
         table.add_row(job.terminal_row)
         table.add_separator if jobs.keys.last != job_id
@@ -90,8 +93,8 @@ module CapistranoMulticonfigParallel
     end
 
     def signal_complete
-      if managers_alive? && @manager.all_workers_finished?
-        @job_manager.condition.signal('completed') if @job_manager.alive?
+      if managers_alive? && @manager.all_workers_finished? && workers_terminated.instance_variable_get("@waiters").blank?
+        condition.signal('completed') if @job_manager.alive? && condition.instance_variable_get("@waiters").present?
       elsif !managers_alive?
         terminate
       end

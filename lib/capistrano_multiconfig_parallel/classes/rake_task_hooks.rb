@@ -65,9 +65,9 @@ module CapistranoMulticonfigParallel
     def actor_start_working
       if actor.blank?
         supervise_actor
-        actor.work(@env, actor_id: rake_actor_id, job_id: job_id, task: @task)
+        actor.work(actor_id: rake_actor_id, job_id: job_id, task: @task)
       else
-        actor.publish_new_work(@env, task: @task)
+        actor.publish_new_work(task: @task)
       end
     end
 

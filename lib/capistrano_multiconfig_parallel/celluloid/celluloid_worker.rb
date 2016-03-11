@@ -1,6 +1,6 @@
 require_relative './child_process'
 require_relative './state_machine'
-require_relative '../helpers/application_helper'
+require_relative '../helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # worker that will spawn a child process in order to execute a capistrano job and monitor that process
   #
@@ -17,10 +17,7 @@ module CapistranoMulticonfigParallel
   #   @return [CapistranoMulticonfigParallel::CelluloidManager] the instance of the manager that delegated the job to this worker
   #
   class CelluloidWorker
-    include Celluloid
-    include Celluloid::Notifications
-    include Celluloid::Logger
-    include CapistranoMulticonfigParallel::ApplicationHelper
+    include CapistranoMulticonfigParallel::BaseActorHelper
     class TaskFailed < StandardError; end
 
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv,
@@ -168,7 +165,7 @@ module CapistranoMulticonfigParallel
       log_to_file("worker #{job_id} tries to terminate with exit_status #{exit_status}")
       @manager.mark_completed_remaining_tasks(@job)
       update_machine_state('FINISHED') if exit_status == 0
-      @manager.workers_terminated.signal('completed') if @manager.alive? && @manager.all_workers_finished?
+      @manager.workers_terminated.signal('completed') if @manager.present? && @manager.alive? && @manager.all_workers_finished?
     end
 
     def notify_finished(exit_status)

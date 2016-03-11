@@ -20,11 +20,11 @@ default_config:
     default: 'false'
     required: false
 
-  - name: 'websocket_server.use_redis'
-    type: 'boolean'
+  - name: 'websocket_server.adapter'
+    type: 'string'
     description: >-
-      Enables use of redis reactor for publish subscribe communication
-    default: 'false'
+      Uses default reactor for publish subscribe communication
+    default: ''
     required: false
 
   - name: 'websocket_server.log_file_path'

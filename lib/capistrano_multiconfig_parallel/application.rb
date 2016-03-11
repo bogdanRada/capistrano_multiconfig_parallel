@@ -1,14 +1,13 @@
+require_relative './helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # finds app dependencies, shows menu and delegates jobs to celluloid manager
   class Application
-    include Celluloid
-    include Celluloid::Logger
-    include CapistranoMulticonfigParallel::ApplicationHelper
+    include CapistranoMulticonfigParallel::BaseActorHelper
 
     attr_reader :stage_apps, :top_level_tasks, :jobs, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
 
     def initialize
-      Celluloid.boot
+      Celluloid.boot unless Celluloid.running?
       CapistranoMulticonfigParallel.enable_logging
       @stage_apps = multi_apps? ? app_names_from_stages : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
@@ -17,9 +16,9 @@ module CapistranoMulticonfigParallel
 
     def start
       verify_app_dependencies if multi_apps? && configuration.application_dependencies.present?
+      initialize_data
       verify_valid_data
       check_before_starting
-      initialize_data
       run
     end
 
@@ -51,9 +50,13 @@ module CapistranoMulticonfigParallel
     end
 
     def verify_valid_data
-      return if @top_level_tasks != ['default']
-      puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
-      exit(false)
+     return if  @top_level_tasks != ['default']
+     raise_invalid_job_config
+    end
+
+    def raise_invalid_job_config
+        puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
+        exit(false)
     end
 
     def initialize_data
@@ -201,6 +204,7 @@ module CapistranoMulticonfigParallel
 
     def prepare_job(options)
       options = options.stringify_keys
+      return raise_invalid_job_config if !job_stage_valid?(options)
       app = options.fetch('app', '')
       box = options['env_options'][boxes_key]
       message = box.present? ? "BOX #{box}:" : "stage #{options['stage']}:"
@@ -222,6 +226,19 @@ module CapistranoMulticonfigParallel
     def job_can_tag_staging?(job)
       can_tag_staging? && job.stage == 'production' && job.gitflow.present?
     end
+
+    def job_path(options)
+        options.fetch("path", detect_root)
+    end
+
+    def job_stage_valid?(options)
+        stages(job_path(options)).include?(job_stage(options))
+    end
+
+    def job_stage(options)
+      multi_apps?(job_path(options)) && options.fetch('app', nil).present? ? "#{options['app']}:#{options['stage']}" : "#{options['stage']}"
+    end
+
 
     def prepare_options(options)
       options = options.stringify_keys

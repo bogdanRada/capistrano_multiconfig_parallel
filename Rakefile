@@ -3,7 +3,6 @@ require 'bundler/gem_tasks'
 require 'rspec/core/rake_task'
 require 'coveralls/rake/task'
 require 'yard'
-require 'yard-rspec'
 Coveralls::RakeTask.new
 
 RSpec::Core::RakeTask.new(:spec) do |spec|
@@ -13,6 +12,11 @@ end
 
 YARD::Config.options[:load_plugins] = true
 YARD::Config.load_plugins
+
+# dirty hack for YardocTask
+::Rake.application.class.class_eval do
+  alias_method :last_comment, :last_description
+end
 
 YARD::Rake::YardocTask.new do |t|
   t.files = ['lib/**/*.rb', 'spec/**/*_spec.rb'] # optional
@@ -33,5 +37,5 @@ task :all do |_t|
 end
 
 task :docs do
-  exec('bundle exec inch --pedantic && bundle exec yard')
+  exec('bundle exec inch --pedantic && bundle exec yard --list-undoc')
 end

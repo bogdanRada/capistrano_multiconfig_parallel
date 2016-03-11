@@ -1,18 +1,15 @@
-require_relative '../helpers/application_helper'
+require_relative '../helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # class that handles the rake task and waits for approval from the celluloid worker
   class RakeWorker
-    include Celluloid
-    include Celluloid::Logger
-    include CapistranoMulticonfigParallel::ApplicationHelper
+    include CapistranoMulticonfigParallel::BaseActorHelper
 
-    attr_reader :env, :client, :job_id, :action, :task,
+    attr_reader :client, :job_id, :action, :task,
                 :task_approved, :successfull_subscription,
                 :subscription_channel, :publisher_channel, :stdin_result
 
-    def work(env, options = {})
+    def work(options = {})
       @options = options.stringify_keys
-      @env = env
       default_settings
       custom_attributes
       initialize_subscription
@@ -24,8 +21,8 @@ module CapistranoMulticonfigParallel
       @task = @options['task']
     end
 
-    def publish_new_work(env, new_options = {})
-      work(env, @options.merge(new_options))
+    def publish_new_work(new_options = {})
+      work(@options.merge(new_options))
       publish_to_worker(task_data)
     end
 
