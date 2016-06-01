@@ -228,11 +228,11 @@ module CapistranoMulticonfigParallel
     end
 
     def job_path(options)
-        options.fetch("path", detect_root)
+      options.fetch("path", nil).present? ? options["path"] : detect_root
     end
 
     def job_stage_valid?(options)
-        stages(job_path(options)).include?(job_stage(options))
+      stages(job_path(options)).include?(job_stage(options))
     end
 
     def job_stage(options)
