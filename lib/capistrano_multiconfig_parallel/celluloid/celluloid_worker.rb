@@ -85,16 +85,7 @@ module CapistranoMulticonfigParallel
 
     def execute_deploy
       log_to_file("invocation chain #{@job_id} is : #{@rake_tasks.inspect}")
-      check_child_proces
-      command = job.command.to_s
-      log_to_file("worker #{@job_id} executes: #{command}")
-      @child_process.async.work(@job, command, actor: Actor.current, silent: true)
-    end
-
-    def check_child_proces
-      @child_process = CapistranoMulticonfigParallel::ChildProcess.new
-      Actor.current.link @child_process
-      @child_process
+      command = job.command.async_execute
     end
 
     def on_close(code, reason)

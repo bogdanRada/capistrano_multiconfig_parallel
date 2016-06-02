@@ -8,7 +8,7 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
     attr_accessor :job_id, :task
     def initialize(task = nil)
-      @job_id = CapistranoMulticonfigParallel.job_id
+      @job_id = ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
       @task = task.respond_to?(:fully_qualified_name) ? task.fully_qualified_name : task
     end
 

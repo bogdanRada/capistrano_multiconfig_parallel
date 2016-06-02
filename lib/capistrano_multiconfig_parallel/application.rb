@@ -220,6 +220,7 @@ module CapistranoMulticonfigParallel
                                                                     path: options.fetch('path', nil)
 
       ))
+      raise job.gitflow.inspect
       @jobs << job unless job_can_tag_staging?(job)
     end
 
