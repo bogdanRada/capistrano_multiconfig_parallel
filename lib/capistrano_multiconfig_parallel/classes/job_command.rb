@@ -12,6 +12,7 @@ module CapistranoMulticonfigParallel
     def initialize(job)
       @job = job
       @legacy_capistrano = legacy_capistrano? ? true : false
+      check_child_proces
     end
 
     def filtered_env_keys
@@ -23,10 +24,10 @@ module CapistranoMulticonfigParallel
     end
 
     def gitflow
-      gitflow_command = "#{command_prefix(true)} && #{bundle_gemfile_env} bundle show capistrano-gitflow"
-      gitflow_version = `#{gitflow_command}`
-      raise [gitflow_command, gitflow_version].inspect
-      gitflow_command.include?('Could not find') ? false : true
+      gitflow_command = "#{command_prefix(true)} && #{bundle_gemfile_env} bundle show capistrano-gitflow  | grep  -Po  'capistrano-gitflow-([a-z0-9.]+)'"
+      @gitflow_version ||= `#{gitflow_command}`
+      @gitflow_version = @gitflow_version.split("\n").last
+      @gitflow_version.include?('Could not find') ? false : true
     end
 
     def job_stage
@@ -62,9 +63,10 @@ module CapistranoMulticonfigParallel
     end
 
     def job_capistrano_version
-      @job_cap_version_command ||= "#{command_prefix(true)} && #{bundle_gemfile_env} bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)' | grep  -Po  '([0-9.]+)'"
-      job_cap_version = `#{@job_cap_version_command}`
-      strip_characters_from_string(job_cap_version)
+      job_cap_version_command = "#{command_prefix(true)} && #{bundle_gemfile_env} bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)' | grep  -Po  '([0-9.]+)'"
+      @job_cap_version ||= `#{job_cap_version_command}`
+      @job_cap_version = @job_cap_version.split("\n").last
+      strip_characters_from_string(@job_cap_version)
     end
 
     def legacy_capistrano?
@@ -75,35 +77,37 @@ module CapistranoMulticonfigParallel
       path || detect_root
     end
 
-    def rvm_installed?
-      rvm = `type rvm | head -1`
-      rvm == 'rvm is a function'
+    def rvm_check
+      bash_available = `ls -la /bin/bash 2>/dev/null | awk '{ print $9}'`
+      if bash_available.include?("bash")
+        "/bin/bash -c 'export rvm_project_rvmrc=1; [[ -s $HOME/.rvm/scripts/rvm ]] && source $HOME/.rvm/scripts/rvm; cd #{job_path}; if [[ -s .rvmrc ]]; then source .rvmrc ; fi'"
+      end
     end
 
-    def rvm_check
-      "/bin/bash -c 'export rvm_project_rvmrc=1; [[ -s $HOME/.rvm/scripts/rvm ]] && source $HOME/.rvm/scripts/rvm; cd #{job_path}; if [[ -s .rvmrc ]]; then source .rvmrc ; fi'"
+    def required_initializer
+      dir = "#{root}/#{get_current_gem_name}/initializers/"
+      file = @legacy_capistrano == true ?  "capistrano2" : "rake"
+      File.join(dir, file)
     end
 
     def command_prefix(skip_install = false)
-      bundle_install = (skip_install = false && path.present?) ? "&& #{bundle_gemfile_env} bundle install" : ''
+      bundle_install = (skip_install == false && path.present?) ? "&& #{bundle_gemfile_env} bundle install" : ''
       "#{rvm_check} #{bundle_install}"
     end
 
     def async_execute
       environment_options = setup_command_line.join(' ')
-      command =   "#{command_prefix} && #{bundle_gemfile_env} RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      command =   "#{command_prefix}  && #{bundle_gemfile_env} RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
       run_capistrano(command)
     end
 
       def run_capistrano(command)
-        raise command.inspect
-        check_child_proces
         log_to_file("worker #{job.id} executes: #{command}")
         @child_process.async.work(job, command, actor: job.worker, silent: true)
       end
 
-      def check_child_proces(worker)
-        @child_process = CapistranoMulticonfigParallel::ChildProcess.new
+      def check_child_proces
+        @child_process ||= CapistranoMulticonfigParallel::ChildProcess.new
         job.worker.link @child_process
         @child_process
       end
