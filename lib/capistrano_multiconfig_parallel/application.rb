@@ -200,7 +200,7 @@ module CapistranoMulticonfigParallel
       result = @condition.wait
       return unless result.present?
       @manager.terminate
-      terminate
+      #terminate
     end
 
     def prepare_job(options)

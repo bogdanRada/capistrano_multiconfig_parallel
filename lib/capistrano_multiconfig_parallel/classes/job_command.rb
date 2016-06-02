@@ -90,6 +90,20 @@ module CapistranoMulticonfigParallel
       File.join(dir, file)
     end
 
+    def capistrano_start
+      if @legacy_capistrano
+        <<-CMD
+         require 'capistrano/cli'
+         Capistrano::CLI.execute
+         CMD
+       else
+         <<-CMD
+         require 'capistrano/all'
+         Capistrano::Application.new.run
+         CMD
+       end
+     end
+
     def command_prefix(skip_install = false)
       bundle_install = (skip_install == false && path.present?) ? "&& #{bundle_gemfile_env} bundle install" : ''
       rvm_check
@@ -98,7 +112,27 @@ module CapistranoMulticonfigParallel
 
     def async_execute
       environment_options = setup_command_line.join(' ')
-      command =   "#{command_prefix}  && #{bundle_gemfile_env} RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      command =<<-CMD
+      bundle exec ruby -e "require 'bundler'; require 'bundler/cli'; require 'bundler/cli/install'
+      Bundler.with_clean_env {
+        require '#{root}/#{get_current_gem_name}/all'
+        require '#{required_initializer}'
+        Dir.chdir('#{job_path}')
+        BUNDLE_GEMFILE='#{job_path}/Gemfile'
+        RAILS_ENV='#{stage}'
+        Bundler::CLI.new.install(:debug => true)
+        ARGV.clear
+        ARGV << '#{job_stage}'
+        ARGV << '#{capistrano_action}'
+        ARGV << '#{environment_options}'
+        #{capistrano_start}
+      }"
+      CMD
+      # %x[
+      # #{command_prefix} && \
+      # #{bundle_gemfile_env} RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}
+      # ]
+      #command =   "#{command_prefix}  && #{bundle_gemfile_env} RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
       run_capistrano(command)
     end
 
