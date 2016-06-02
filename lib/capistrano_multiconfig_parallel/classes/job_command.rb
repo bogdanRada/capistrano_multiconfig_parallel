@@ -80,7 +80,7 @@ module CapistranoMulticonfigParallel
     def rvm_check
       bash_available = `ls -la /bin/bash 2>/dev/null | awk '{ print $9}'`
       if bash_available.include?("bash")
-        "/bin/bash -c 'export rvm_project_rvmrc=1; [[ -s $HOME/.rvm/scripts/rvm ]] && source $HOME/.rvm/scripts/rvm; cd #{job_path}; if [[ -s .rvmrc ]]; then source .rvmrc ; fi'"
+        `/bin/bash -c 'export rvm_project_rvmrc=1;'`
       end
     end
 
@@ -92,7 +92,8 @@ module CapistranoMulticonfigParallel
 
     def command_prefix(skip_install = false)
       bundle_install = (skip_install == false && path.present?) ? "&& #{bundle_gemfile_env} bundle install" : ''
-      "#{rvm_check} #{bundle_install}"
+      rvm_check
+      "cd #{job_path} #{bundle_install}"
     end
 
     def async_execute
