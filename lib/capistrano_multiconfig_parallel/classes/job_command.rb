@@ -11,9 +11,17 @@ module CapistranoMulticonfigParallel
 
     def initialize(job)
       @job = job
+      @lockfile_parser = Bundler::LockfileParser.new(Bundler.read_file("#{job_path}/Gemfile.lock"))
       @legacy_capistrano = legacy_capistrano? ? true : false
       check_child_proces
+
     end
+
+    def job_gem_version(gem_name)
+      gem_spec = @lockfile_parser.specs.find {|spec| spec.name == gem_name}
+      gem_spec.version
+    end
+
 
     def job_rvmrc_enabled?
       rvm = `ls -l #{job_path}/.rvmrc 2>/dev/null | awk '{ print $9}'`
