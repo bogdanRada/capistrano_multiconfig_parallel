@@ -1,4 +1,3 @@
-if CapistranoMulticonfigParallel.capistrano_version_2?
   require 'capistrano/cli'
 
   HighLine.class_eval do
@@ -33,5 +32,3 @@ if CapistranoMulticonfigParallel.capistrano_version_2?
       end
     end
   end
-
-end

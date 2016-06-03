@@ -24,8 +24,8 @@ module CapistranoMulticonfigParallel
     end
 
     def gitflow
-      gitflow_command = "#{command_prefix(true)} && #{bundle_gemfile_env} bundle show capistrano-gitflow  | grep  -Po  'capistrano-gitflow-([a-z0-9.]+)'"
-      @gitflow_version ||= `#{gitflow_command}`
+      gitflow_command = "#{command_prefix} && #{bundle_gemfile_env} bundle show capistrano-gitflow  | grep  -Po  'capistrano-gitflow-([a-z0-9.]+)'"
+      @gitflow_version ||= `gitflow_command`
       @gitflow_version = @gitflow_version.split("\n").last
       @gitflow_version.include?('Could not find') ? false : true
     end
@@ -59,12 +59,15 @@ module CapistranoMulticonfigParallel
 
     def setup_command_line(*args)
       new_arguments, options = setup_command_line_standard(*args)
-      setup_env_options(options).concat(new_arguments)
+      env_options = setup_env_options(options).concat(new_arguments)
+      env_options.unshift(capistrano_action)
+      env_options.unshift(job_stage)
+      env_options
     end
 
     def job_capistrano_version
-      job_cap_version_command = "#{command_prefix(true)} && #{bundle_gemfile_env} bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)' | grep  -Po  '([0-9.]+)'"
-      @job_cap_version ||= `#{job_cap_version_command}`
+      job_cap_version_command = "#{command_prefix} && #{bundle_gemfile_env} bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)' | grep  -Po  '([0-9.]+)'"
+      @job_cap_version = `#{job_cap_version_command}`
       @job_cap_version = @job_cap_version.split("\n").last
       strip_characters_from_string(@job_cap_version)
     end
@@ -75,13 +78,6 @@ module CapistranoMulticonfigParallel
 
     def job_path
       path || detect_root
-    end
-
-    def rvm_check
-      bash_available = `ls -la /bin/bash 2>/dev/null | awk '{ print $9}'`
-      if bash_available.include?("bash")
-        `/bin/bash -c 'export rvm_project_rvmrc=1;'`
-      end
     end
 
     def required_initializer
@@ -104,35 +100,51 @@ module CapistranoMulticonfigParallel
        end
      end
 
-    def command_prefix(skip_install = false)
-      bundle_install = (skip_install == false && path.present?) ? "&& #{bundle_gemfile_env} bundle install" : ''
-      rvm_check
-      "cd #{job_path} #{bundle_install}"
+    def rvm_installed?
+      rvm = `type rvm | head -1`
+      rvm == 'rvm is a function'
+    end
+
+    def job_rvmrc_enabled?
+      rvmrc_enabled = `ls -l #{job_path}/.rvmrc 2>/dev/null | awk '{ print $9}'`
+      rvmrc_enabled.include?(".rvmrc")
+    end
+
+    def command_prefix
+      bundle_install = path.present? ? "&& #{bundle_gemfile_env} bundle install" : ''
+      rvm_trust = rvm_installed? && job_rvmrc_enabled? ? "rvm rvmrc trust #{job_path} &&" : ''
+      `export rvm_project_rvmrc=1`
+      "#{rvm_trust} cd #{job_path} #{bundle_install}"
     end
 
     def async_execute
-      environment_options = setup_command_line.join(' ')
+      environment_options = setup_command_line
       command =<<-CMD
-      bundle exec ruby -e "require 'bundler'; require 'bundler/cli'; require 'bundler/cli/install'
+      bundle exec ruby -e "require 'bundler'
       Bundler.with_clean_env {
         require '#{root}/#{get_current_gem_name}/all'
         require '#{required_initializer}'
         Dir.chdir('#{job_path}')
-        BUNDLE_GEMFILE='#{job_path}/Gemfile'
-        RAILS_ENV='#{stage}'
-        Bundler::CLI.new.install(:debug => true)
-        ARGV.clear
-        ARGV << '#{job_stage}'
-        ARGV << '#{capistrano_action}'
-        ARGV << '#{environment_options}'
+        ENV['RAILS_ENV']='development'
+        ENV['BUNDLE_GEMFILE']='#{job_path}/Gemfile'
+        ENV['BUNDLE_IGNORE_CONFIG'] = 'true'
+
+        Bundler.configure
+        gemfile = Pathname.new(Bundler.default_gemfile).expand_path
+        builder = Bundler::Dsl.new
+        builder.eval_gemfile(gemfile)
+        Bundler.settings.with = ['development', 'test']
+        definition = builder.to_definition(Bundler.default_lockfile, {})
+        definition.validate_ruby!
+        Bundler.ui = Bundler::UI::Shell.new
+        Bundler::Installer.install(Bundler.root, definition, system: true)
+        Bundler.ui.confirm('Bundle complete!' + definition.dependencies.count.to_s + 'Gemfile dependencies,' + definition.specs.count.to_s + 'gems now installed.')
+        Bundler.setup(:default, 'development')
+
+        ARGV.replace(#{environment_options.to_s.gsub('"', '\'')})
         #{capistrano_start}
       }"
       CMD
-      # %x[
-      # #{command_prefix} && \
-      # #{bundle_gemfile_env} RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}
-      # ]
-      #command =   "#{command_prefix}  && #{bundle_gemfile_env} RAILS_ENV=#{stage} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
       run_capistrano(command)
     end
 
