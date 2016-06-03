@@ -131,6 +131,7 @@ module CapistranoMulticonfigParallel
         ENV['RAILS_ENV']='development'
         ENV['BUNDLE_GEMFILE']='#{job_gemfile}'
         ENV['BUNDLE_IGNORE_CONFIG'] = 'true'
+        ENV['#{CapistranoMulticonfigParallel::ENV_KEY_JOB_ID}']='#{job.id}'
 
         Bundler.configure
         gemfile = Pathname.new(Bundler.default_gemfile).expand_path
