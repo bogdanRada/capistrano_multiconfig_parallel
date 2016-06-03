@@ -31,7 +31,7 @@ module CapistranoMulticonfigParallel
     end
 
     def show_bundler_progress
-      actor_start_working({action: "bundle_install"})
+      actor_start_working({action: "bundle_install"}) if @task.present?
       yield if block_given?
     end
 

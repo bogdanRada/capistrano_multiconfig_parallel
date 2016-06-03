@@ -15,6 +15,10 @@ module CapistranoMulticonfigParallel
       @legacy_capistrano = legacy_capistrano? ? true : false
     end
 
+    def gem_specs
+      @specs ||= @lockfile_parser.specs
+    end
+
     def job_gemfile
       File.join(job_path, 'Gemfile')
     end
@@ -24,7 +28,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_gem_version(gem_name)
-      gem_spec = @lockfile_parser.specs.find {|spec| spec.name == gem_name}
+      gem_spec = gem_specs.find {|spec| spec.name == gem_name}
       gem_spec.present? ? gem_spec.version.to_s : nil
     end
 
