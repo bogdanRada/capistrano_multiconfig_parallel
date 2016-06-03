@@ -119,17 +119,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def message_is_for_stdout?(message)
-      message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['action'] == 'stdout'
-    end
-
-    def message_is_about_a_task?(message)
-      message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['task'].present?
-    end
-
-    def message_from_bundler?(message)
-      message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['action'] == 'bundle_install'
-    end
+  
 
     def executed_task?(task)
       rake_tasks.present? && rake_tasks.index(task.to_s).present?
