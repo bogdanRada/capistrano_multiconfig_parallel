@@ -11,13 +11,21 @@ module CapistranoMulticonfigParallel
 
     def initialize(job)
       @job = job
-      @lockfile_parser = Bundler::LockfileParser.new(Bundler.read_file("#{job_path}/Gemfile.lock"))
+      @lockfile_parser = Bundler::LockfileParser.new(Bundler.read_file("#{job_gemfile_lock}"))
       @legacy_capistrano = legacy_capistrano? ? true : false
+    end
+
+    def job_gemfile
+      File.join(job_path, 'Gemfile')
+    end
+
+    def job_gemfile_lock
+      File.join(job_path, 'Gemfile.lock')
     end
 
     def job_gem_version(gem_name)
       gem_spec = @lockfile_parser.specs.find {|spec| spec.name == gem_name}
-      gem_spec.present? ? gem_spec.version : nil
+      gem_spec.present? ? gem_spec.version.to_s : nil
     end
 
     def filtered_env_keys
@@ -25,7 +33,7 @@ module CapistranoMulticonfigParallel
     end
 
     def bundle_gemfile_env
-      "BUNDLE_GEMFILE=#{job_path}/Gemfile"
+      "BUNDLE_GEMFILE=#{job_gemfile}"
     end
 
     def gitflow_enabled?
@@ -80,10 +88,21 @@ module CapistranoMulticonfigParallel
       path || detect_root
     end
 
-    def required_initializer
-      dir = "#{root}/#{get_current_gem_name}/initializers/"
+    def job_monkey_patches_dir
+      File.join(root, get_current_gem_name, 'patches')
+    end
+
+    def bundler_monkey_patch
+      File.join(job_monkey_patches_dir, "bundler")
+    end
+
+    def all_prerequisites_file
+      File.join(root, get_current_gem_name, 'all')
+    end
+
+    def required_capistrano_patch
       file = @legacy_capistrano == true ?  "capistrano2" : "rake"
-      File.join(dir, file)
+      File.join(job_monkey_patches_dir, file)
     end
 
     def capistrano_start
@@ -104,12 +123,13 @@ module CapistranoMulticonfigParallel
       environment_options = setup_command_line
       command =<<-CMD
       bundle exec ruby -e "require 'bundler'
+      require '#{bundler_monkey_patch}'
       Bundler.with_clean_env {
-        require '#{root}/#{get_current_gem_name}/all'
-        require '#{required_initializer}'
+        require '#{all_prerequisites_file}'
+        require '#{required_capistrano_patch}'
         Dir.chdir('#{job_path}')
         ENV['RAILS_ENV']='development'
-        ENV['BUNDLE_GEMFILE']='#{job_path}/Gemfile'
+        ENV['BUNDLE_GEMFILE']='#{job_gemfile}'
         ENV['BUNDLE_IGNORE_CONFIG'] = 'true'
 
         Bundler.configure

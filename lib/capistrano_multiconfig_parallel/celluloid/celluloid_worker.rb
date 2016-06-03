@@ -107,6 +107,8 @@ module CapistranoMulticonfigParallel
       elsif message_is_for_stdout?(message)
         result = Celluloid::Actor[:terminal_server].show_confirmation(message['question'], message['default'])
         publish_rake_event(message.merge('action' => 'stdin', 'result' => result, 'client_action' => 'stdin'))
+      elsif message_from_bundler?(message)
+        async.update_machine_state(message['task'])
       else
         log_to_file(message, @job_id)
       end
@@ -118,6 +120,10 @@ module CapistranoMulticonfigParallel
 
     def message_is_about_a_task?(message)
       message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['task'].present?
+    end
+
+    def message_from_bundler?(message)
+      message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['action'] == 'bundle_install'
     end
 
     def executed_task?(task)
