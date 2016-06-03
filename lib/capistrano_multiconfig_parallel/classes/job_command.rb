@@ -15,6 +15,45 @@ module CapistranoMulticonfigParallel
       check_child_proces
     end
 
+    def job_rvmrc_enabled?
+      rvm = `ls -l #{job_path}/.rvmrc 2>/dev/null | awk '{ print $9}'`
+      rvm.include?('.rvmrc')
+    end
+
+    def rvm_ruby_version_enabled?
+      ruby_versions = `ls -la #{job_path}/.ruby-version #{job_path}/.ruby-gemset 2>/dev/null | awk '{ print $9}'`.split("\n")
+      ruby_versions = ruby_versions.map {|a| a.gsub("#{job_path}/", '') } if ruby_versions.present?
+      ruby_versions.present? ? [".ruby-version", '.ruby-gemset'].any?{ |file| ruby_versions.include?(file) } : false
+    end
+
+    def rvm_versions_conf_enabled?
+      versions_conf = `ls -l #{job_path}/.versions.conf 2>/dev/null | awk '{ print $9}'`
+      versions_conf.include?('.versions.conf')
+    end
+
+    def check_rvm_loaded
+      return if !rvm_installed?
+      ruby = rvm_load = gemset = nil
+      if job_rvmrc_enabled?
+        ruby_gemset = strip_characters_from_string(`cat .rvmrc  | tr " " "\n"  |grep -o -P '.*(?<=@).*'`)
+        ruby, gemset = ruby_gemset.split('@')
+      elsif rvm_ruby_version_enabled?
+        ruby =`cat #{job_path}/.ruby-version`
+        gemset = `cat #{job_path}/.ruby-gemset`
+      elsif rvm_versions_conf_enabled?
+        ruby = `cat #{job_path}/.versions.conf | grep -o -P '(?<=ruby=).*'`
+        gemset = `cat #{job_path}/.versions.conf | grep -o -P '(?<=ruby-gemset=).*'`
+      else
+        ruby = `cat #{job_path}/Gemfile | grep -o -P '(?<=ruby=).*'`
+        gemset = `cat #{job_path}/Gemfile | grep -o -P '(?<=ruby-gemset=).*'`
+        if ruby.blank?
+          ruby = `cat #{job_path}/Gemfile  | grep -o -P '(?<=ruby\s).*'`
+        end
+      end
+      rvm_load = "#{ruby.present? ? strip_characters_from_string(ruby) : ''}#{gemset.present? ? "@#{strip_characters_from_string(gemset)}" : ''}"
+      "cd #{job_path} && rvm use #{rvm_load}"
+    end
+
     def filtered_env_keys
       %w(STAGES ACTION)
     end
@@ -23,11 +62,11 @@ module CapistranoMulticonfigParallel
       "BUNDLE_GEMFILE=#{job_path}/Gemfile"
     end
 
-    def gitflow
-      gitflow_command = "#{command_prefix} && #{bundle_gemfile_env} bundle show capistrano-gitflow  | grep  -Po  'capistrano-gitflow-([a-z0-9.]+)'"
-      @gitflow_version ||= `gitflow_command`
-      @gitflow_version = @gitflow_version.split("\n").last
-      @gitflow_version.include?('Could not find') ? false : true
+    def gitflow_enabled?
+      gitflow_command = "#{command_prefix(true)} && #{bundle_gemfile_env} bundle show capistrano-gitflow  | grep  -Po  'capistrano-gitflow-([a-z0-9.]+)'"
+      gitflow_version = `gitflow_command`
+      gitflow_version = gitflow_version.split("\n").last
+      gitflow_version.include?('Could not find') ? false : true
     end
 
     def job_stage
@@ -66,8 +105,9 @@ module CapistranoMulticonfigParallel
     end
 
     def job_capistrano_version
-      job_cap_version_command = "#{command_prefix} && #{bundle_gemfile_env} bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)' | grep  -Po  '([0-9.]+)'"
+      job_cap_version_command = "#{command_prefix(true)} && #{bundle_gemfile_env} bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)'"
       @job_cap_version = `#{job_cap_version_command}`
+      raise [job_cap_version_command, @job_cap_version].inspect
       @job_cap_version = @job_cap_version.split("\n").last
       strip_characters_from_string(@job_cap_version)
     end
@@ -89,32 +129,26 @@ module CapistranoMulticonfigParallel
     def capistrano_start
       if @legacy_capistrano
         <<-CMD
-         require 'capistrano/cli'
-         Capistrano::CLI.execute
-         CMD
-       else
-         <<-CMD
-         require 'capistrano/all'
-         Capistrano::Application.new.run
-         CMD
-       end
-     end
+        require 'capistrano/cli'
+        Capistrano::CLI.execute
+        CMD
+      else
+        <<-CMD
+        require 'capistrano/all'
+        Capistrano::Application.new.run
+        CMD
+      end
+    end
 
     def rvm_installed?
-      rvm = `type rvm | head -1`
-      rvm == 'rvm is a function'
+      rvm = `rvm help`
+      rvm != 'command not found'
     end
 
-    def job_rvmrc_enabled?
-      rvmrc_enabled = `ls -l #{job_path}/.rvmrc 2>/dev/null | awk '{ print $9}'`
-      rvmrc_enabled.include?(".rvmrc")
-    end
-
-    def command_prefix
-      bundle_install = path.present? ? "&& #{bundle_gemfile_env} bundle install" : ''
-      rvm_trust = rvm_installed? && job_rvmrc_enabled? ? "rvm rvmrc trust #{job_path} &&" : ''
-      `export rvm_project_rvmrc=1`
-      "#{rvm_trust} cd #{job_path} #{bundle_install}"
+    def command_prefix(skip_install = false)
+      bundle_install = (skip_install == false && path.present?) ? "&& #{bundle_gemfile_env} bundle install" : ''
+      start_command = check_rvm_loaded.present? ? check_rvm_loaded : "cd #{job_path}"
+      "#{start_command} #{bundle_install}"
     end
 
     def async_execute
@@ -143,10 +177,10 @@ module CapistranoMulticonfigParallel
 
         ARGV.replace(#{environment_options.to_s.gsub('"', '\'')})
         #{capistrano_start}
-      }"
-      CMD
-      run_capistrano(command)
-    end
+        }"
+        CMD
+        run_capistrano(command)
+      end
 
       def run_capistrano(command)
         log_to_file("worker #{job.id} executes: #{command}")
@@ -159,21 +193,21 @@ module CapistranoMulticonfigParallel
         @child_process
       end
 
-    # def to_json
-    #   { command: to_s }
-    # end
+      # def to_json
+      #   { command: to_s }
+      # end
 
-    def execute_standard_deploy(action = nil)
-      run_shell_command(to_s)
-    rescue => ex
-      rescue_error(ex, 'stderr')
-      execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
-    end
+      def execute_standard_deploy(action = nil)
+        run_shell_command(to_s)
+      rescue => ex
+        rescue_error(ex, 'stderr')
+        execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
+      end
 
-  private
+      private
 
-    def run_shell_command(command)
-      sh("#{command}")
+      def run_shell_command(command)
+        sh("#{command}")
+      end
     end
   end
-end

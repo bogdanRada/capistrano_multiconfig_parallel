@@ -12,7 +12,6 @@ module CapistranoMulticonfigParallel
              :capistrano_action,
              :execute_standard_deploy,
              :setup_command_line,
-             :gitflow,
              to: :command
 
     delegate :stderr_buffer,
@@ -22,7 +21,9 @@ module CapistranoMulticonfigParallel
       @options = options.stringify_keys
       @application = application
       @manager = @application.manager
+      @gitflow ||= command.gitflow_enabled?
     end
+
 
     def save_stderr_error(data)
       return unless @manager.alive?
