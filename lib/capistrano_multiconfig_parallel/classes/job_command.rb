@@ -129,7 +129,6 @@ module CapistranoMulticonfigParallel
     end
 
     def async_execute
-      File.mkdir_p("#{job_path}/vendor") unless File.directory?("#{job_path}/vendor")
       environment_options = setup_command_line
       command =<<-CMD
       bundle exec ruby -e "
