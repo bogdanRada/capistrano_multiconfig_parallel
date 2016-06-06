@@ -29,6 +29,10 @@ module CapistranoMulticonfigParallel
       set_celluloid_exception_handling
     end
 
+    def job_id
+      original_args_hash.fetch(CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, nil)
+    end
+
     def original_args_hash
       multi_fetch_argv((original_args || ARGV).dup)
     end
