@@ -23,6 +23,7 @@ require 'inquirer'
 require 'rack'
 require 'rake'
 
+require 'etc'
 require 'logger'
 require 'fileutils'
 require 'pp'

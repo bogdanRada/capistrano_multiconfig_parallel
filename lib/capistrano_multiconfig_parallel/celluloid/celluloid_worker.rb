@@ -120,7 +120,6 @@ module CapistranoMulticonfigParallel
     end
 
 
-
     def executed_task?(task)
       rake_tasks.present? && rake_tasks.index(task.to_s).present?
     end

@@ -7,8 +7,9 @@ module CapistranoMulticonfigParallel
   class RakeTaskHooks
     include CapistranoMulticonfigParallel::ApplicationHelper
     attr_accessor :job_id, :task
+
     def initialize(task = nil)
-      @job_id = ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
+      @job_id  = ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
       @task = task.respond_to?(:fully_qualified_name) ? task.fully_qualified_name : task
     end
 
@@ -68,7 +69,7 @@ module CapistranoMulticonfigParallel
     end
 
     def actor_start_working(additionals = {})
-      additionals = additionals.present? ? additionals : {}
+       additionals = additionals.present? ? additionals : {}
       if actor.blank?
         supervise_actor
         actor.work({actor_id: rake_actor_id, job_id: job_id, task: @task}.merge(additionals))

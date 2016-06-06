@@ -15,7 +15,11 @@ module CapistranoMulticonfigParallel
     end
 
     def lockfile_parser
-      @lockfile_parser ||= Bundler::LockfileParser.new(Bundler.read_file("#{job_gemfile_lock}"))
+      if File.exists?(job_gemfile_lock)
+        @lockfile_parser ||= Bundler::LockfileParser.new(Bundler.read_file("#{job_gemfile_lock}"))
+      else
+        raise RuntimeError, "please install the gems separately for this application #{job_path} and re-try again!"
+      end
     end
 
     def gem_specs
@@ -24,10 +28,6 @@ module CapistranoMulticonfigParallel
 
     def job_gemfile
       File.join(job_path, 'Gemfile')
-    end
-
-    def job_gemfile_multi
-      File.join(job_path, 'Gemfile.multi')
     end
 
     def job_gemfile_lock
@@ -49,6 +49,11 @@ module CapistranoMulticonfigParallel
 
     def gitflow_enabled?
       gitflow_version = job_gem_version("capistrano-gitflow")
+      gitflow_version.present? ? true : false
+    end
+
+    def gitflow_enabled?
+     gitflow_version = job_gem_version("capistrano-gitflow")
       gitflow_version.present? ? true : false
     end
 
