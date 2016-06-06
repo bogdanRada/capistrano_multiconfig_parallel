@@ -119,7 +119,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-  
+
 
     def executed_task?(task)
       rake_tasks.present? && rake_tasks.index(task.to_s).present?
@@ -155,7 +155,7 @@ module CapistranoMulticonfigParallel
 
     def finish_worker(exit_status)
       log_to_file("worker #{job_id} tries to terminate with exit_status #{exit_status}")
-      @manager.mark_completed_remaining_tasks(@job)
+      @manager.mark_completed_remaining_tasks(@job) if Actor.current.alive?
       update_machine_state('FINISHED') if exit_status == 0
       @manager.workers_terminated.signal('completed') if @manager.present? && @manager.alive? && @manager.all_workers_finished?
     end

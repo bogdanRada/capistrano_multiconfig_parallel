@@ -135,12 +135,15 @@ module CapistranoMulticonfigParallel
        require 'rubygems'
        require 'bundler'
        require 'bundler/cli'
+       require 'bundler/cli/exec'
+       require 'bundler/shared_helpers'
        require '#{all_prerequisites_file}'
        require '#{bundler_monkey_patch}'
         Bundler.with_clean_env {
          ENV['RAILS_ENV']='development'
          ENV['BUNDLE_GEMFILE']='#{job_gemfile}'
          ENV['BUNDLE_IGNORE_CONFIG'] = 'false'
+         ENV['BUNDLE_PATH'] = '#{job_path}'
          ENV['#{CapistranoMulticonfigParallel::ENV_KEY_JOB_ID}']='#{job.id}'
          Dir.chdir('#{job_path}')
 
@@ -149,12 +152,18 @@ module CapistranoMulticonfigParallel
          builder = Bundler::Dsl.new
          builder.eval_gemfile(gemfile)
          Bundler.settings.with = ['development', 'test']
+         Bundler.settings[:frozen] = true
          definition = builder.to_definition(Bundler.default_lockfile, {})
          definition.validate_ruby!
          Bundler.ui = Bundler::UI::Shell.new
          Bundler::Installer.install(Bundler.root, definition, local: true)
+         #Bundler::CLI::Exec.new({:keep_file_descriptors => true }, ['install']).run
+         #Bundler::Install.new().run
          Bundler.ui.confirm('Bundle complete!' + definition.dependencies.count.to_s + 'Gemfile dependencies,' + definition.specs.count.to_s + 'gems now installed.')
-         Bundler.require
+
+
+         runtime = Bundler::Runtime.new(Bundler.root, definition)
+         runtime.setup
 
          ARGV.replace(#{environment_options.to_s.gsub('"', '\'')})
 

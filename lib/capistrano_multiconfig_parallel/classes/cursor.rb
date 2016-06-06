@@ -61,7 +61,7 @@ module CapistranoMulticonfigParallel
       end
 
       def dynamic_size_tput
-        lines `tput lines 2>/dev/null`
+        lines = `tput lines 2>/dev/null`
         cols = `tput cols 2>/dev/null`
         lines.present? && cols.present? ? "#{lines} #{cols}" : nil
       end
