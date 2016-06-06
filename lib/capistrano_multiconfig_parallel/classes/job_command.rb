@@ -155,8 +155,7 @@ module CapistranoMulticonfigParallel
          definition.validate_ruby!
          Bundler.ui = Bundler::UI::Shell.new
          Bundler.root = Bundler.default_gemfile.dirname.expand_path
-         Bundler::Installer.install(Bundler.root, definition, system: true, path: '#{job_path}/vendor')
-         #Bundler::CLI.start(['install'], :debug => true) rescue nil
+         Bundler::Installer.install(Bundler.root, definition, system: true)
 
          Bundler.ui.confirm('Bundle complete!' + definition.dependencies.count.to_s + 'Gemfile dependencies,' + definition.specs.count.to_s + 'gems now installed.')
 
