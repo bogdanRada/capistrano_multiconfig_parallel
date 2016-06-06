@@ -11,7 +11,7 @@ module CapistranoMulticonfigParallel
     end
 
     def fetch_apps_needed_for_deployment(application, action)
-      return [[], {}] unless @job_manager.send(:multi_apps?)
+      return [[], {}] unless @job_manager.multi_apps?
       if @job_manager.custom_command?
         show_interactive_menu(action)
       else
