@@ -8,13 +8,13 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
     attr_accessor :job_id, :task
     def initialize(task = nil)
-      @job_id = CapistranoMulticonfigParallel.job_id
+      @job_id  = ENV[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID]
       @task = task.respond_to?(:fully_qualified_name) ? task.fully_qualified_name : task
     end
 
     def automatic_hooks(&block)
       if configuration.multi_secvential.to_s.downcase == 'false' && job_id.present? && @task.present?
-        actor_start_working
+        actor_start_working(action: 'invoke')
         actor.wait_execution until actor.task_approved
         actor_execute_block(&block)
       else
@@ -26,7 +26,7 @@ module CapistranoMulticonfigParallel
       if job_id.present?
         actor.user_prompt_needed?(question)
       else
-        yield if block.given?
+        yield if block_given?
       end
     end
 
@@ -62,12 +62,13 @@ module CapistranoMulticonfigParallel
       after_hooks
     end
 
-    def actor_start_working
+    def actor_start_working(additionals = {})
+       additionals = additionals.present? ? additionals : {}
       if actor.blank?
         supervise_actor
-        actor.work(actor_id: rake_actor_id, job_id: job_id, task: @task)
+        actor.work({actor_id: rake_actor_id, job_id: job_id, task: @task}.merge(additionals))
       else
-        actor.publish_new_work(task: @task)
+        actor.publish_new_work({task: @task}.merge(additionals))
       end
     end
 

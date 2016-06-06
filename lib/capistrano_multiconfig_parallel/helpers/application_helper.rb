@@ -15,21 +15,29 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::CapistranoHelper
 
     delegate :logger,
-             :configuration,
-             :configuration_valid?,
-             :capistrano_version_2?,
-             :capistrano_version,
-             :original_args,
-             to: :CapistranoMulticonfigParallel
+    :configuration,
+    :configuration_valid?,
+    :capistrano_version_2?,
+    :capistrano_version,
+    :original_args,
+    to: :CapistranoMulticonfigParallel
 
-  module_function
+    module_function
 
     def msg_for_stdin?(message)
       message['action'] == 'stdin'
     end
 
-    def msg_for_task?(message)
-      message['task'].present?
+    def message_is_for_stdout?(message)
+      message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['action'] == 'stdout'
+    end
+
+    def message_is_about_a_task?(message)
+      message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['task'].present? && message['action'] == 'invoke'
+    end
+
+    def message_from_bundler?(message)
+      message.present? && message.is_a?(Hash) && message['action'].present? && message['job_id'].present? && message['task'].present? && message['action'] == 'bundle_install'
     end
 
     def get_question_details(data)

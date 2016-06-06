@@ -7,11 +7,36 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :job, :job_capistrano_version, :legacy_capistrano
-    delegate :app, :stage, :action, :task_arguments, :env_options, :path, to: :job
+    delegate :id, :app, :stage, :action, :task_arguments, :env_options, :path, to: :job
 
     def initialize(job)
       @job = job
       @legacy_capistrano = legacy_capistrano? ? true : false
+    end
+
+    def lockfile_parser
+      if File.exists?(job_gemfile_lock)
+        @lockfile_parser ||= Bundler::LockfileParser.new(Bundler.read_file("#{job_gemfile_lock}"))
+      else
+        raise RuntimeError, "please install the gems separately for this application #{job_path} and re-try again!"
+      end
+    end
+
+    def gem_specs
+      @specs = lockfile_parser.specs
+    end
+
+    def job_gemfile
+      File.join(job_path, 'Gemfile')
+    end
+
+    def job_gemfile_lock
+      File.join(job_path, 'Gemfile.lock')
+    end
+
+    def job_gem_version(gem_name)
+      gem_spec = gem_specs.find {|spec| spec.name == gem_name}
+      gem_spec.present? ? gem_spec.version.to_s : nil
     end
 
     def filtered_env_keys
@@ -19,12 +44,17 @@ module CapistranoMulticonfigParallel
     end
 
     def bundle_gemfile_env
-      "BUNDLE_GEMFILE=#{job_path}/Gemfile"
+      "BUNDLE_GEMFILE=#{job_gemfile}"
     end
 
     def gitflow
       gitflow = `#{command_prefix} && #{bundle_gemfile_env} bundle show capistrano-gitflow`
       @gitflow ||= gitflow.include?('Could not find') ? false : true
+    end
+
+    def gitflow_enabled?
+     gitflow_version = job_gem_version("capistrano-gitflow")
+      gitflow_version.present? ? true : false
     end
 
     def job_stage
@@ -60,8 +90,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_capistrano_version
-      @job_capistrano_version ||= `#{command_prefix} && #{bundle_gemfile_env} bundle show capistrano | grep  -Po  'capistrano-([0-9.]+)' | grep  -Po  '([0-9.]+)'`
-      @job_capistrano_version = strip_characters_from_string(@job_capistrano_version)
+      @job_capistrano_version ||= job_gem_version("capistrano")
     end
 
     def legacy_capistrano?

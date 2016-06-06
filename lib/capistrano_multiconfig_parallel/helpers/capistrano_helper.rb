@@ -3,19 +3,19 @@ module CapistranoMulticonfigParallel
   module CapistranoHelper
   module_function
 
-    def filtered_env_keys_format(keys, version = capistrano_version_2?)
+    def filtered_env_keys_format(keys, version = false)
       keys.map { |key| env_key_format(key, version) }
     end
 
-    def env_prefix(key, version = capistrano_version_2?)
+    def env_prefix(key, version = false)
       key != CapistranoMulticonfigParallel::ENV_KEY_JOB_ID && version == true ? '-S' : ''
     end
 
-    def env_key_format(key, version = capistrano_version_2?)
+    def env_key_format(key, version = false)
       version == true ? key.downcase : key
     end
 
-    def trace_flag(version = capistrano_version_2?)
+    def trace_flag(version = false)
       version == true ? '--verbose' : '--trace'
     end
 

@@ -17,7 +17,7 @@ module CapistranoMulticonfigParallel
 
     def custom_attributes
       @publisher_channel = "worker_#{@job_id}"
-      @action = 'invoke'
+      @action = @options['action'].present? ? @options['action'] : 'invoke'
       @task = @options['task']
     end
 
@@ -72,7 +72,7 @@ module CapistranoMulticonfigParallel
       log_to_file("Rake worker #{@job_id} received after on message:", message)
       if @client.succesfull_subscription?(message)
         publish_subscription_successfull(message)
-      elsif msg_for_task?(message)
+      elsif message_is_about_a_task?(message)
         task_approval(message)
       elsif msg_for_stdin?(message)
         stdin_approval(message)
@@ -105,7 +105,7 @@ module CapistranoMulticonfigParallel
     end
 
     def task_approval(message)
-      return unless msg_for_task?(message)
+      return unless message_is_about_a_task?(message)
       if @job_id == message['job_id'] && message['task'].to_s == task_name.to_s && message['approved'] == 'yes'
         @task_approved = true
       else

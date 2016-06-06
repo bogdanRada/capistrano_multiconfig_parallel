@@ -3,13 +3,29 @@ module CapistranoMulticonfigParallel
   module InternalHelper
   module_function
 
+  def get_current_gem_name
+      searcher = if Gem::Specification.respond_to? :find
+        # ruby 2.0
+        Gem::Specification
+      elsif Gem.respond_to? :searcher
+        # ruby 1.8/1.9
+        Gem.searcher.init_gemspecs
+      end
+      spec = unless searcher.nil?
+        searcher.find do |spec|
+          File.fnmatch(File.join(spec.full_gem_path,'*'), __FILE__)
+        end
+      end
+      spec.name if spec.present?
+    end
+
     def multi_level_prop(config, prop)
       prop.split('.').each { |new_prop| config = config[new_prop] }
       config
     end
 
     def internal_config_directory
-      File.join(root.to_s, 'capistrano_multiconfig_parallel', 'configuration')
+     File.join(root.to_s, get_current_gem_name, 'configuration')
     end
 
     def internal_config_file

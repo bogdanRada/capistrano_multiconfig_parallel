@@ -33,10 +33,6 @@ module CapistranoMulticonfigParallel
       multi_fetch_argv((original_args || ARGV).dup)
     end
 
-    def job_id
-      original_args_hash.fetch(CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, nil)
-    end
-
     def capistrano_version
       find_loaded_gem_property('capistrano', 'version')
     end
