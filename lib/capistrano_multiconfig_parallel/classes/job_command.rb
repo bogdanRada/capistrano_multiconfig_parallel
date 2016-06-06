@@ -129,6 +129,7 @@ module CapistranoMulticonfigParallel
     end
 
     def async_execute
+      File.mkdir_p("#{job_path}/vendor") unless File.directory?("#{job_path}/vendor")
       environment_options = setup_command_line
       command =<<-CMD
       bundle exec ruby -e "
@@ -142,23 +143,21 @@ module CapistranoMulticonfigParallel
         Bundler.with_clean_env {
          ENV['RAILS_ENV']='development'
          ENV['BUNDLE_GEMFILE']='#{job_gemfile}'
-         ENV['BUNDLE_IGNORE_CONFIG'] = 'false'
-         ENV['BUNDLE_PATH'] = '#{job_path}'
-         ENV['#{CapistranoMulticonfigParallel::ENV_KEY_JOB_ID}']='#{job.id}'
-         Dir.chdir('#{job_path}')
+         ENV['BUNDLE_IGNORE_CONFIG'] = 'true'
+         ENV['#{CapistranoMsulticonfigParallel::ENV_KEY_JOB_ID}']='#{job.id}'
 
-         Bundler.configure
+         Bundler.send(:configure_gem_home_and_path)
          gemfile = Pathname.new(Bundler.default_gemfile).expand_path
          builder = Bundler::Dsl.new
          builder.eval_gemfile(gemfile)
          Bundler.settings.with = ['development', 'test']
-         Bundler.settings[:frozen] = true
          definition = builder.to_definition(Bundler.default_lockfile, {})
          definition.validate_ruby!
          Bundler.ui = Bundler::UI::Shell.new
-         Bundler::Installer.install(Bundler.root, definition, local: true)
-         #Bundler::CLI::Exec.new({:keep_file_descriptors => true }, ['install']).run
-         #Bundler::Install.new().run
+         Bundler.root = Bundler.default_gemfile.dirname.expand_path
+         Bundler::Installer.install(Bundler.root, definition, system: true, path: '#{job_path}/vendor')
+         #Bundler::CLI.start(['install'], :debug => true) rescue nil
+
          Bundler.ui.confirm('Bundle complete!' + definition.dependencies.count.to_s + 'Gemfile dependencies,' + definition.specs.count.to_s + 'gems now installed.')
 
 

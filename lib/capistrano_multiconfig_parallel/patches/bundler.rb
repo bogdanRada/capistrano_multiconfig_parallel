@@ -12,4 +12,13 @@ module Bundler
 
     end
   end
+
+  class << self
+
+    def root=(path)
+      @root = path
+    end
+
+  end
+
 end
