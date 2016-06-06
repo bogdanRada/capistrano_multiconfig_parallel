@@ -19,6 +19,9 @@ module CapistranoMulticonfigParallel
       @specs ||= @lockfile_parser.specs
     end
 
+
+
+
     def job_gemfile
       File.join(job_path, 'Gemfile')
     end
@@ -129,39 +132,37 @@ module CapistranoMulticonfigParallel
       environment_options = setup_command_line
       command =<<-CMD
       bundle exec ruby -e "
-      require 'rubygems'
-      require 'bundler'
-      require 'bundler/cli'
-      require '#{bundler_monkey_patch}'
-      Bundler.with_clean_env {
-        require '#{all_prerequisites_file}'
-        require '#{required_capistrano_patch}'
-        Dir.chdir('#{job_path}')
+       require 'rubygems'
+       require 'bundler'
+       require 'bundler/cli'
+       require '#{all_prerequisites_file}'
+       require '#{bundler_monkey_patch}'
+        Bundler.with_clean_env {
+         ENV['RAILS_ENV']='development'
+         ENV['BUNDLE_GEMFILE']='#{job_gemfile}'
+         ENV['BUNDLE_IGNORE_CONFIG'] = 'false'
+         ENV['#{CapistranoMulticonfigParallel::ENV_KEY_JOB_ID}']='#{job.id}'
+         Dir.chdir('#{job_path}')
 
-        ENV['RAILS_ENV']='development'
-        ENV['BUNDLE_GEMFILE']='#{job_gemfile}'
-        ENV['BUNDLE_IGNORE_CONFIG'] = 'false'
-        ENV['#{CapistranoMulticonfigParallel::ENV_KEY_JOB_ID}']='#{job.id}'
-        require 'bundler/setup'
-        #Bundler.configure
-        #gemfile = Pathname.new(Bundler.default_gemfile).expand_path
-        #builder = Bundler::Dsl.new
-        #builder.eval_gemfile(gemfile)
-        #Bundler.settings.with = ['development', 'test']
-        #definition = builder.to_definition(Bundler.default_lockfile, {})
-        #definition.validate_ruby!
-        #Bundler.ui = Bundler::UI::Shell.new
-        #Bundler::Installer.install(Bundler.root, definition, system: true)
-        #Bundler.ui.confirm('Bundle complete!' + definition.dependencies.count.to_s + 'Gemfile dependencies,' + definition.specs.count.to_s + 'gems now installed.')
-        #Bundler::CLI.start(['install'], :debug => true) rescue nil
+         Bundler.configure
+         gemfile = Pathname.new(Bundler.default_gemfile).expand_path
+         builder = Bundler::Dsl.new
+         builder.eval_gemfile(gemfile)
+         Bundler.settings.with = ['development', 'test']
+         definition = builder.to_definition(Bundler.default_lockfile, {})
+         definition.validate_ruby!
+         Bundler.ui = Bundler::UI::Shell.new
+         Bundler::Installer.install(Bundler.root, definition, local: true)
+         Bundler.ui.confirm('Bundle complete!' + definition.dependencies.count.to_s + 'Gemfile dependencies,' + definition.specs.count.to_s + 'gems now installed.')
+         Bundler.require
 
-        #Bundler.require(:default, 'development')
-        file = %x[bundle show capistrano].strip()
+         ARGV.replace(#{environment_options.to_s.gsub('"', '\'')})
 
-        ARGV.replace(#{environment_options.to_s.gsub('"', '\'')})
-        #require File.join(file, 'lib',  '#{cap_require}')
-        #{capistrano_start}
-        }"
+         require '#{required_capistrano_patch}'
+         require '#{cap_require}'
+         #{capistrano_start}
+        }
+      "
         CMD
         run_capistrano(command)
       end
