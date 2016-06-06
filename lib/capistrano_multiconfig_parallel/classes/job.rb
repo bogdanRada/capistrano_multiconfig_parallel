@@ -12,7 +12,6 @@ module CapistranoMulticonfigParallel
              :capistrano_action,
              :execute_standard_deploy,
              :setup_command_line,
-             :gitflow,
              :gem_specs,
              to: :command
 
