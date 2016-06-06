@@ -11,19 +11,23 @@ module CapistranoMulticonfigParallel
 
     def initialize(job)
       @job = job
-      @lockfile_parser = Bundler::LockfileParser.new(Bundler.read_file("#{job_gemfile_lock}"))
       @legacy_capistrano = legacy_capistrano? ? true : false
     end
 
-    def gem_specs
-      @specs ||= @lockfile_parser.specs
+    def lockfile_parser
+      @lockfile_parser ||= Bundler::LockfileParser.new(Bundler.read_file("#{job_gemfile_lock}"))
     end
 
-
-
+    def gem_specs
+      @specs = lockfile_parser.specs
+    end
 
     def job_gemfile
       File.join(job_path, 'Gemfile')
+    end
+
+    def job_gemfile_multi
+      File.join(job_path, 'Gemfile.multi')
     end
 
     def job_gemfile_lock
@@ -129,9 +133,18 @@ module CapistranoMulticonfigParallel
     end
 
     def async_execute
+#       FileUtils.touch(job_gemfile_multi)
+#       File.open(job_gemfile_multi, 'w') do |f|
+#         cmd=<<-CMD
+# source "https://rubygems.org"
+# gem "#{get_current_gem_name}", "#{CapistranoMulticonfigParallel.gem_version}"
+# instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
+#         CMD
+#         f.write(cmd)
+#       end
       environment_options = setup_command_line
       command =<<-CMD
-      bundle exec ruby -e "
+      cd #{job_path} && bundle exec ruby -e "
        require 'rubygems'
        require 'bundler'
        require 'bundler/cli'
@@ -143,13 +156,17 @@ module CapistranoMulticonfigParallel
          ENV['RAILS_ENV']='development'
          ENV['BUNDLE_GEMFILE']='#{job_gemfile}'
          ENV['BUNDLE_IGNORE_CONFIG'] = 'true'
-         ENV['#{CapistranoMsulticonfigParallel::ENV_KEY_JOB_ID}']='#{job.id}'
+         ENV['#{CapistranoMulticonfigParallel::ENV_KEY_JOB_ID}']='#{job.id}'
 
          Bundler.send(:configure_gem_home_and_path)
          gemfile = Pathname.new(Bundler.default_gemfile).expand_path
          builder = Bundler::Dsl.new
          builder.eval_gemfile(gemfile)
-         Bundler.settings.with = ['development', 'test']
+         Bundler.settings.with = ['development']
+         definition = Bundler.definition(true)
+         #definition.resolve_remotely!
+         #definition.lock('#{job_gemfile_multi}.lock')
+
          definition = builder.to_definition(Bundler.default_lockfile, {})
          definition.validate_ruby!
          Bundler.ui = Bundler::UI::Shell.new
@@ -159,14 +176,16 @@ module CapistranoMulticonfigParallel
          Bundler.ui.confirm('Bundle complete!' + definition.dependencies.count.to_s + 'Gemfile dependencies,' + definition.specs.count.to_s + 'gems now installed.')
 
 
-         runtime = Bundler::Runtime.new(Bundler.root, definition)
-         runtime.setup
+         #runtime = Bundler::Runtime.new(Bundler.root, definition)
+         #runtime.setup(:default, 'development')
 
-         ARGV.replace(#{environment_options.to_s.gsub('"', '\'')})
+         #ARGV.replace(#{environment_options.to_s.gsub('"', '\'')})
 
-         require '#{required_capistrano_patch}'
-         require '#{cap_require}'
-         #{capistrano_start}
+         #require '#{required_capistrano_patch}'
+         #require '#{cap_require}'
+         ##{capistrano_start}
+
+         Kernel.system('cd #{job_path} && cap #{environment_options.join(' ')}')
         }
       "
         CMD

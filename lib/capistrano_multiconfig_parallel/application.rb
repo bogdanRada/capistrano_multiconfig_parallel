@@ -2,8 +2,8 @@ require_relative './helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # finds app dependencies, shows menu and delegates jobs to celluloid manager
   class Application
-    include CapistranoMulticonfigParallel::BaseActorHelper
-    #  include CapistranoMulticonfigParallel::ApplicationHelper
+    #include CapistranoMulticonfigParallel::BaseActorHelper
+      include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :stage_apps, :top_level_tasks, :jobs, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
 
