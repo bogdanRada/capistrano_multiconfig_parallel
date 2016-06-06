@@ -2,7 +2,6 @@ require 'rubygems'
 require 'bundler'
 require 'bundler/setup'
 
-require 'etc'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/keys'
 require 'active_support/core_ext/module/delegation'

@@ -137,7 +137,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def async_execute
+    def fetch_command
 #       FileUtils.touch(job_gemfile_multi)
 #       File.open(job_gemfile_multi, 'w') do |f|
 #         cmd=<<-CMD
@@ -194,19 +194,6 @@ module CapistranoMulticonfigParallel
         }
       "
         CMD
-        run_capistrano(command)
-      end
-
-      def run_capistrano(command)
-        check_child_proces
-        log_to_file("worker #{job.id} executes: #{command}")
-        @child_process.async.work(job, command, actor: job.worker, silent: true)
-      end
-
-      def check_child_proces
-        @child_process ||= CapistranoMulticonfigParallel::ChildProcess.new
-        job.worker.link @child_process
-        @child_process
       end
 
       def execute_standard_deploy(action = nil)
