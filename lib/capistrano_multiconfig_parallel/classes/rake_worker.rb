@@ -1,8 +1,6 @@
-require_relative '../helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # class that handles the rake task and waits for approval from the celluloid worker
   class RakeWorker
-    include CapistranoMulticonfigParallel::BaseActorHelper
 
     attr_reader :client, :job_id, :action, :task,
                 :task_approved, :successfull_subscription,
@@ -16,7 +14,7 @@ module CapistranoMulticonfigParallel
     end
 
     def custom_attributes
-      @publisher_channel = "worker_#{@job_id}"
+      @publisher_channel = "/tmp/multi_cap_job_#{@job_id}.sock"
       @action = @options['action'].present? ? @options['action'] : 'invoke'
       @task = @options['task']
     end
@@ -41,15 +39,43 @@ module CapistranoMulticonfigParallel
     def default_settings
       @stdin_result = nil
       @job_id = @options['job_id']
-      @subscription_channel = @options['actor_id']
+      @subscription_channel ="/tmp/multi_cap_rake_#{@job_id}.sock"
       @task_approved = false
       @successfull_subscription = false
     end
 
     def initialize_subscription
       return if defined?(@client) && @client.present?
-      @client = CelluloidPubsub::Client.new(actor: Actor.current, enable_debug: debug_websocket?, channel: @subscription_channel, log_file_path: websocket_config.fetch('log_file_path', nil))
+      @client = UNIXSocket.new(@publisher_channel)
+      start_server
     end
+
+    def start_server
+    FileUtils.rm(@subscription_channel) if File.exists?(@subscription_channel)
+    @server         = UNIXServer.new(@subscription_channel)
+    @read_sockets   = [@server]
+    @write_sockets  = []
+
+    Thread.new do
+      loop do
+        readables, writeables, _ = IO.select(@read_sockets, @write_sockets)
+        handle_readables(readables)
+        handle_writeables(writeables)
+      end
+    end
+  end
+
+  def handle_readables(sockets)
+    sockets.each do |socket|
+      if socket == @server
+        conn = socket.accept
+        @read_sockets << conn
+        @write_sockets << conn
+      else
+      on_message(socket.gets)
+      end
+    end
+  end
 
     def task_name
       @task.respond_to?(:name) ? @task.name : @task

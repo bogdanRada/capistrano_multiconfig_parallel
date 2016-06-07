@@ -1,11 +1,10 @@
-require_relative '../celluloid/rake_worker'
+require_relative './rake_worker'
 require_relative './input_stream'
 require_relative './output_stream'
-require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class used to handle the rake worker and sets all the hooks before and after running the worker
   class RakeTaskHooks
-    include CapistranoMulticonfigParallel::ApplicationHelper
+
     attr_accessor :job_id, :task
     def initialize(task = nil)
       @job_id  = CapistranoMulticonfigParallel.job_id
@@ -33,7 +32,7 @@ module CapistranoMulticonfigParallel
   private
 
     def actor
-      Celluloid::Actor[rake_actor_id]
+      @actor||= CapistranoMulticonfigParallel::RakeWorker.new
     end
 
     def output_stream
@@ -65,20 +64,12 @@ module CapistranoMulticonfigParallel
     def actor_start_working(additionals = {})
        additionals = additionals.present? ? additionals : {}
       if actor.blank?
-        supervise_actor
-        actor.work({actor_id: rake_actor_id, job_id: job_id, task: @task}.merge(additionals))
+        actor.work({job_id: job_id, task: @task}.merge(additionals))
       else
         actor.publish_new_work({task: @task}.merge(additionals))
       end
     end
 
-    def supervise_actor
-      return unless actor.blank?
-      CapistranoMulticonfigParallel::RakeWorker.supervise_as(rake_actor_id)
-    end
 
-    def rake_actor_id
-      "rake_worker_#{job_id}"
-    end
   end
 end

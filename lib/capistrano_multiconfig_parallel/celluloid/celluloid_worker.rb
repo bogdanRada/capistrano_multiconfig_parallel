@@ -35,6 +35,8 @@ module CapistranoMulticonfigParallel
       @subscription_channel = "worker_#{@job_id}"
       @machine = CapistranoMulticonfigParallel::StateMachine.new(@job, Actor.current)
       @manager.setup_worker_conditions(@job)
+      @unix_socket_file = "/tmp/multi_cap_job_#{@job_id}.sock"
+      @rake_socket_file = "/tmp/multi_cap_rake_#{@job_id}.sock"
       manager.register_worker_for_job(job, Actor.current)
     end
 
@@ -49,8 +51,40 @@ module CapistranoMulticonfigParallel
 
     def start_task
       log_to_file("exec worker #{@job_id} starts task")
-      @client = CelluloidPubsub::Client.new(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel, log_file_path: websocket_config.fetch('log_file_path', nil))
+      async.start_server
+
+  #    @client = CelluloidPubsub::Client.new(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel, log_file_path: websocket_config.fetch('log_file_path', nil))
     end
+
+
+    def start_server
+        FileUtils.rm(@unix_socket_file) if File.exists?(@unix_socket_file)
+        @server         = UNIXServer.new(@unix_socket_file)
+
+        @read_sockets   = [@server]
+        @write_sockets  = []
+
+        Thread.new do
+          loop do
+            readables, writeables, _ = IO.select(@read_sockets, @write_sockets)
+            handle_readables(readables)
+            handle_writeables(writeables)
+          end
+        end
+      end
+
+      def handle_readables(sockets)
+        sockets.each do |socket|
+          if socket == @server
+            conn = socket.accept
+            @read_sockets << conn
+            @write_sockets << conn
+          else
+            on_message(socket.gets)
+          end
+        end
+      end
+
 
     def publish_rake_event(data)
       @client.publish(rake_actor_id(data), data)
@@ -61,6 +95,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_message(message)
+      @client = UNIXSocket.new(@rake_socket_file) if File.exists(@rake_socket_file)
       log_to_file("worker #{@job_id} received:  #{message.inspect}")
       if @client.succesfull_subscription?(message)
         @successfull_subscription = true
