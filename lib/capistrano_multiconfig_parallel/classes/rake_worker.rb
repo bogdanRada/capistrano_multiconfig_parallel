@@ -3,14 +3,15 @@ module CapistranoMulticonfigParallel
   class RakeWorker
 
     attr_reader :client, :job_id, :action, :task,
-                :task_approved, :successfull_subscription,
-                :subscription_channel, :publisher_channel, :stdin_result
+    :task_approved, :successfull_subscription,
+    :subscription_channel, :publisher_channel, :stdin_result
 
     def work(options = {})
       @options = options.stringify_keys
       default_settings
       custom_attributes
       initialize_subscription
+      publish_to_worker(task_data)
     end
 
     def custom_attributes
@@ -19,14 +20,10 @@ module CapistranoMulticonfigParallel
       @task = @options['task']
     end
 
-    def publish_new_work(new_options = {})
-      work(@options.merge(new_options))
-      publish_to_worker(task_data)
-    end
 
     def wait_execution(name = task_name, time = 0.1)
       #    info "Before waiting #{name}"
-      Actor.current.wait_for(name, time)
+      wait_for(name, time)
       #  info "After waiting #{name}"
     end
 
@@ -51,31 +48,33 @@ module CapistranoMulticonfigParallel
     end
 
     def start_server
-    FileUtils.rm(@subscription_channel) if File.exists?(@subscription_channel)
-    @server         = UNIXServer.new(@subscription_channel)
-    @read_sockets   = [@server]
-    @write_sockets  = []
+      FileUtils.rm(@subscription_channel) if File.exists?(@subscription_channel)
+      @server         = UNIXServer.new(@subscription_channel)
+      @read_sockets   = [@server]
+      @write_sockets  = []
 
-    Thread.new do
-      loop do
-        readables, writeables, _ = IO.select(@read_sockets, @write_sockets)
-        handle_readables(readables)
-        handle_writeables(writeables)
+      Thread.new do
+        loop do
+          readables, writeables, _ = IO.select(@read_sockets, @write_sockets)
+          handle_readables(readables)
+        end
       end
     end
-  end
 
-  def handle_readables(sockets)
-    sockets.each do |socket|
-      if socket == @server
-        conn = socket.accept
-        @read_sockets << conn
-        @write_sockets << conn
-      else
-      on_message(socket.gets)
+    def handle_readables(sockets)
+      sockets.each do |socket|
+        if socket == @server
+          conn = socket.accept
+          @read_sockets << conn
+          @write_sockets << conn
+        else
+          while job = socket.gets
+          ary = decode_job(job.chomp)
+          on_message(ary)
+          end
+        end
       end
     end
-  end
 
     def task_name
       @task.respond_to?(:name) ? @task.name : @task
@@ -90,7 +89,16 @@ module CapistranoMulticonfigParallel
     end
 
     def publish_to_worker(data)
-      @client.publish(@publisher_channel, data)
+      @client.write(encode_data(data))
+    end
+
+    def decode_job(job)
+      Marshal.load(Base64.decode64(job))
+    end
+
+    def encode_data(job)
+      # remove silly newlines injected by Ruby's base64 library
+      Base64.encode64(Marshal.dump(job)).delete("\n")
     end
 
     def on_message(message)
@@ -149,9 +157,9 @@ module CapistranoMulticonfigParallel
       log_to_file("Rake worker #{@job_id} tries to determine question #{data.inspect} #{question.inspect} #{default.inspect}")
       return if question.blank? || @action != 'invoke'
       publish_to_worker(action: 'stdout',
-                        question: question,
-                        default: default.present? ? default.delete('()') : '',
-                        job_id: @job_id)
+      question: question,
+      default: default.present? ? default.delete('()') : '',
+      job_id: @job_id)
       wait_for_stdin_input
     end
   end

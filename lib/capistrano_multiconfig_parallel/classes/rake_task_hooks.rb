@@ -4,15 +4,16 @@ require_relative './output_stream'
 module CapistranoMulticonfigParallel
   # class used to handle the rake worker and sets all the hooks before and after running the worker
   class RakeTaskHooks
+    ENV_KEY_JOB_ID = 'multi_cap_job_id'
 
     attr_accessor :job_id, :task
     def initialize(task = nil)
-      @job_id  = CapistranoMulticonfigParallel.job_id
+      @job_id  = ENV[CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID]
       @task = task.respond_to?(:fully_qualified_name) ? task.fully_qualified_name : task
     end
 
     def automatic_hooks(&block)
-      if configuration.multi_secvential.to_s.downcase == 'false' && job_id.present? && @task.present?
+      if ENV['multi_secvential'].to_s.downcase == 'false' && job_id.present? && @task.present?
         actor_start_working(action: 'invoke')
         actor.wait_execution until actor.task_approved
         actor_execute_block(&block)
@@ -32,7 +33,7 @@ module CapistranoMulticonfigParallel
   private
 
     def actor
-      @actor||= CapistranoMulticonfigParallel::RakeWorker.new
+      @actor ||= CapistranoMulticonfigParallel::RakeWorker.new
     end
 
     def output_stream
@@ -63,11 +64,8 @@ module CapistranoMulticonfigParallel
 
     def actor_start_working(additionals = {})
        additionals = additionals.present? ? additionals : {}
-      if actor.blank?
-        actor.work({job_id: job_id, task: @task}.merge(additionals))
-      else
-        actor.publish_new_work({task: @task}.merge(additionals))
-      end
+       data = {job_id: job_id, task: @task}.merge(additionals)
+       actor.work(data)
     end
 
 

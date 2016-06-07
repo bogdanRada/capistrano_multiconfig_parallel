@@ -1,6 +1,5 @@
 # base module that has the statis methods that this gem is using
 module CapistranoMulticonfigParallel
-  ENV_KEY_JOB_ID = 'multi_cap_job_id'
   GITFLOW_TAG_STAGING_TASK = 'gitflow:tag_staging'
   GITFLOW_CALCULATE_TAG_TASK = 'gitflow:calculate_tag'
   GITFLOW_VERIFY_UPTODATE_TASK = 'gitflow:verify_up_to_date'
@@ -30,7 +29,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_id
-      original_args_hash.fetch(CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, nil)
+      original_args_hash.fetch(CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID, nil)
     end
 
     def original_args_hash

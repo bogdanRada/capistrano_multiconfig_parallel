@@ -10,7 +10,7 @@ module CapistranoMulticonfigParallel
         before_start
         arguments = multi_fetch_argv(original_args)
         configuration_valid?
-        execute_start(arguments[CapistranoMulticonfigParallel::ENV_KEY_JOB_ID])
+        execute_start(arguments[CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID])
       end
 
       def execute_start(job_id)
@@ -36,6 +36,12 @@ module CapistranoMulticonfigParallel
       def before_start
         check_terminal_tty
         CapistranoMulticonfigParallel.original_args = ARGV.dup
+        CapistranoMulticonfigParallel.original_args.each do |arg|
+          if arg_is_in_default_config?(arg)
+            args = arg.split('=')
+            ENV[args[0].tr('--', '')] = args[1]
+          end
+        end
       end
 
       def run_the_application

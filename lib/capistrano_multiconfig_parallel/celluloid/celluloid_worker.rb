@@ -52,6 +52,8 @@ module CapistranoMulticonfigParallel
     def start_task
       log_to_file("exec worker #{@job_id} starts task")
       async.start_server
+      @successfull_subscription = true
+      execute_after_succesfull_subscription
 
   #    @client = CelluloidPubsub::Client.new(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel, log_file_path: websocket_config.fetch('log_file_path', nil))
     end
@@ -68,7 +70,6 @@ module CapistranoMulticonfigParallel
           loop do
             readables, writeables, _ = IO.select(@read_sockets, @write_sockets)
             handle_readables(readables)
-            handle_writeables(writeables)
           end
         end
       end
@@ -80,14 +81,25 @@ module CapistranoMulticonfigParallel
             @read_sockets << conn
             @write_sockets << conn
           else
-            on_message(socket.gets)
+            while job = socket.gets
+            ary = decode_job(job.chomp)
+            on_message(ary)
+            end
           end
         end
       end
 
+      def encode_job(job)
+          # remove silly newlines injected by Ruby's base64 library
+          Base64.encode64(Marshal.dump(job)).delete("\n")
+        end
+      def decode_job(job)
+    Marshal.load(Base64.decode64(job))
+  end
+
 
     def publish_rake_event(data)
-      @client.publish(rake_actor_id(data), data)
+      @client.write(encode_job(data))
     end
 
     def rake_actor_id(_data)
