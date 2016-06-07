@@ -1,3 +1,6 @@
+require 'base64'
+require 'socket'
+require 'fileutils'
 require_relative './rake_worker'
 require_relative './input_stream'
 require_relative './output_stream'

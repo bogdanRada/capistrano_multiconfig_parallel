@@ -10,14 +10,15 @@ module CapistranoMulticonfigParallel
       @options = options.stringify_keys
       default_settings
       custom_attributes
-      initialize_subscription
       publish_to_worker(task_data)
+      initialize_subscription
     end
 
     def custom_attributes
       @publisher_channel = "/tmp/multi_cap_job_#{@job_id}.sock"
       @action = @options['action'].present? ? @options['action'] : 'invoke'
       @task = @options['task']
+      @client = UNIXSocket.new(@publisher_channel)
     end
 
 
@@ -43,7 +44,6 @@ module CapistranoMulticonfigParallel
 
     def initialize_subscription
       return if defined?(@client) && @client.present?
-      @client = UNIXSocket.new(@publisher_channel)
       start_server
     end
 
@@ -57,22 +57,23 @@ module CapistranoMulticonfigParallel
         loop do
           readables, writeables, _ = IO.select(@read_sockets, @write_sockets)
           handle_readables(readables)
+          handle_readables(writeables)
         end
       end
     end
 
     def handle_readables(sockets)
       sockets.each do |socket|
-        if socket == @server
+      #  if socket == @server
           conn = socket.accept
           @read_sockets << conn
           @write_sockets << conn
-        else
-          while job = socket.gets
+      #  else
+          while job = conn.gets
           ary = decode_job(job.chomp)
           on_message(ary)
           end
-        end
+      #  end
       end
     end
 
@@ -89,7 +90,7 @@ module CapistranoMulticonfigParallel
     end
 
     def publish_to_worker(data)
-      @client.write(encode_data(data))
+      @client.puts(encode_data(data))
     end
 
     def decode_job(job)
@@ -102,6 +103,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_message(message)
+      raise message.inspect
       return unless message.present?
       log_to_file("Rake worker #{@job_id} received after on message:", message)
       if @client.succesfull_subscription?(message)

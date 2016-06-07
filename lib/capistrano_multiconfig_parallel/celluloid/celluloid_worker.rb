@@ -51,41 +51,37 @@ module CapistranoMulticonfigParallel
 
     def start_task
       log_to_file("exec worker #{@job_id} starts task")
-      async.start_server
-      @successfull_subscription = true
-      execute_after_succesfull_subscription
-
-  #    @client = CelluloidPubsub::Client.new(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel, log_file_path: websocket_config.fetch('log_file_path', nil))
+      start_server
     end
 
 
     def start_server
         FileUtils.rm(@unix_socket_file) if File.exists?(@unix_socket_file)
-        @server         = UNIXServer.new(@unix_socket_file)
+        @server         = ::UNIXServer.new(@unix_socket_file)
 
         @read_sockets   = [@server]
         @write_sockets  = []
-
-        Thread.new do
+        async.execute_after_succesfull_subscription
+        #Thread.new do
           loop do
-            readables, writeables, _ = IO.select(@read_sockets, @write_sockets)
+            readables, writeables, _ = ::IO.select(@read_sockets, @write_sockets)
             handle_readables(readables)
           end
-        end
+        #end
       end
 
       def handle_readables(sockets)
         sockets.each do |socket|
-          if socket == @server
+        #  if socket == @server
             conn = socket.accept
-            @read_sockets << conn
-            @write_sockets << conn
-          else
-            while job = socket.gets
-            ary = decode_job(job.chomp)
-            on_message(ary)
-            end
-          end
+        #    @read_sockets << conn
+        #    @write_sockets << conn
+        #  else
+        while job = conn.gets
+        ary = decode_job(job.chomp)
+        on_message(ary)
+        end
+        #  end
         end
       end
 
@@ -99,7 +95,7 @@ module CapistranoMulticonfigParallel
 
 
     def publish_rake_event(data)
-      @client.write(encode_job(data))
+      @client.puts(encode_job(data))
     end
 
     def rake_actor_id(_data)
@@ -107,6 +103,7 @@ module CapistranoMulticonfigParallel
     end
 
     def on_message(message)
+      raise message.inspect
       @client = UNIXSocket.new(@rake_socket_file) if File.exists(@rake_socket_file)
       log_to_file("worker #{@job_id} received:  #{message.inspect}")
       if @client.succesfull_subscription?(message)
