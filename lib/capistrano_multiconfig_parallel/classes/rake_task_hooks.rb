@@ -23,11 +23,11 @@ module CapistranoMulticonfigParallel
       end
 
       def publisher_client
-        @publisher_client||= UNIXSocket.new("/tmp/multi_cap_job_#{ENV[CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID]}.sock")
+        @publisher_client||= UNIXSocket.new("/tmp/multi_cap_job_#{job_id}.sock")
       end
 
       def subscription_server
-        @subscription_server ||= UNIXServer.new("/tmp/multi_cap_rake_#{ENV[CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID]}.sock")
+        @subscription_server ||= UNIXServer.new("/tmp/multi_cap_rake_#{job_id}.sock")
       end
 
       def start_server
@@ -55,17 +55,17 @@ module CapistranoMulticonfigParallel
         sockets.each do |socket|
           if socket == subscription_server
             conn = socket.accept
-            log_to_file("Rake worker #{@job_id} tries to accept SOCKET: #{socket.inspect}", job_id: job_id)
+            log_to_file("RakeWorker #{@job_id} tries to accept SOCKET: #{socket.inspect}")
             @read_sockets << conn
             @write_sockets << conn
           else
-            log_to_file("Rake worker #{@job_id} tries to check for message in SOCKET: #{socket.inspect}", job_id: job_id)
+            log_to_file("RakeWorker #{@job_id} tries to check for message in SOCKET: #{socket.inspect}")
             while message = socket.gets
-              log_to_file("Rake worker #{@job_id} tries to decode SOCKET: #{message.inspect}", job_id: job_id)
+              log_to_file("RakeWorker #{@job_id} tries to decode SOCKET: #{message.inspect}")
               ary = decode_job(message.chomp)
-                log_to_file("Rake worker #{@job_id} has decoded SOCKET: #{ary.inspect} #{ary.class}", job_id: job_id)
+                log_to_file("RakeWorker #{@job_id} has decoded SOCKET: #{ary.inspect} #{ary.class}")
                 ary = ary.with_indifferent_access
-                log_to_file("Rake worker #{@job_id} has decoded SOCKET: #{ary.inspect}", job_id: job_id)
+                log_to_file("RakeWorker #{@job_id} has decoded SOCKET: #{ary.inspect}")
                 actor = CapistranoMulticonfigParallel::RakeTaskHooks.actors[ary['job_id']]
                 actor.on_message(ary)
             end

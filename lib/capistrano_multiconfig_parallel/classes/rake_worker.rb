@@ -57,7 +57,7 @@ module CapistranoMulticonfigParallel
     def on_message(message)
       return if message.blank? || !message.is_a?(Hash)
       message = message.with_indifferent_access
-      log_to_file("Rake worker #{@job_id} received after on message: #{message.inspect}", message)
+      log_to_file("RakeWorker #{@job_id} received after on message: #{message.inspect}")
       if message_is_about_a_task?(message)
         task_approval(message)
       elsif msg_for_stdin?(message)
@@ -85,7 +85,7 @@ module CapistranoMulticonfigParallel
 
     def task_approval(message)
       return unless message_is_about_a_task?(message)
-      log_to_file("Rake worker #{@job_id} #{task_name} task_approval : #{message.inspect}", message)
+      log_to_file("RakeWorker #{@job_id} #{task_name} task_approval : #{message.inspect}")
       if @job_id == message['job_id'] && message['task'].to_s == task_name.to_s && message['approved'] == 'yes'
         @task_approved = true
       else
@@ -94,13 +94,13 @@ module CapistranoMulticonfigParallel
     end
 
     def on_close(code, reason)
-      log_to_file("websocket connection closed: #{code.inspect}, #{reason.inspect}")
+      log_to_file("RakeWorker #{@job_id} websocket connection closed: #{code.inspect}, #{reason.inspect}")
       terminate
     end
 
     def user_prompt_needed?(data)
       question, default = get_question_details(data)
-      log_to_file("Rake worker #{@job_id} tries to determine question #{data.inspect} #{question.inspect} #{default.inspect}")
+      log_to_file("RakeWorker #{@job_id} tries to determine question #{data.inspect} #{question.inspect} #{default.inspect}")
       return if question.blank? || @action != 'invoke'
       publish_to_worker(action: 'stdout',
       question: question,
