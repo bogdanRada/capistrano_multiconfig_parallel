@@ -21,9 +21,9 @@ module CapistranoMulticonfigParallel
     class TaskFailed < StandardError; end
 
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv,
-                  :rake_tasks, :current_task_number, # tracking tasks
-                  :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-                  :job_termination_condition, :worker_state, :invocation_chain, :filename, :worker_log, :exit_status
+    :rake_tasks, :current_task_number, # tracking tasks
+    :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
+    :job_termination_condition, :worker_state, :invocation_chain, :filename, :worker_log, :exit_status
 
     def work(job, manager)
       @job = job
@@ -51,50 +51,58 @@ module CapistranoMulticonfigParallel
 
     def start_task
       log_to_file("exec worker #{@job_id} starts task")
-      start_server
+      async.start_server
+      async.execute_after_succesfull_subscription
     end
 
 
     def start_server
-        FileUtils.rm(@unix_socket_file) if File.exists?(@unix_socket_file)
-        @server         = ::UNIXServer.new(@unix_socket_file)
+      FileUtils.rm(@unix_socket_file) if File.exists?(@unix_socket_file)
+      @server         = ::UNIXServer.new(@unix_socket_file)
 
-        @read_sockets   = [@server]
-        @write_sockets  = []
-        async.execute_after_succesfull_subscription
-        #Thread.new do
-          loop do
-            readables, writeables, _ = ::IO.select(@read_sockets, @write_sockets)
-            handle_readables(readables)
+      @read_sockets   = [@server]
+      @write_sockets  = []
+      async.handle_sockets(Actor.current)
+    end
+
+    def handle_sockets(current_actor)
+      Thread.new do
+        loop do
+          readables, writeables, _ = ::IO.select(@read_sockets, @write_sockets)
+          handle_readables(current_actor, readables)
+        end
+      end
+    end
+
+    def handle_readables(current_actor, sockets)
+      sockets.each do |socket|
+        if socket == @server
+          conn = socket.accept
+          @read_sockets << conn
+          @write_sockets << conn
+        else
+          while message = socket.gets
+            log_to_file("worker #{@job_id} tries to decode SOCKET #{message.inspect}")
+            ary = decode_job(message.chomp)
+            log_to_file("worker #{@job_id} has decoded message from SOCKET #{ary.inspect}")
+            current_actor.on_message(ary)
           end
-        #end
-      end
-
-      def handle_readables(sockets)
-        sockets.each do |socket|
-        #  if socket == @server
-            conn = socket.accept
-        #    @read_sockets << conn
-        #    @write_sockets << conn
-        #  else
-        while job = conn.gets
-        ary = decode_job(job.chomp)
-        on_message(ary)
-        end
-        #  end
         end
       end
+    end
 
-      def encode_job(job)
-          # remove silly newlines injected by Ruby's base64 library
-          Base64.encode64(Marshal.dump(job)).delete("\n")
-        end
-      def decode_job(job)
-    Marshal.load(Base64.decode64(job))
-  end
+    def encode_job(job)
+      # remove silly newlines injected by Ruby's base64 library
+      Base64.encode64(Marshal.dump(job)).delete("\n")
+    end
+    def decode_job(job)
+      Marshal.load(Base64.decode64(job))
+    end
 
 
     def publish_rake_event(data)
+      @client ||= UNIXSocket.new(@rake_socket_file)
+      log_to_file("worker #{@job_id} tries to send to SOCKET #{@rake_socket_file} message #{data.inspect} with encoded #{encode_job(data)}")
       @client.puts(encode_job(data))
     end
 
@@ -103,15 +111,14 @@ module CapistranoMulticonfigParallel
     end
 
     def on_message(message)
-      raise message.inspect
-      @client = UNIXSocket.new(@rake_socket_file) if File.exists(@rake_socket_file)
       log_to_file("worker #{@job_id} received:  #{message.inspect}")
-      if @client.succesfull_subscription?(message)
-        @successfull_subscription = true
-        execute_after_succesfull_subscription
-      else
-        handle_subscription(message)
-      end
+      # if @client.succesfull_subscription?(message)
+      #   @successfull_subscription = true
+      #   execute_after_succesfull_subscription
+      # else
+      message = message.with_indifferent_access
+      handle_subscription(message)
+      #  end
     end
 
     def execute_after_succesfull_subscription
@@ -161,7 +168,7 @@ module CapistranoMulticonfigParallel
         result = Celluloid::Actor[:terminal_server].show_confirmation(message['question'], message['default'])
         publish_rake_event(message.merge('action' => 'stdin', 'result' => result, 'client_action' => 'stdin'))
       else
-        log_to_file(message, @job_id)
+        log_to_file(message, job_id: @job_id)
       end
     end
 
@@ -171,7 +178,9 @@ module CapistranoMulticonfigParallel
 
     def task_approval(message)
       job_conditions = @manager.job_to_condition[@job_id]
+      log_to_file("worker #{@job_id} checks if task : #{message['task'].inspect} is included in #{configuration.task_confirmations.inspect}")
       if job_conditions.present? && configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
+        log_to_file("worker #{@job_id} signals approval for task : #{message['task'].inspect}")
         task_confirmation = job_conditions[message['task']]
         task_confirmation[:status] = 'confirmed'
         task_confirmation[:condition].signal(message['task'])

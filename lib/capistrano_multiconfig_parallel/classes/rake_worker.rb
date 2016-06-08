@@ -1,26 +1,17 @@
+require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class that handles the rake task and waits for approval from the celluloid worker
   class RakeWorker
+    include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :client, :job_id, :action, :task,
-    :task_approved, :successfull_subscription,
-    :subscription_channel, :publisher_channel, :stdin_result
+    :task_approved, :stdin_result
 
     def work(options = {})
       @options = options.stringify_keys
       default_settings
-      custom_attributes
       publish_to_worker(task_data)
-      initialize_subscription
     end
-
-    def custom_attributes
-      @publisher_channel = "/tmp/multi_cap_job_#{@job_id}.sock"
-      @action = @options['action'].present? ? @options['action'] : 'invoke'
-      @task = @options['task']
-      @client = UNIXSocket.new(@publisher_channel)
-    end
-
 
     def wait_execution(name = task_name, time = 0.1)
       #    info "Before waiting #{name}"
@@ -37,44 +28,9 @@ module CapistranoMulticonfigParallel
     def default_settings
       @stdin_result = nil
       @job_id = @options['job_id']
-      @subscription_channel ="/tmp/multi_cap_rake_#{@job_id}.sock"
       @task_approved = false
-      @successfull_subscription = false
-    end
-
-    def initialize_subscription
-      return if defined?(@client) && @client.present?
-      start_server
-    end
-
-    def start_server
-      FileUtils.rm(@subscription_channel) if File.exists?(@subscription_channel)
-      @server         = UNIXServer.new(@subscription_channel)
-      @read_sockets   = [@server]
-      @write_sockets  = []
-
-      Thread.new do
-        loop do
-          readables, writeables, _ = IO.select(@read_sockets, @write_sockets)
-          handle_readables(readables)
-          handle_readables(writeables)
-        end
-      end
-    end
-
-    def handle_readables(sockets)
-      sockets.each do |socket|
-      #  if socket == @server
-          conn = socket.accept
-          @read_sockets << conn
-          @write_sockets << conn
-      #  else
-          while job = conn.gets
-          ary = decode_job(job.chomp)
-          on_message(ary)
-          end
-      #  end
-      end
+      @action = @options['action'].present? ? @options['action'] : 'invoke'
+      @task = @options['task']
     end
 
     def task_name
@@ -90,11 +46,7 @@ module CapistranoMulticonfigParallel
     end
 
     def publish_to_worker(data)
-      @client.puts(encode_data(data))
-    end
-
-    def decode_job(job)
-      Marshal.load(Base64.decode64(job))
+      CapistranoMulticonfigParallel::RakeTaskHooks.publisher_client.puts(encode_data(data))
     end
 
     def encode_data(job)
@@ -103,25 +55,16 @@ module CapistranoMulticonfigParallel
     end
 
     def on_message(message)
-      raise message.inspect
-      return unless message.present?
-      log_to_file("Rake worker #{@job_id} received after on message:", message)
-      if @client.succesfull_subscription?(message)
-        publish_subscription_successfull(message)
-      elsif message_is_about_a_task?(message)
+      return if message.blank? || !message.is_a?(Hash)
+      message = message.with_indifferent_access
+      log_to_file("Rake worker #{@job_id} received after on message: #{message.inspect}", message)
+      if message_is_about_a_task?(message)
         task_approval(message)
       elsif msg_for_stdin?(message)
         stdin_approval(message)
       else
         show_warning "unknown message: #{message.inspect}"
       end
-    end
-
-    def publish_subscription_successfull(message)
-      return unless @client.succesfull_subscription?(message)
-      log_to_file("Rake worker #{@job_id} received after publish_subscription_successfull:", message)
-      @successfull_subscription = true
-      publish_to_worker(task_data)
     end
 
     def wait_for_stdin_input
@@ -142,6 +85,7 @@ module CapistranoMulticonfigParallel
 
     def task_approval(message)
       return unless message_is_about_a_task?(message)
+      log_to_file("Rake worker #{@job_id} #{task_name} task_approval : #{message.inspect}", message)
       if @job_id == message['job_id'] && message['task'].to_s == task_name.to_s && message['approved'] == 'yes'
         @task_approved = true
       else

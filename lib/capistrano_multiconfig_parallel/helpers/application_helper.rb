@@ -24,6 +24,17 @@ module CapistranoMulticonfigParallel
 
     module_function
 
+    # Method that is used to parse a string as JSON , if it fails will return nil
+    # @see JSON#parse
+    # @param [string] res The string that will be parsed as JSON
+    # @return [Hash, nil] Returns Hash object if the json parse succeeds or nil otherwise
+    def parse_json(res)
+      return if res.blank?
+      JSON.parse(res)
+    rescue JSON::ParserError
+      nil
+    end
+
     def msg_for_stdin?(message)
       message['action'] == 'stdin'
     end

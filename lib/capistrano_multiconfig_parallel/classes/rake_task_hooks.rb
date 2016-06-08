@@ -4,12 +4,80 @@ require 'fileutils'
 require_relative './rake_worker'
 require_relative './input_stream'
 require_relative './output_stream'
+require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class used to handle the rake worker and sets all the hooks before and after running the worker
   class RakeTaskHooks
     ENV_KEY_JOB_ID = 'multi_cap_job_id'
 
+    class << self
+      include CapistranoMulticonfigParallel::ApplicationHelper
+      attr_accessor  :server, :read_sockets, :write_sockets, :actors
+
+      def actors
+        @actors ||= {}
+      end
+
+      def job_id
+         ENV[CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID]
+      end
+
+      def publisher_client
+        @publisher_client||= UNIXSocket.new("/tmp/multi_cap_job_#{ENV[CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID]}.sock")
+      end
+
+      def subscription_server
+        @subscription_server ||= UNIXServer.new("/tmp/multi_cap_rake_#{ENV[CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID]}.sock")
+      end
+
+      def start_server
+        @server         = subscription_server
+        @read_sockets   = [@server]
+        @write_sockets  = []
+
+        handle_sockets(self)
+      end
+
+      def handle_sockets(current_instance)
+        Thread.new do
+          loop do
+            readables, writeables, _ = ::IO.select(current_instance.read_sockets, current_instance.write_sockets)
+            handle_readables(readables)
+          end
+        end
+      end
+
+      def decode_job(job)
+        Marshal.load(Base64.decode64(job))
+      end
+
+      def handle_readables(sockets)
+        sockets.each do |socket|
+          if socket == subscription_server
+            conn = socket.accept
+            log_to_file("Rake worker #{@job_id} tries to accept SOCKET: #{socket.inspect}", job_id: job_id)
+            @read_sockets << conn
+            @write_sockets << conn
+          else
+            log_to_file("Rake worker #{@job_id} tries to check for message in SOCKET: #{socket.inspect}", job_id: job_id)
+            while message = socket.gets
+              log_to_file("Rake worker #{@job_id} tries to decode SOCKET: #{message.inspect}", job_id: job_id)
+              ary = decode_job(message.chomp)
+                log_to_file("Rake worker #{@job_id} has decoded SOCKET: #{ary.inspect} #{ary.class}", job_id: job_id)
+                ary = ary.with_indifferent_access
+                log_to_file("Rake worker #{@job_id} has decoded SOCKET: #{ary.inspect}", job_id: job_id)
+                actor = CapistranoMulticonfigParallel::RakeTaskHooks.actors[ary['job_id']]
+                actor.on_message(ary)
+            end
+          end
+        end
+      end
+    end
+
+
+
     attr_accessor :job_id, :task
+
     def initialize(task = nil)
       @job_id  = ENV[CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID]
       @task = task.respond_to?(:fully_qualified_name) ? task.fully_qualified_name : task
@@ -17,6 +85,8 @@ module CapistranoMulticonfigParallel
 
     def automatic_hooks(&block)
       if ENV['multi_secvential'].to_s.downcase == 'false' && job_id.present? && @task.present?
+        actor = get_current_actor
+        CapistranoMulticonfigParallel::RakeTaskHooks.start_server
         actor_start_working(action: 'invoke')
         actor.wait_execution until actor.task_approved
         actor_execute_block(&block)
@@ -33,10 +103,12 @@ module CapistranoMulticonfigParallel
       end
     end
 
-  private
+    private
 
-    def actor
+    def get_current_actor
       @actor ||= CapistranoMulticonfigParallel::RakeWorker.new
+      CapistranoMulticonfigParallel::RakeTaskHooks.actors[@job_id] = @actor
+      @actor
     end
 
     def output_stream
@@ -66,11 +138,12 @@ module CapistranoMulticonfigParallel
     end
 
     def actor_start_working(additionals = {})
-       additionals = additionals.present? ? additionals : {}
-       data = {job_id: job_id, task: @task}.merge(additionals)
-       actor.work(data)
+      additionals = additionals.present? ? additionals : {}
+      data = {job_id: job_id, task: @task}.merge(additionals)
+      actor.work(data)
     end
 
+    alias_method :actor, :get_current_actor
 
   end
 end
