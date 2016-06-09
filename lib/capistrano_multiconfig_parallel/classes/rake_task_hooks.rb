@@ -12,7 +12,7 @@ module CapistranoMulticonfigParallel
 
     class << self
       include CapistranoMulticonfigParallel::ApplicationHelper
-      attr_accessor  :server, :read_sockets, :write_sockets, :actors
+      attr_accessor  :socket_connection, :actors, :job_id
 
       def actors
         @actors ||= {}
@@ -22,55 +22,20 @@ module CapistranoMulticonfigParallel
          ENV[CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID]
       end
 
-      def publisher_client
-        @publisher_client||= UNIXSocket.new("/tmp/multi_cap_job_#{job_id}.sock")
+      def socket_connection
+        @socket_connection = CapistranoMulticonfigParallel::SocketConnection.new(self,
+          {
+          tcp_socket_enabled: configuration.enable_tcp_socket,
+          debug_websocket: configuration.debug_websocket?,
+          log_file_path: websocket_config.fetch('log_file_path', nil),
+          subscription_channel: nil
+          }
+        )
       end
 
-      def subscription_server
-        @subscription_server ||= UNIXServer.new("/tmp/multi_cap_rake_#{job_id}.sock")
-      end
-
-      def start_server
-        @server         = subscription_server
-        @read_sockets   = [@server]
-        @write_sockets  = []
-
-        handle_sockets(self)
-      end
-
-      def handle_sockets(current_instance)
-        Thread.new do
-          loop do
-            readables, writeables, _ = ::IO.select(current_instance.read_sockets, current_instance.write_sockets)
-            handle_readables(readables)
-          end
-        end
-      end
-
-      def decode_job(job)
-        Marshal.load(Base64.decode64(job))
-      end
-
-      def handle_readables(sockets)
-        sockets.each do |socket|
-          if socket == subscription_server
-            conn = socket.accept
-            log_to_file("RakeWorker #{@job_id} tries to accept SOCKET: #{socket.inspect}")
-            @read_sockets << conn
-            @write_sockets << conn
-          else
-            log_to_file("RakeWorker #{@job_id} tries to check for message in SOCKET: #{socket.inspect}")
-            while message = socket.gets
-              log_to_file("RakeWorker #{@job_id} tries to decode SOCKET: #{message.inspect}")
-              ary = decode_job(message.chomp)
-                log_to_file("RakeWorker #{@job_id} has decoded SOCKET: #{ary.inspect} #{ary.class}")
-                ary = ary.with_indifferent_access
-                log_to_file("RakeWorker #{@job_id} has decoded SOCKET: #{ary.inspect}")
-                actor = CapistranoMulticonfigParallel::RakeTaskHooks.actors[ary['job_id']]
-                actor.on_message(ary)
-            end
-          end
-        end
+      def on_message(message)
+        actor = actors[message['job_id']]
+        actor.on_message(message)
       end
     end
 
@@ -86,7 +51,7 @@ module CapistranoMulticonfigParallel
     def automatic_hooks(&block)
       if ENV['multi_secvential'].to_s.downcase == 'false' && job_id.present? && @task.present?
         actor = get_current_actor
-        CapistranoMulticonfigParallel::RakeTaskHooks.start_server
+        CapistranoMulticonfigParallel::RakeTaskHooks.socket_connection
         actor_start_working(action: 'invoke')
         actor.wait_execution until actor.task_approved
         actor_execute_block(&block)

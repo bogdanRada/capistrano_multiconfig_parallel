@@ -5,7 +5,7 @@ module CapistranoMulticonfigParallel
   # manager class that handles workers
   class CelluloidManager
     include CapistranoMulticonfigParallel::BaseActorHelper
-   attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated, :stderr_buffer
+   attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated, :stderr_buffer, :socket_connection
 
     attr_reader :worker_supervisor, :workers
     trap_exit :worker_died
@@ -24,15 +24,32 @@ module CapistranoMulticonfigParallel
       Actor.current.link @workers
       setup_actor_supervision(@worker_supervisor, actor_name: :terminal_server, type: CapistranoMulticonfigParallel::TerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
 
+      if configuration.enable_tcp_socket
+        @publisher_channel =
+      end
+
       # Get a handle on the PoolManager
       # http://rubydoc.info/gems/celluloid/Celluloid/PoolManager
       # @workers = workers_pool.actor
+      @socket_connection = CapistranoMulticonfigParallel::SocketConnection.new(Actor.current,
+        {
+        tcp_socket_enabled: configuration.enable_tcp_socket,
+        debug_websocket: configuration.debug_websocket?,
+        log_file_path: websocket_config.fetch('log_file_path', nil),
+        subscription_channel: nil
+        }
+      )
       @stderr_buffer = StringIO.new
       @conditions = []
       @jobs = {}
       @job_to_worker = {}
       @worker_to_job = {}
       @job_to_condition = {}
+    end
+
+    def on_message(message)
+      worker = @job_to_worker[message['job_id']]
+      worker.on_message(message)
     end
 
     # call to send an actor

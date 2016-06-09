@@ -35,8 +35,7 @@ module CapistranoMulticonfigParallel
       @subscription_channel = "worker_#{@job_id}"
       @machine = CapistranoMulticonfigParallel::StateMachine.new(@job, Actor.current)
       @manager.setup_worker_conditions(@job)
-      @unix_socket_file = "/tmp/multi_cap_job_#{@job_id}.sock"
-      @rake_socket_file = "/tmp/multi_cap_rake_#{@job_id}.sock"
+      @socket_connection = manager.socket_connection
       manager.register_worker_for_job(job, Actor.current)
     end
 
@@ -51,54 +50,9 @@ module CapistranoMulticonfigParallel
 
     def start_task
       log_to_file("exec worker #{@job_id} starts task")
-      async.start_server
-      async.execute_after_succesfull_subscription
+      socket_connection.subscribe('celluloid_manager', job_id: @job_id)
+      async.execute_after_succesfull_subscription unless configuration.tcp_socket_enabled
     end
-
-
-    def start_server
-      FileUtils.rm(@unix_socket_file) if File.exists?(@unix_socket_file)
-      @server         = ::UNIXServer.new(@unix_socket_file)
-
-      @read_sockets   = [@server]
-      @write_sockets  = []
-      async.handle_sockets(Actor.current)
-    end
-
-    def handle_sockets(current_actor)
-      Thread.new do
-        loop do
-          readables, writeables, _ = ::IO.select(@read_sockets, @write_sockets)
-          handle_readables(current_actor, readables)
-        end
-      end
-    end
-
-    def handle_readables(current_actor, sockets)
-      sockets.each do |socket|
-        if socket == @server
-          conn = socket.accept
-          @read_sockets << conn
-          @write_sockets << conn
-        else
-          while message = socket.gets
-            log_to_file("worker #{@job_id} tries to decode SOCKET #{message.inspect}")
-            ary = decode_job(message.chomp)
-            log_to_file("worker #{@job_id} has decoded message from SOCKET #{ary.inspect}")
-            current_actor.on_message(ary)
-          end
-        end
-      end
-    end
-
-    def encode_job(job)
-      # remove silly newlines injected by Ruby's base64 library
-      Base64.encode64(Marshal.dump(job)).delete("\n")
-    end
-    def decode_job(job)
-      Marshal.load(Base64.decode64(job))
-    end
-
 
     def publish_rake_event(data)
       @client ||= UNIXSocket.new(@rake_socket_file)
@@ -112,13 +66,12 @@ module CapistranoMulticonfigParallel
 
     def on_message(message)
       log_to_file("worker #{@job_id} received:  #{message.inspect}")
-      # if @client.succesfull_subscription?(message)
-      #   @successfull_subscription = true
-      #   execute_after_succesfull_subscription
-      # else
-      message = message.with_indifferent_access
-      handle_subscription(message)
-      #  end
+      if @client.succesfull_subscription?(message)
+        @successfull_subscription = true
+        execute_after_succesfull_subscription
+      else
+        handle_subscription(message)
+      end
     end
 
     def execute_after_succesfull_subscription

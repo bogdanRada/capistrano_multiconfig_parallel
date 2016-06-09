@@ -6,6 +6,13 @@ default_config:
     default: TRUE
     required: false
 
+  - name: 'enable_tcp_socket'
+    type: 'boolean'
+    description: >-
+      Enables TCP websocket communication or unix socket communication between processes
+    default: TRUE
+    required: false
+
   - name: 'multi_secvential'
     type: 'boolean'
     description: >-
