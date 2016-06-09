@@ -50,18 +50,12 @@ module CapistranoMulticonfigParallel
 
     def start_task
       log_to_file("exec worker #{@job_id} starts task")
-      socket_connection.subscribe('celluloid_manager', job_id: @job_id)
+      socket_connection.subscribe("celluloid_worker_#{@job_id}")
       async.execute_after_succesfull_subscription unless configuration.tcp_socket_enabled
     end
 
     def publish_rake_event(data)
-      @client ||= UNIXSocket.new(@rake_socket_file)
-      log_to_file("worker #{@job_id} tries to send to SOCKET #{@rake_socket_file} message #{data.inspect} with encoded #{encode_job(data)}")
-      @client.puts(encode_job(data))
-    end
-
-    def rake_actor_id(_data)
-      "rake_worker_#{@job_id}"
+      socket_connection.publish("rake_worker_#{@job_id}", data)
     end
 
     def on_message(message)

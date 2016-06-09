@@ -51,7 +51,7 @@ module CapistranoMulticonfigParallel
     def automatic_hooks(&block)
       if ENV['multi_secvential'].to_s.downcase == 'false' && job_id.present? && @task.present?
         actor = get_current_actor
-        CapistranoMulticonfigParallel::RakeTaskHooks.socket_connection
+        CapistranoMulticonfigParallel::RakeTaskHooks.socket_connection.subscribe("rake_job_id", job_id: @job_id)
         actor_start_working(action: 'invoke')
         actor.wait_execution until actor.task_approved
         actor_execute_block(&block)

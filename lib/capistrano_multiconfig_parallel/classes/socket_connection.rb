@@ -35,10 +35,10 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def subscribe_to_channel(channel, data = {})
+    def subscribe_to_channel(channel)
       if tcp_socket_enabled?
         @client ||= pubsub_tcp_client
-        @client.subscribe(channel, data)
+        @client.subscribe(channel)
       else
         start_server(channel)
       end
@@ -83,7 +83,7 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def handle_readables(current_actor, sockets)
+    def handle_readables(sockets)
       sockets.each do |socket|
         if socket == @server
           conn = socket.accept
