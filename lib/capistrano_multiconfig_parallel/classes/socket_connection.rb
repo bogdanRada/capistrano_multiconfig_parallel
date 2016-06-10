@@ -3,7 +3,7 @@ module CapistranoMulticonfigParallel
   class SocketConnection
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :client, :server, :options, :read_sockets, :write_sockets
+    attr_reader :client, :current_actor, :server, :options, :read_sockets, :write_sockets
 
     def initialize(actor, options = {})
       @options = options.with_indifferent_access if options.is_a?(Hash)

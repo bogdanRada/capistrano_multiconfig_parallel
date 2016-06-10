@@ -46,13 +46,9 @@ module CapistranoMulticonfigParallel
     end
 
     def publish_to_worker(data)
-      CapistranoMulticonfigParallel::RakeTaskHooks.publisher_client.puts(encode_data(data))
+      CapistranoMulticonfigParallel::RakeTaskHooks.socket_connection.publish_to_channel("celluloid_worker_#{@job_id}", data)
     end
 
-    def encode_data(job)
-      # remove silly newlines injected by Ruby's base64 library
-      Base64.encode64(Marshal.dump(job)).delete("\n")
-    end
 
     def on_message(message)
       return if message.blank? || !message.is_a?(Hash)

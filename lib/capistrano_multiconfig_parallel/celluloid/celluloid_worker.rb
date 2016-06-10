@@ -23,7 +23,7 @@ module CapistranoMulticonfigParallel
     attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv,
     :rake_tasks, :current_task_number, # tracking tasks
     :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-    :job_termination_condition, :worker_state, :invocation_chain, :filename, :worker_log, :exit_status
+    :job_termination_condition, :worker_state, :invocation_chain, :filename, :worker_log, :exit_status, :socket_connection
 
     def work(job, manager)
       @job = job
@@ -50,12 +50,12 @@ module CapistranoMulticonfigParallel
 
     def start_task
       log_to_file("exec worker #{@job_id} starts task")
-      socket_connection.subscribe("celluloid_worker_#{@job_id}")
-      async.execute_after_succesfull_subscription unless configuration.tcp_socket_enabled
+      socket_connection.subscribe_to_channel("celluloid_worker_#{@job_id}")
+      async.execute_after_succesfull_subscription unless configuration.enable_tcp_socket
     end
 
     def publish_rake_event(data)
-      socket_connection.publish("rake_worker_#{@job_id}", data)
+      socket_connection.publish_to_channel("rake_worker_#{@job_id}", data)
     end
 
     def on_message(message)

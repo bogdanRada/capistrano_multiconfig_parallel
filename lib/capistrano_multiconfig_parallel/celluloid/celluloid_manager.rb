@@ -23,10 +23,7 @@ module CapistranoMulticonfigParallel
       @workers = setup_pool_of_actor(@worker_supervisor, actor_name: :workers, type: CapistranoMulticonfigParallel::CelluloidWorker, size: 10)
       Actor.current.link @workers
       setup_actor_supervision(@worker_supervisor, actor_name: :terminal_server, type: CapistranoMulticonfigParallel::TerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
-
-      if configuration.enable_tcp_socket
-        @publisher_channel =
-      end
+      setup_actor_supervision(@worker_supervisor, actor_name: :web_server, type: CapistranoMulticonfigParallel::WebServer, args: websocket_config)
 
       # Get a handle on the PoolManager
       # http://rubydoc.info/gems/celluloid/Celluloid/PoolManager
@@ -34,7 +31,7 @@ module CapistranoMulticonfigParallel
       @socket_connection = CapistranoMulticonfigParallel::SocketConnection.new(Actor.current,
         {
         tcp_socket_enabled: configuration.enable_tcp_socket,
-        debug_websocket: configuration.debug_websocket?,
+        debug_websocket: debug_websocket?,
         log_file_path: websocket_config.fetch('log_file_path', nil),
         subscription_channel: nil
         }
@@ -49,7 +46,7 @@ module CapistranoMulticonfigParallel
 
     def on_message(message)
       worker = @job_to_worker[message['job_id']]
-      worker.on_message(message)
+      worker.on_message(message) if worker
     end
 
     # call to send an actor
