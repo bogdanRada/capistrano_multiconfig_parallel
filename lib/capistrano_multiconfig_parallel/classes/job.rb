@@ -25,6 +25,7 @@ module CapistranoMulticonfigParallel
       @gitflow ||= command.gitflow_enabled?
     end
 
+
     def save_stderr_error(data)
       return unless @manager.alive?
       stderr_buffer.rewind
@@ -89,7 +90,7 @@ module CapistranoMulticonfigParallel
     ].each do |hash|
       define_method hash[:name] do
         value = @options.fetch(hash[:name], hash[:default])
-        value["#{env_variable}"] = id if hash[:name] == 'env_options'
+      #  value["#{env_variable}"] = id if hash[:name] == 'env_options'
         value = verify_empty_options(value)
         instance_variable_set("@#{hash[:name]}", instance_variable_get("@#{hash[:name]}") || value)
       end

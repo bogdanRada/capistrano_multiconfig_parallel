@@ -47,7 +47,13 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    private
+
+    def show_bundler_progress
+      actor_start_working({action: "bundle_install"}) if @task.present? && @task.to_s.size > 2
+      yield if block_given?
+    end
+
+  private
 
     def actor
       @actor ||= CapistranoMulticonfigParallel::RakeWorker.new

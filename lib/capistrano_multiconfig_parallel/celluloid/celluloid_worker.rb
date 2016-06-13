@@ -93,7 +93,7 @@ module CapistranoMulticonfigParallel
       @child_process = CapistranoMulticonfigParallel::ChildProcess.new
       Actor.current.link @child_process
       @child_process
-    end
+     end
 
     def on_close(code, reason)
       log_to_file("worker #{@job_id} websocket connection closed: #{code.inspect}, #{reason.inspect}")
@@ -115,6 +115,7 @@ module CapistranoMulticonfigParallel
         result = Celluloid::Actor[:terminal_server].show_confirmation(message['question'], message['default'])
         publish_rake_event(message.merge('action' => 'stdin', 'result' => result, 'client_action' => 'stdin'))
     elsif message_from_bundler?(message)
+
         #gem_messsage = job.gem_specs.find{|spec| message['task'].include?(spec.name) }
         # if gem_messsage.present?
         #     async.update_machine_state("insta")

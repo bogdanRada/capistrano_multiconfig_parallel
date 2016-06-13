@@ -14,35 +14,32 @@ module CapistranoMulticonfigParallel
       @config
     end
 
-    def configuration_flags
-      default_internal_config.each_with_object({}) do |array_item, hash|
-        key = array_item[0].to_s
-        value = get_prop_config(key, configuration)
-        hash[key] = value.is_a?(Array) ? value.join(',') : value
-        hash
-      end.except('application_dependencies')
-    end
+    # def configuration_flags
+    #   default_internal_config.each_with_object({}) do |array_item, hash|
+    #     key = array_item[0].to_s
+    #     value = get_prop_config(key, configuration)
+    #     hash[key] = value.is_a?(Array) ? value.join(',') : value
+    #     hash
+    #   end.except('application_dependencies')
+    # end
 
     def enable_logging
       enable_file_logging
       set_celluloid_exception_handling
     end
 
-    def job_id
-      original_args_hash.fetch(CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID, nil)
-    end
-
     def original_args_hash
       multi_fetch_argv((original_args || ARGV).dup)
     end
 
-    def capistrano_version
-      find_loaded_gem_property('capistrano', 'version')
-    end
+    # def capistrano_version
+    #   find_loaded_gem_property('capistrano', 'version')
+    # end
+    #
+    # def capistrano_version_2?
+    #   capistrano_version.blank? ? false : verify_gem_version(capistrano_version, '3.0', operator: '<')
+    # end
 
-    def capistrano_version_2?
-      capistrano_version.blank? ? false : verify_gem_version(capistrano_version, '3.0', operator: '<')
-    end
 
   private
 

@@ -38,13 +38,13 @@ module CapistranoMulticonfigParallel
 
     def read_config_file
       return if CapistranoMulticonfigParallel.original_args.present? && CapistranoMulticonfigParallel.original_args.include?('--help')
-       user = Etc.getlogin
+      user = Etc.getlogin
       config_file_path = File.join(Dir.home(user), "multi_cap.yml")
       if File.exists?(config_file_path)
-         @fetched_config.config_dir  = File.dirname(config_file_path)
+        @fetched_config.config_dir  = File.dirname(config_file_path)
       else
         @fetched_config.config_dir = @fetched_config.config_dir.present? ? File.expand_path(@fetched_config.config_dir) : try_detect_file('multi_cap.yml')
-         config_file_path = @fetched_config.config_dir.present? ? File.join(@fetched_config.config_dir, 'multi_cap.yml') : nil
+        config_file_path = @fetched_config.config_dir.present? ? File.join(@fetched_config.config_dir, 'multi_cap.yml') : nil
       end
       config_file = File.expand_path(config_file_path || File.join(detect_root.to_s, 'config', 'multi_cap.yml'))
       @fetched_config.log_dir = config_file_path.present? ? File.dirname(config_file) : File.dirname(File.dirname(config_file))
