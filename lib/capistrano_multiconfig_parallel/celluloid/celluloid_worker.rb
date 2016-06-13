@@ -84,7 +84,7 @@ module CapistranoMulticonfigParallel
     def execute_deploy
       log_to_file("invocation chain #{@job_id} is : #{@rake_tasks.inspect}")
       check_child_proces
-      command = job.command.to_s
+      command = job.command.fetch_command
       log_to_file("worker #{@job_id} executes: #{command}")
       @child_process.async.work(@job, command, actor: Actor.current, silent: true)
     end
@@ -114,10 +114,18 @@ module CapistranoMulticonfigParallel
       elsif message_is_for_stdout?(message)
         result = Celluloid::Actor[:terminal_server].show_confirmation(message['question'], message['default'])
         publish_rake_event(message.merge('action' => 'stdin', 'result' => result, 'client_action' => 'stdin'))
+    elsif message_from_bundler?(message)
+        #gem_messsage = job.gem_specs.find{|spec| message['task'].include?(spec.name) }
+        # if gem_messsage.present?
+        #     async.update_machine_state("insta")
+        # else
+          async.update_machine_state(message['task'])
+        #end
       else
         log_to_file(message, job_id: @job_id)
       end
     end
+
 
     def executed_task?(task)
       rake_tasks.present? && rake_tasks.index(task.to_s).present?

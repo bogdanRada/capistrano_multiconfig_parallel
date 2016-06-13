@@ -81,7 +81,7 @@ module CapistranoMulticonfigParallel
     end
 
     def task_approval(message)
-      return unless message_is_about_a_task?(message)
+      return if !message_is_about_a_task?(message) || !message_from_bundler?(message)
       log_to_file("RakeWorker #{@job_id} #{task_name} task_approval : #{message.inspect}")
       if @job_id == message['job_id'] && message['task'].to_s == task_name.to_s && message['approved'] == 'yes'
         @task_approved = true
