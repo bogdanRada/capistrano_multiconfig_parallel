@@ -13,7 +13,7 @@ module CapistranoMulticonfigParallel
     end
 
     def tcp_socket_enabled?
-      @options[:tcp_socket_enabled].present?
+      @options.fetch(:tcp_socket_enabled, nil).to_s == 'true'
     end
 
     def subscription_channel
@@ -29,7 +29,7 @@ module CapistranoMulticonfigParallel
         @client ||= pubsub_tcp_client(client_options[:subscription_channel])
         @client.publish(channel, data)
       else
-        @client ||= ::UNIXSocket.new(channel)
+        @client ||= ::UNIXSocket.new("/tmp/#{channel}.sock")
         log_to_file("worker #{@job_id} tries to send to SOCKET #{@rake_socket_file} message #{data.inspect} with encoded #{encode_job(data)}")
         @client.puts(encode_job(data))
       end

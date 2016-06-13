@@ -5,7 +5,7 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :client, :job_id, :action, :task,
-    :task_approved, :stdin_result
+    :task_approved, :stdin_result, :executor
 
     def work(options = {})
       @options = options.stringify_keys
@@ -31,6 +31,7 @@ module CapistranoMulticonfigParallel
       @task_approved = false
       @action = @options['action'].present? ? @options['action'] : 'invoke'
       @task = @options['task']
+      @socket_connection = @options['socket']
     end
 
     def task_name
@@ -46,7 +47,7 @@ module CapistranoMulticonfigParallel
     end
 
     def publish_to_worker(data)
-      CapistranoMulticonfigParallel::RakeTaskHooks.socket_connection.publish_to_channel("celluloid_worker_#{@job_id}", data)
+      @socket_connection.publish_to_channel("celluloid_worker_#{@job_id}", data)
     end
 
 

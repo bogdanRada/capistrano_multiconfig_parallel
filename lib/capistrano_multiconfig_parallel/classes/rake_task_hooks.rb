@@ -10,37 +10,6 @@ module CapistranoMulticonfigParallel
   class RakeTaskHooks
     ENV_KEY_JOB_ID = 'multi_cap_job_id'
 
-    class << self
-      include CapistranoMulticonfigParallel::ApplicationHelper
-      attr_accessor  :socket_connection, :actors, :job_id
-
-      def actors
-        @actors ||= {}
-      end
-
-      def job_id
-         ENV[CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID]
-      end
-
-      def socket_connection
-        @socket_connection = CapistranoMulticonfigParallel::SocketConnection.new(self,
-          {
-          tcp_socket_enabled: configuration.enable_tcp_socket,
-          debug_websocket: configuration.debug_websocket?,
-          log_file_path: websocket_config.fetch('log_file_path', nil),
-          subscription_channel: nil
-          }
-        )
-      end
-
-      def on_message(message)
-        actor = actors[message['job_id']]
-        actor.on_message(message)
-      end
-    end
-
-
-
     attr_accessor :job_id, :task
 
     def initialize(task = nil)
@@ -48,10 +17,20 @@ module CapistranoMulticonfigParallel
       @task = task.respond_to?(:fully_qualified_name) ? task.fully_qualified_name : task
     end
 
+    def socket_connection
+      @socket_connection = CapistranoMulticonfigParallel::SocketConnection.new(actor,
+        {
+        tcp_socket_enabled:  ENV.fetch('enable_tcp_socket', true) || true,
+        debug_websocket: ENV.fetch('debug_websocket', false),
+        log_file_path: ENV.fetch('websocket_log_file_path', nil),
+        subscription_channel: nil
+        }
+      )
+    end
+
     def automatic_hooks(&block)
       if ENV['multi_secvential'].to_s.downcase == 'false' && job_id.present? && @task.present?
-        actor = get_current_actor
-        CapistranoMulticonfigParallel::RakeTaskHooks.socket_connection.subscribe_to_channel("rake_worker_#{@job_id}")
+        socket_connection.subscribe_to_channel("rake_worker_#{@job_id}")
         actor_start_working(action: 'invoke')
         actor.wait_execution until actor.task_approved
         actor_execute_block(&block)
@@ -70,9 +49,8 @@ module CapistranoMulticonfigParallel
 
     private
 
-    def get_current_actor
+    def actor
       @actor ||= CapistranoMulticonfigParallel::RakeWorker.new
-      CapistranoMulticonfigParallel::RakeTaskHooks.actors[@job_id] = @actor
       @actor
     end
 
@@ -104,11 +82,10 @@ module CapistranoMulticonfigParallel
 
     def actor_start_working(additionals = {})
       additionals = additionals.present? ? additionals : {}
-      data = {job_id: job_id, task: @task}.merge(additionals)
+      data = {job_id: job_id, task: @task, :socket => socket_connection }.merge(additionals)
       actor.work(data)
     end
 
-    alias_method :actor, :get_current_actor
 
   end
 end

@@ -60,7 +60,7 @@ module CapistranoMulticonfigParallel
 
     def on_message(message)
       log_to_file("worker #{@job_id} received:  #{message.inspect}")
-      if @client.succesfull_subscription?(message)
+      if message["client_action"]=="successful_subscription"
         @successfull_subscription = true
         execute_after_succesfull_subscription
       else
