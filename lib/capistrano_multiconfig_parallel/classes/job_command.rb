@@ -47,11 +47,6 @@ module CapistranoMulticonfigParallel
       "BUNDLE_GEMFILE=#{job_gemfile}"
     end
 
-    def gitflow
-      gitflow = `#{command_prefix} && #{bundle_gemfile_env} bundle show capistrano-gitflow`
-      @gitflow ||= gitflow.include?('Could not find') ? false : true
-    end
-
     def gitflow_enabled?
      gitflow_version = job_gem_version("capistrano-gitflow")
       gitflow_version.present? ? true : false
