@@ -21,6 +21,7 @@ module CapistranoMulticonfigParallel
       @manager = manager
       @position = nil
       @terminal_rows = nil
+      @cursor = CapistranoMulticonfigParallel::Cursor.new
       @errors = []
       @options = options.is_a?(Hash) ? options.stringify_keys : options
       @job_manager = job_manager
@@ -57,7 +58,7 @@ module CapistranoMulticonfigParallel
 
     def display_table_on_terminal(table, jobs)
       table_size = fetch_table_size(jobs)
-      @position, @terminal_rows, @screen_erased = CapistranoMulticonfigParallel::Cursor.display_on_screen(
+      @position, @terminal_rows, @screen_erased = @cursor.display_on_screen(
         "#{table}",
         @options.merge(
           position: @position,
