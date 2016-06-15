@@ -52,6 +52,10 @@ module CapistranoMulticonfigParallel
       [CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed, SystemExit].find { |class_name| error.is_a?(class_name) }.present?
     end
 
+    def development_debug?
+      ENV['MULTICAP_DEBUG'].to_s == 'true'
+    end
+
     def log_error(error, options = {})
       message = format_error(error)
       log_output_error(error, options.fetch(:output, nil), message)
@@ -63,7 +67,7 @@ module CapistranoMulticonfigParallel
     end
 
     def terminal_errors?
-      terminal_actor.present? && terminal_actor.alive? && terminal_actor.errors.is_a?(Array)
+      development_debug? && terminal_actor.present? && terminal_actor.alive? && terminal_actor.errors.is_a?(Array)
     end
 
     def log_output_error(error, output, message)

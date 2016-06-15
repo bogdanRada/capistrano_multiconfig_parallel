@@ -71,7 +71,7 @@ module CapistranoMulticonfigParallel
     end
 
     def print_errors
-      puts(@errors.join("\n")) if @errors.present? && @options.fetch('clear_screen', false).to_s == 'false'
+      puts(@errors.join("\n")) if @errors.present? && @options.fetch('clear_screen', false).to_s == 'false' && development_debug?
     end
 
     def setup_table_jobs(table)
