@@ -26,6 +26,7 @@ module CapistranoMulticonfigParallel
     end
 
     def save_stderr_error(data)
+      return unless development_debug?
       return unless @manager.alive?
       stderr_buffer.rewind
       old_data = stderr_buffer.read.dup
