@@ -47,11 +47,14 @@ module CapistranoMulticonfigParallel
       "BUNDLE_GEMFILE=#{job_gemfile}"
     end
 
+<<<<<<< HEAD
     def gitflow_enabled?
       gitflow_version = job_gem_version("capistrano-gitflow")
       gitflow_version.present? ? true : false
     end
 
+=======
+>>>>>>> develop
     def gitflow_enabled?
      gitflow_version = job_gem_version("capistrano-gitflow")
       gitflow_version.present? ? true : false
