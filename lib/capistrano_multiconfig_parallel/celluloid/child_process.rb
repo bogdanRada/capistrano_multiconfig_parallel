@@ -76,7 +76,7 @@ module CapistranoMulticonfigParallel
     def start_async_deploy
       RightScale::RightPopen.popen3_async(
         @cmd,
-        target: Actor.current,
+        target: self,
         environment: @options.fetch(:environment, nil),
         pid_handler: :on_pid,
         input: :on_input_stdin,
