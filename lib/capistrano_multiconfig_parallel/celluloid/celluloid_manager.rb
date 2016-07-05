@@ -24,6 +24,7 @@ module CapistranoMulticonfigParallel
       Actor.current.link @workers
       setup_actor_supervision(@worker_supervisor, actor_name: :terminal_server, type: CapistranoMulticonfigParallel::TerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
       if configuration.enable_tcp_socket
+          require_relative './web_server'
           setup_actor_supervision(@worker_supervisor, actor_name: :web_server, type: CapistranoMulticonfigParallel::WebServer, args: websocket_config)
       end
       # Get a handle on the PoolManager

@@ -90,7 +90,7 @@ module CapistranoMulticonfigParallel
     end
 
     def managers_alive?
-      @manager.alive?
+      @job_manager.alive? && @manager.alive?
     end
 
     def signal_complete

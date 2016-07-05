@@ -2,9 +2,10 @@ require 'rubygems'
 require 'bundler'
 require 'bundler/setup'
 
-%w(core_ext).each do |folder_name|
-  Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
-end
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/keys'
+require 'active_support/core_ext/module/delegation'
+require 'active_support/concern'
 
 require_relative './helpers/base_actor_helper'
 require 'celluloid/pmap'

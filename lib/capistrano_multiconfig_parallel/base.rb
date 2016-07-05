@@ -14,14 +14,14 @@ module CapistranoMulticonfigParallel
       @config
     end
 
-    # def configuration_flags
-    #   default_internal_config.each_with_object({}) do |array_item, hash|
-    #     key = array_item[0].to_s
-    #     value = get_prop_config(key, configuration)
-    #     hash[key] = value.is_a?(Array) ? value.join(',') : value
-    #     hash
-    #   end.except('application_dependencies')
-    # end
+    def configuration_flags
+      default_internal_config.each_with_object({}) do |array_item, hash|
+        key = array_item[0].to_s
+        value = get_prop_config(key, configuration)
+        hash[key] = value.is_a?(Array) ? value.join(',') : value
+        hash
+      end.except('application_dependencies')
+    end
 
     def enable_logging
       enable_file_logging
