@@ -124,6 +124,14 @@ module CapistranoMulticonfigParallel
       finished? || crashed?
     end
 
+    def inspect
+      to_s
+    end
+
+    def to_s
+      JSON.generate(to_json)
+    end
+
     def to_json
       hash = {}
       %w(id app stage action task_arguments env_options status exit_status).each do |key|
