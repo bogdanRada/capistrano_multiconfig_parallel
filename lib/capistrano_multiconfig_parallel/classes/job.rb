@@ -36,7 +36,7 @@ module CapistranoMulticonfigParallel
     end
 
     def env_variable
-      CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID
+      CapistranoMulticonfigParallel.env_job_key_id
     end
 
     def command

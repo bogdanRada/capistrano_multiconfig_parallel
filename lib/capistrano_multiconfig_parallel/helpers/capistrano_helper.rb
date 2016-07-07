@@ -8,7 +8,7 @@ module CapistranoMulticonfigParallel
     end
 
     def env_prefix(key, version = false)
-      key != CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID && version == true ? '-S' : ''
+      key != CapistranoMulticonfigParallel.env_job_key_id && version == true ? '-S' : ''
     end
 
     def env_key_format(key, version = false)

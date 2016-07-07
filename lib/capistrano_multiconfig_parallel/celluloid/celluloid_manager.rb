@@ -30,7 +30,7 @@ module CapistranoMulticonfigParallel
       # Get a handle on the PoolManager
       # http://rubydoc.info/gems/celluloid/Celluloid/PoolManager
       # @workers = workers_pool.actor
-      @socket_connection = CapistranoMulticonfigParallel::SocketConnection.new(Actor.current,
+      @socket_connection = MultiCapHandler::SocketConnection.new(Actor.current,
         {
         tcp_socket_enabled: configuration.enable_tcp_socket,
         debug_websocket: debug_websocket?,

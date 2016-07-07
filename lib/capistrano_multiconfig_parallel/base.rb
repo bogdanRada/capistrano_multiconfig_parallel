@@ -14,6 +14,10 @@ module CapistranoMulticonfigParallel
       @config
     end
 
+    def env_job_key_id
+      MultiCapHandler::RakeTaskHooks::ENV_KEY_JOB_ID
+    end
+
     def configuration_flags
       default_internal_config.each_with_object({}) do |array_item, hash|
         key = array_item[0].to_s

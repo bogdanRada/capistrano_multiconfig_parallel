@@ -21,6 +21,7 @@ require 'devnull'
 require 'inquirer'
 require 'rack'
 require 'rake'
+require "multi_cap_handler"
 
 require 'etc'
 require 'logger'

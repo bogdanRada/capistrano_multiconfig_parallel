@@ -10,7 +10,7 @@ module CapistranoMulticonfigParallel
         before_start
         arguments = multi_fetch_argv(original_args)
         configuration_valid?
-        execute_start(arguments[CapistranoMulticonfigParallel::RakeTaskHooks::ENV_KEY_JOB_ID])
+        execute_start(arguments[CapistranoMulticonfigParallel.env_job_key_id])
       end
 
       def execute_start(job_id)
@@ -24,15 +24,8 @@ module CapistranoMulticonfigParallel
       end
 
       def run_capistrano
-        if capistrano_version_2?
-          require 'capistrano/cli'
-          Capistrano::CLI.execute
-        else
-          require 'capistrano/all'
-          Capistrano::Application.new.run
-        end
+        exec("cd #{job_path} && bundle install && bundle exec cap #{ARGV.join(' ')}")
       end
-
 
       def before_start(argv = ARGV)
         check_terminal_tty
