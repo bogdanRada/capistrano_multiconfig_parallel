@@ -1,7 +1,7 @@
 require_relative './celluloid_worker'
 require_relative './terminal_table'
-require_relative '../helpers/base_actor_helper'
 require_relative './web_server'
+require_relative '../helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # manager class that handles workers
   class CelluloidManager
