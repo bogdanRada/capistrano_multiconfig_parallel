@@ -19,7 +19,6 @@ require 'terminal-table'
 require 'configliere'
 require 'devnull'
 require 'inquirer'
-require 'rack'
 require 'rake'
 require "multi_cap_handler"
 

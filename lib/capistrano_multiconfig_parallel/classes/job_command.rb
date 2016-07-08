@@ -43,14 +43,19 @@ module CapistranoMulticonfigParallel
       %w(STAGES ACTION)
     end
 
-    def bundle_gemfile_env
-      "BUNDLE_GEMFILE=#{job_gemfile}"
+    def bundle_gemfile_env(gemfile = job_gemfile)
+      "BUNDLE_GEMFILE='#{gemfile}'"
     end
 
 
     def gitflow_enabled?
      gitflow_version = job_gem_version("capistrano-gitflow")
       gitflow_version.present? ? true : false
+    end
+
+    def multi_cap_handler_available?
+      gitflow_version = job_gem_version("multi_cap_handler")
+       gitflow_version.present? ? true : false
     end
 
     def job_stage
@@ -100,7 +105,41 @@ module CapistranoMulticonfigParallel
     def fetch_deploy_command
     #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
       environment_options = setup_command_line.join(' ')
-      "bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      "cd #{job_path} && #{bundle_gemfile_env(job_gemfile_multi)} bundle install && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+    end
+
+    def job_capfile
+      File.join(job_path, "Capfile")
+    end
+
+    def job_gemfile_multi
+      File.join(job_path, "Gemfile.multi_cap")
+    end
+
+    def check_handler_available
+      FileUtils.touch(job_gemfile_multi)
+      if multi_cap_handler_available?
+        FileUtils.copy(File.join(job_path, 'Gemfile'), job_gemfile_multi)
+      else
+        File.open(File.join(job_path, "Gemfile.multi_cap"), 'w') do |f|
+        cmd=<<-CMD
+        source "https://rubygems.org"
+        gem "multi_cap_handler", "0.0.1"
+        instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
+        CMD
+          f.write(cmd)
+        end
+      end
+      prepare_capfile
+    end
+
+    def prepare_capfile
+      File.open(job_capfile, 'a+') do |f|
+      cmd=<<-CMD
+        require "multi_cap_handler"
+      CMD
+        f.write(cmd)
+      end
     end
 
       def execute_standard_deploy(action = nil)

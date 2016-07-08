@@ -27,11 +27,10 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'eventmachine', '~> 1.0', '>= 1.0.3'
   s.add_runtime_dependency 'right_popen', '~> 3.0', '>= 3.0.1'
   s.add_runtime_dependency 'capistrano','>= 2.0','>= 2.0'
-  s.add_runtime_dependency 'activesupport',  '>= 4.0','>= 4.0'
+  s.add_runtime_dependency 'activesupport',  '>= 5.0','>= 5.0'
   s.add_runtime_dependency 'configliere', '~> 0.4', '>=0.4'
   s.add_runtime_dependency 'inquirer', '~> 0.2', '>= 0.2'
   s.add_runtime_dependency 'devnull','~> 0.1', '>= 0.1'
-  s.add_runtime_dependency 'rack', '>= 1.6', '>= 1.6'
   s.add_runtime_dependency 'multi_cap_handler',  '>= 0.0', '>= 0.0.1'
 
   s.add_development_dependency 'rake', '>= 10.4', '>= 10.4'
