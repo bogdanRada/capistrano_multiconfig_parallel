@@ -28,7 +28,7 @@ module CapistranoMulticonfigParallel
         end
 
         def version_less_than_seventeen?
-          verify_gem_version('celluloid', '0.17', operator: '<')
+          verify_gem_version(celluloid_version, '0.17', operator: '<')
         end
       end
     end
@@ -37,14 +37,25 @@ module CapistranoMulticonfigParallel
       delegate :version_less_than_seventeen?,
       to: :'CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods'
 
-      def setup_actor_supervision(class_name, options)
-        arguments = options[:args].is_a?(Array) ? options[:args] : [options[:args]]
+
+      def setup_actor_supervision_details(class_name, options)
+        arguments = (options[:args].is_a?(Array) ? options[:args] : [options[:args]]).compact
         if version_less_than_seventeen?
-          class_name.supervise_as(options[:actor_name], options[:type], *arguments)
+          [options[:actor_name], options[:type], *arguments]
         else
           #supervises_opts = options[:supervises].present? ? { supervises: options[:supervises] } : {}
-          default_opts = options[:actor_name].present? ? { as: options[:actor_name], type: options[:type], args: arguments, size: options.fetch(:size, nil) } : {}
-          class_name.supervise(default_opts)
+         { as: options[:actor_name], type: options[:type], args: arguments, size: options.fetch(:size, nil) }
+        end
+      end
+
+
+      def setup_actor_supervision(class_name, options)
+        if version_less_than_seventeen?
+          class_name.supervise_as(*setup_actor_supervision_details(class_name, options))
+        else
+          setup_supervision_group do |supervisor|
+            supervisor.supervise setup_actor_supervision_details(class_name, options)
+          end
         end
       end
 
@@ -52,7 +63,9 @@ module CapistranoMulticonfigParallel
         if version_less_than_seventeen?
           Celluloid::SupervisionGroup.run!
         else
-          Celluloid::Supervision::Container.run!
+          Class.new(Celluloid::Supervision::Container) do
+            yield(self) if block_given?
+          end.run!
         end
       end
 
@@ -60,7 +73,10 @@ module CapistranoMulticonfigParallel
         if version_less_than_seventeen?
           class_name.pool(options[:type], as: options[:actor_name], size:  options.fetch(:size, 10))
         else
-          setup_actor_supervision(class_name, options)
+          options = setup_actor_supervision_details(class_name, options)
+          setup_supervision_group do |supervisor|
+            supervisor.pool *[options[:type], options.except(:type)]
+          end
         end
       end
     end

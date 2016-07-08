@@ -74,7 +74,11 @@ module CapistranoMulticonfigParallel
 
     def supervise_actor
       return unless actor.blank?
+      if CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods.version_less_than_seventeen?
       CapistranoMulticonfigParallel::RakeWorker.supervise_as(rake_actor_id)
+    else
+        CapistranoMulticonfigParallel::RakeWorker.supervise(as: rake_actor_id)
+    end
     end
 
     def rake_actor_id
