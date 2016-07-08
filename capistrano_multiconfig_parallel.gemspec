@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'colorize', '~>  0.7', '>= 0.7'
   s.add_runtime_dependency 'eventmachine', '~> 1.0', '>= 1.0.3'
   s.add_runtime_dependency 'right_popen', '~> 3.0', '>= 3.0.1'
+  s.add_runtime_dependency 'capistrano','>= 2.0','>= 2.0'
   s.add_runtime_dependency 'activesupport',  '>= 4.0','>= 4.0'
   s.add_runtime_dependency 'configliere', '~> 0.4', '>=0.4'
   s.add_runtime_dependency 'inquirer', '~> 0.2', '>= 0.2'
