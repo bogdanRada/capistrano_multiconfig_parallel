@@ -21,7 +21,8 @@ module CapistranoMulticonfigParallel
       # Get a handle on the SupervisionGroup::Member
       @mutex = Mutex.new
       # http://rubydoc.info/gems/celluloid/Celluloid/SupervisionGroup/Member
-      @workers = setup_pool_of_actor(@worker_supervisor, actor_name: :workers, type: CapistranoMulticonfigParallel::CelluloidWorker, size: 10)
+      setup_pool_of_actor(@worker_supervisor, actor_name: :workers, type: CapistranoMulticonfigParallel::CelluloidWorker, size: 10)
+      @workers = Celluloid::Actor[:workers]
       Actor.current.link @workers
       setup_actor_supervision(@worker_supervisor, actor_name: :terminal_server, type: CapistranoMulticonfigParallel::TerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
       setup_actor_supervision(@worker_supervisor, actor_name: :web_server, type: CapistranoMulticonfigParallel::WebServer, args: websocket_config)

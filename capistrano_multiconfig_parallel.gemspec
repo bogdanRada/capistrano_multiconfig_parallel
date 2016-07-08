@@ -17,9 +17,9 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
 
-  s.add_runtime_dependency 'celluloid', '>= 0.16', '< 0.17'
+  s.add_runtime_dependency 'celluloid', '>= 0.16', '>= 0.16'
   s.add_runtime_dependency 'celluloid-pmap', '~> 0.2', '>= 0.2.2'
-  s.add_runtime_dependency 'celluloid_pubsub', '~> 0.7', '>= 0.7.8'
+  s.add_runtime_dependency 'celluloid_pubsub', '~> 0.8', '>= 0.8.1'
   s.add_runtime_dependency 'celluloid-websocket-client', '~> 0.0', '>= 0.0.1'
   s.add_runtime_dependency 'composable_state_machine', '~> 1.0', '>= 1.0.2'
   s.add_runtime_dependency 'terminal-table', '~> 1.5', '>= 1.5.2'

@@ -25,6 +25,9 @@ module CapistranoMulticonfigParallel
     :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
     :job_termination_condition, :worker_state, :invocation_chain, :filename, :worker_log, :exit_status
 
+    def initialize(*args)
+    end
+
     def work(job, manager)
       @job = job
       @job_id = job.id
