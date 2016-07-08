@@ -41,7 +41,3 @@ end
 %w(version base application).each do |filename|
   Gem.find_files("capistrano_multiconfig_parallel/#{filename}.rb").each { |path| require path }
 end
-
-%w(initializers).each do |folder_name|
-  Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
-end
