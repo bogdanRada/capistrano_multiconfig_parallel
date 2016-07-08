@@ -30,10 +30,6 @@ require 'pp'
 require 'yaml'
 require 'stringio'
 require 'io/console'
-require 'base64'
-require 'socket'
-require 'securerandom'
-require 'forwardable'
 
 # fix error with not files that can not be found
  Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }

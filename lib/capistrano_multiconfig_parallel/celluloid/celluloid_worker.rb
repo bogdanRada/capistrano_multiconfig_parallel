@@ -20,10 +20,10 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::BaseActorHelper
     class TaskFailed < StandardError; end
 
-    attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv,
+    attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :socket_connection, :task_argv,
     :rake_tasks, :current_task_number, # tracking tasks
     :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-    :job_termination_condition, :worker_state, :invocation_chain, :filename, :worker_log, :exit_status, :socket_connection
+    :job_termination_condition, :worker_state, :invocation_chain, :filename, :worker_log, :exit_status
 
     def work(job, manager)
       @job = job
@@ -35,9 +35,9 @@ module CapistranoMulticonfigParallel
       @subscription_channel = "worker_#{@job_id}"
       @machine = CapistranoMulticonfigParallel::StateMachine.new(@job, Actor.current)
       @manager.setup_worker_conditions(@job)
-      @socket_connection = manager.socket_connection
       manager.register_worker_for_job(job, Actor.current)
     end
+
 
     def worker_state
       if Actor.current.alive?
@@ -49,18 +49,18 @@ module CapistranoMulticonfigParallel
     end
 
     def start_task
-      log_to_file("exec worker #{@job_id} starts task")
-      socket_connection.subscribe_to_channel("celluloid_worker_#{@job_id}")
-      async.execute_after_succesfull_subscription unless configuration.enable_tcp_socket
+      log_to_file("exec worker #{@job_id} starts task and subscribes to #{MultiCapHandler::RequestHooks::PUBLISHER_PREFIX}#{@job_id}")
+      @socket_connection = CelluloidPubsub::Client.new(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel, log_file_path: websocket_config.fetch('log_file_path', nil))
     end
 
     def publish_rake_event(data)
-      socket_connection.publish_to_channel("rake_worker_#{@job_id}", data)
+      log_to_file("worker #{@job_id} rties to publish into channel #{MultiCapHandler::RequestHooks::SUBSCRIPTION_PREFIX}#{@job_id} data #{data.inspect}")
+      @socket_connection.publish("#{MultiCapHandler::RequestHooks::SUBSCRIPTION_PREFIX}#{@job_id}", data)
     end
 
     def on_message(message)
       log_to_file("worker #{@job_id} received:  #{message.inspect}")
-      if message["client_action"]=="successful_subscription"
+      if @socket_connection.succesfull_subscription?(message)
         @successfull_subscription = true
         execute_after_succesfull_subscription
       else

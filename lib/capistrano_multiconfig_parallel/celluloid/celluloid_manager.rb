@@ -1,11 +1,12 @@
 require_relative './celluloid_worker'
 require_relative './terminal_table'
 require_relative '../helpers/base_actor_helper'
+require_relative './web_server'
 module CapistranoMulticonfigParallel
   # manager class that handles workers
   class CelluloidManager
     include CapistranoMulticonfigParallel::BaseActorHelper
-   attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated, :stderr_buffer, :socket_connection
+   attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated, :stderr_buffer
 
     attr_reader :worker_supervisor, :workers
     trap_exit :worker_died
@@ -23,37 +24,18 @@ module CapistranoMulticonfigParallel
       @workers = setup_pool_of_actor(@worker_supervisor, actor_name: :workers, type: CapistranoMulticonfigParallel::CelluloidWorker, size: 10)
       Actor.current.link @workers
       setup_actor_supervision(@worker_supervisor, actor_name: :terminal_server, type: CapistranoMulticonfigParallel::TerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
-      if configuration.enable_tcp_socket
-          require_relative './web_server'
-          setup_actor_supervision(@worker_supervisor, actor_name: :web_server, type: CapistranoMulticonfigParallel::WebServer, args: websocket_config)
-      end
+
+      setup_actor_supervision(@worker_supervisor, actor_name: :web_server, type: CapistranoMulticonfigParallel::WebServer, args: websocket_config)
       # Get a handle on the PoolManager
       # http://rubydoc.info/gems/celluloid/Celluloid/PoolManager
       # @workers = workers_pool.actor
-      @socket_connection = MultiCapHandler::SocketConnection.new(Actor.current,
-        {
-        tcp_socket_enabled: configuration.enable_tcp_socket,
-        debug_websocket: debug_websocket?,
-        log_file_path: websocket_config.fetch('log_file_path', nil),
-        subscription_channel: nil
-        }
-      )
+
       @stderr_buffer = StringIO.new
       @conditions = []
       @jobs = {}
       @job_to_worker = {}
       @worker_to_job = {}
       @job_to_condition = {}
-    end
-
-    def on_message(message)
-      if message["client_action"]=="successful_subscription"
-          channel = message['channel'].gsub('celluloid_worker_', '')
-      else
-          channel = message['job_id']
-      end
-      worker = @job_to_worker[channel]
-      worker.on_message(message) if worker
     end
 
     # call to send an actor

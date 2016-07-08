@@ -15,7 +15,7 @@ module CapistranoMulticonfigParallel
     end
 
     def env_job_key_id
-      MultiCapHandler::RakeTaskHooks::ENV_KEY_JOB_ID
+      MultiCapHandler::RequestHooks::ENV_KEY_JOB_ID
     end
 
     def configuration_flags

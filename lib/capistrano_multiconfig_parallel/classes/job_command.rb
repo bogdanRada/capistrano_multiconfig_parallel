@@ -83,9 +83,6 @@ module CapistranoMulticonfigParallel
     def setup_command_line(*args)
       new_arguments, options = setup_command_line_standard(*args)
       env_options = setup_env_options(options).concat(new_arguments)
-      env_options.unshift(capistrano_action)
-      env_options.unshift(job_stage)
-      env_options
     end
 
     def job_capistrano_version
@@ -102,12 +99,12 @@ module CapistranoMulticonfigParallel
 
     def fetch_deploy_command
     #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
-      environment_options = setup_command_line.join(' ')
+      environment_options = setup_command_line("capistrano_version": job_capistrano_version).join(' ')
       "bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
     end
 
       def execute_standard_deploy(action = nil)
-        run_shell_command(to_s)
+        run_shell_command(fetch_deploy_command)
       rescue => ex
         rescue_error(ex, 'stderr')
         execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
