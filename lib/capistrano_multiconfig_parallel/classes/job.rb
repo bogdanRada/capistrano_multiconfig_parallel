@@ -12,6 +12,7 @@ module CapistranoMulticonfigParallel
              :capistrano_action,
              :execute_standard_deploy,
              :setup_command_line,
+             :job_capistrano_version,
              :gem_specs,
              to: :command
 
@@ -91,10 +92,16 @@ module CapistranoMulticonfigParallel
     ].each do |hash|
       define_method hash[:name] do
         value = @options.fetch(hash[:name], hash[:default])
-        value["#{env_variable}"] = id if hash[:name] == 'env_options'
+        setup_additional_env_variables(value) if hash[:name] == 'env_options'
         value = verify_empty_options(value)
         instance_variable_set("@#{hash[:name]}", instance_variable_get("@#{hash[:name]}") || value)
       end
+    end
+
+
+    def setup_additional_env_variables(value)
+      value["#{env_variable}"] = id
+      value["capistrano_version"] = job_capistrano_version
     end
 
     def finished?

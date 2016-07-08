@@ -82,7 +82,7 @@ module CapistranoMulticonfigParallel
 
     def setup_command_line(*args)
       new_arguments, options = setup_command_line_standard(*args)
-      env_options = setup_env_options(options).concat(new_arguments)
+      setup_env_options(options).concat(new_arguments)
     end
 
     def job_capistrano_version
@@ -99,7 +99,7 @@ module CapistranoMulticonfigParallel
 
     def fetch_deploy_command
     #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
-      environment_options = setup_command_line("capistrano_version": job_capistrano_version).join(' ')
+      environment_options = setup_command_line.join(' ')
       "bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
     end
 

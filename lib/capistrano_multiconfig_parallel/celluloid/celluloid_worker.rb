@@ -32,7 +32,7 @@ module CapistranoMulticonfigParallel
       @manager = manager
       @job_confirmation_conditions = []
       log_to_file("worker #{@job_id} received #{job.inspect}")
-      @subscription_channel = "worker_#{@job_id}"
+      @subscription_channel = "#{MultiCapHandler::RequestHooks::PUBLISHER_PREFIX}#{@job_id}"
       @machine = CapistranoMulticonfigParallel::StateMachine.new(@job, Actor.current)
       @manager.setup_worker_conditions(@job)
       manager.register_worker_for_job(job, Actor.current)
@@ -49,7 +49,7 @@ module CapistranoMulticonfigParallel
     end
 
     def start_task
-      log_to_file("exec worker #{@job_id} starts task and subscribes to #{MultiCapHandler::RequestHooks::PUBLISHER_PREFIX}#{@job_id}")
+      log_to_file("exec worker #{@job_id} starts task and subscribes to #{@subscription_channel}")
       @socket_connection = CelluloidPubsub::Client.new(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel, log_file_path: websocket_config.fetch('log_file_path', nil))
     end
 
