@@ -2,7 +2,7 @@ require_relative './helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # finds app dependencies, shows menu and delegates jobs to celluloid manager
   class Application
-    include CapistranoMulticonfigParallel::BaseActorHelper
+    include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :stage_apps, :top_level_tasks, :jobs, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
 
@@ -89,10 +89,10 @@ module CapistranoMulticonfigParallel
     end
 
     def check_before_starting
-      @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(Actor.current)
+      @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(self)
       @default_stage = configuration.development_stages.present? ? configuration.development_stages.first : 'development'
       @condition = Celluloid::Condition.new
-      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
+      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(self)
     end
 
     def collect_jobs(options = {}, &_block)
@@ -214,7 +214,7 @@ module CapistranoMulticonfigParallel
 
       env_options = options['env_options']
       job_env_options = custom_command? ? env_options.except(action_key) : env_options
-      job = CapistranoMulticonfigParallel::Job.new(Actor.current, options.merge(
+      job = CapistranoMulticonfigParallel::Job.new(self, options.merge(
                                                                     action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
                                                                     env_options: job_env_options,
                                                                     path: options.fetch('path', nil)

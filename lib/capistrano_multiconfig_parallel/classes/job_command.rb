@@ -130,7 +130,7 @@ module CapistranoMulticonfigParallel
            ENV['BUNDLE_GEMFILE']='#{job_gemfile_multi}'
            ENV['#{CapistranoSentinel::RequestHooks::ENV_KEY_JOB_ID}']='#{job.id}'
 
-           Kernel.exec('cd #{job_path} && gem install bundler && (bundle check || bundle install) && bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}')
+           Kernel.exec('cd #{job_path} && (bundle check || bundle install) && bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}')
           }
         "
           CMD
