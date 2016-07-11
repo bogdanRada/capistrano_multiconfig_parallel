@@ -18,8 +18,13 @@ module CapistranoMulticonfigParallel
       end
 
       def run_the_application
-        execute_with_rescue('stderr') do
-          CapistranoMulticonfigParallel::Application.new.start
+        begin
+          application = CapistranoMulticonfigParallel::Application.new
+          execute_with_rescue('stderr') do
+            application.start
+          end
+        ensure
+          application.jobs_restore_application_state
         end
       end
     end

@@ -266,5 +266,10 @@ module CapistranoMulticonfigParallel
         prepare_job(options)
       end
     end
+    def jobs_restore_application_state
+      @jobs.each do |job|
+        job.rollback_changes_to_application
+      end
+    end
   end
 end
