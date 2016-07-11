@@ -170,7 +170,7 @@ module CapistranoMulticonfigParallel
       environment_options = setup_command_line.join(' ')
       original_prefix_command = check_rvm_loaded
       prefix_command = original_prefix_command.present? ? original_prefix_command : "cd #{job_path}"
-      command = "#{prefix_command} && gem install bundler && (#{bundle_gemfile_env(job_gemfile_multi)} bundle check || #{bundle_gemfile_env(job_gemfile_multi)} bundle install) && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      command = "#{prefix_command} && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
       if original_prefix_command.present?
         command = "bash --login -c '#{command}'"
