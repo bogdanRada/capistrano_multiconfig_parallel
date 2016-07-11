@@ -20,7 +20,7 @@ require 'configliere'
 require 'devnull'
 require 'inquirer'
 require 'rake'
-require "multi_cap_handler"
+require "capistrano_sentinel"
 
 require 'etc'
 require 'logger'

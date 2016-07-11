@@ -35,7 +35,7 @@ module CapistranoMulticonfigParallel
       @manager = manager
       @job_confirmation_conditions = []
       log_to_file("worker #{@job_id} received #{job.inspect}")
-      @subscription_channel = "#{MultiCapHandler::RequestHooks::PUBLISHER_PREFIX}#{@job_id}"
+      @subscription_channel = "#{CapistranoSentinel::RequestHooks::PUBLISHER_PREFIX}#{@job_id}"
       @machine = CapistranoMulticonfigParallel::StateMachine.new(@job, Actor.current)
       @manager.setup_worker_conditions(@job)
       manager.register_worker_for_job(job, Actor.current)
@@ -57,8 +57,8 @@ module CapistranoMulticonfigParallel
     end
 
     def publish_rake_event(data)
-      log_to_file("worker #{@job_id} rties to publish into channel #{MultiCapHandler::RequestHooks::SUBSCRIPTION_PREFIX}#{@job_id} data #{data.inspect}")
-      @socket_connection.publish("#{MultiCapHandler::RequestHooks::SUBSCRIPTION_PREFIX}#{@job_id}", data)
+      log_to_file("worker #{@job_id} rties to publish into channel #{CapistranoSentinel::RequestHooks::SUBSCRIPTION_PREFIX}#{@job_id} data #{data.inspect}")
+      @socket_connection.publish("#{CapistranoSentinel::RequestHooks::SUBSCRIPTION_PREFIX}#{@job_id}", data)
     end
 
     def on_message(message)
@@ -87,7 +87,7 @@ module CapistranoMulticonfigParallel
     def execute_deploy
       log_to_file("invocation chain #{@job_id} is : #{@rake_tasks.inspect}")
       check_child_proces
-      job.command.check_handler_available
+      job.command.prepare_application_for_deployment
       command = job.command.fetch_deploy_command
       log_to_file("worker #{@job_id} executes: #{command}")
       @child_process.async.work(@job, command, actor: Actor.current, silent: true)

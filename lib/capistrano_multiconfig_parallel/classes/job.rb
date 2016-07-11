@@ -14,6 +14,7 @@ module CapistranoMulticonfigParallel
              :setup_command_line,
              :job_capistrano_version,
              :gem_specs,
+             :rollback_changes_to_application,
              to: :command
 
     delegate :stderr_buffer,

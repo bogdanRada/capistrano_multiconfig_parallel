@@ -53,8 +53,12 @@ module CapistranoMulticonfigParallel
       gitflow_version.present? ? true : false
     end
 
-    def multi_cap_handler_available?
-      gitflow_version = job_gem_version("multi_cap_handler")
+    def request_handler_gem_name
+      "capistrano_sentinel"
+    end
+
+    def request_handler_gem_available?
+      gitflow_version = job_gem_version(request_handler_gem_name)
        gitflow_version.present? ? true : false
     end
 
@@ -102,11 +106,36 @@ module CapistranoMulticonfigParallel
       path || detect_root
     end
 
+    def job_monkey_patches_dir
+      File.join(root, get_current_gem_name, 'patches')
+    end
+
+    def bundler_monkey_patch
+      File.join(job_monkey_patches_dir, "bundler")
+    end
+
     def fetch_deploy_command
     #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
       environment_options = setup_command_line.join(' ')
-      "cd #{job_path} && #{bundle_gemfile_env(job_gemfile_multi)} bundle install && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
-    end
+      #{}"cd #{job_path} && gem install bundler && #{bundle_gemfile_env(job_gemfile_multi)} bundle install && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+        command =<<-CMD
+        cd #{job_path} && bundle exec ruby -e "
+         require 'rubygems'
+         require 'bundler'
+         require 'bundler/cli'
+         require '#{request_handler_gem_name}'
+         require '#{bundler_monkey_patch}'
+          Bundler.with_clean_env {
+           ENV['RAILS_ENV']='development'
+           ENV['BUNDLE_GEMFILE']='#{job_gemfile_multi}'
+           ENV['#{CapistranoSentinel::RequestHooks::ENV_KEY_JOB_ID}']='#{job.id}'
+
+           Kernel.exec('cd #{job_path} && (bundle check || bundle install) && bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}')
+          }
+        "
+          CMD
+        end
+
 
     def job_capfile
       File.join(job_path, "Capfile")
@@ -116,30 +145,52 @@ module CapistranoMulticonfigParallel
       File.join(job_path, "Gemfile.multi_cap")
     end
 
+    def prepare_application_for_deployment
+      check_handler_available
+      prepare_capfile
+    end
+
     def check_handler_available
+      FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
       FileUtils.touch(job_gemfile_multi)
-      if multi_cap_handler_available?
+      if request_handler_gem_available?
         FileUtils.copy(File.join(job_path, 'Gemfile'), job_gemfile_multi)
       else
-        File.open(File.join(job_path, "Gemfile.multi_cap"), 'w') do |f|
+        File.open(job_gemfile_multi, 'w') do |f|
         cmd=<<-CMD
-        source "https://rubygems.org"
-        gem "multi_cap_handler", "0.0.1"
-        instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
+source "https://rubygems.org" do
+  gem "#{request_handler_gem_name}", :path => '/home/raul/workspace/github/capistrano_sentinel'
+end
+instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
         CMD
           f.write(cmd)
         end
       end
-      prepare_capfile
     end
 
     def prepare_capfile
+      return if File.foreach(job_capfile).grep(/#{request_handler_gem_name}/).any?
       File.open(job_capfile, 'a+') do |f|
       cmd=<<-CMD
-        require "multi_cap_handler"
+        require "#{request_handler_gem_name}"
       CMD
         f.write(cmd)
       end
+    end
+
+
+    def rollback_changes_to_application
+      FileUtils.rm_rf(job_gemfile_multi)
+      FileUtils.rm_rf("#{job_gemfile_multi}.lock")
+      File.open(job_capfile, 'r') do |f|
+        File.open("#{job_capfile}.tmp", 'w') do |f2|
+          f.each_line do |line|
+            f2.write(line) unless line.include?(request_handler_gem_name)
+          end
+        end
+      end
+      FileUtils.mv "#{job_capfile}.tmp", job_capfile
+      FileUtils.rm_rf("#{job_capfile}.tmp")
     end
 
       def execute_standard_deploy(action = nil)
