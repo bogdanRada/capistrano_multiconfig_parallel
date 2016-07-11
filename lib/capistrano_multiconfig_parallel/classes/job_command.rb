@@ -160,7 +160,7 @@ module CapistranoMulticonfigParallel
       end
       rvm_load = "#{ruby.present? ? strip_characters_from_string(ruby) : ''}#{gemset.present? ? "@#{strip_characters_from_string(gemset)}" : ''}"
       if rvm_load.strip.present?
-         "cd #{job_path} && bash --login && rvm use #{rvm_load.strip} --install --quiet-curl"
+         "source #{File.join(user_home_directory, '.rvm', 'scripts', 'rvm')} && cd #{job_path}  && rvm use #{rvm_load.strip}"
       end
     end
 
@@ -170,9 +170,11 @@ module CapistranoMulticonfigParallel
       environment_options = setup_command_line.join(' ')
       original_prefix_command = check_rvm_loaded
       prefix_command = original_prefix_command.present? ? original_prefix_command : "cd #{job_path}"
-      command = "#{prefix_command} && gem install bundler && (bundle exec bundle check || bundle exec bundle install) && bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
-      bash_command = get_bash_command(command)
+      command = "#{prefix_command} && gem install bundler && (bundle check || bundle install) && bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
+      if original_prefix_command.present?
+        command = "bash --login -c #{command}"
+      end
 
       command =<<-CMD
       cd #{job_path} && bundle exec ruby -e "
