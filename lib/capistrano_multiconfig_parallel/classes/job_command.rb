@@ -49,7 +49,7 @@ module CapistranoMulticonfigParallel
 
 
     def gitflow_enabled?
-     gitflow_version = job_gem_version("capistrano-gitflow")
+      gitflow_version = job_gem_version("capistrano-gitflow")
       gitflow_version.present? ? true : false
     end
 
@@ -59,7 +59,7 @@ module CapistranoMulticonfigParallel
 
     def request_handler_gem_available?
       gitflow_version = job_gem_version(request_handler_gem_name)
-       gitflow_version.present? ? true : false
+      gitflow_version.present? ? true : false
     end
 
     def job_stage
@@ -114,27 +114,83 @@ module CapistranoMulticonfigParallel
       File.join(job_monkey_patches_dir, "bundler")
     end
 
-    def fetch_deploy_command
-    #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
-      environment_options = setup_command_line.join(' ')
-      #{}"cd #{job_path} && gem install bundler && #{bundle_gemfile_env(job_gemfile_multi)} bundle install && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
-        command =<<-CMD
-        cd #{job_path} && bundle exec ruby -e "
-         require 'rubygems'
-         require 'bundler'
-         require 'bundler/cli'
-         require '#{request_handler_gem_name}'
-         require '#{bundler_monkey_patch}'
-          Bundler.with_clean_env {
-           ENV['RAILS_ENV']='development'
-           ENV['BUNDLE_GEMFILE']='#{job_gemfile_multi}'
-           ENV['#{CapistranoSentinel::RequestHooks::ENV_KEY_JOB_ID}']='#{job.id}'
+    def user_home_directory
+      user = Etc.getlogin
+      Dir.home(user)
+    end
 
-           Kernel.exec('cd #{job_path} && (bundle check || bundle install) && bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}')
-          }
-        "
-          CMD
+    def rvm_installed?
+      rvm = `rvm help`
+      rvm != 'command not found'
+    end
+
+    def job_rvmrc_enabled?
+      File.exists?(File.join(job_path, '.rvmrc'))
+    end
+
+    def rvm_ruby_version_enabled?
+      ruby_versions = `ls -la #{job_path}/.ruby-version #{job_path}/.ruby-gemset 2>/dev/null | awk '{ print $9}'`.split("\n")
+      ruby_versions = ruby_versions.map {|a| a.gsub("#{job_path}/", '') } if ruby_versions.present?
+      ruby_versions.present? ? [".ruby-version", '.ruby-gemset'].any?{ |file| ruby_versions.include?(file) } : false
+    end
+
+    def rvm_versions_conf_enabled?
+      versions_conf = `ls -l #{job_path}/.versions.conf 2>/dev/null | awk '{ print $9}'`
+      versions_conf.include?('.versions.conf')
+    end
+
+    def check_rvm_loaded
+      return [] if !rvm_installed? || !File.exists?('/bin/bash')
+      ruby = rvm_load = gemset = nil
+      if job_rvmrc_enabled?
+        ruby_gemset = strip_characters_from_string(`cat .rvmrc  | tr " " "\n"  |grep -o -P '.*(?<=@).*'`)
+        ruby, gemset = ruby_gemset.split('@')
+      elsif rvm_ruby_version_enabled?
+        ruby =`cat #{job_path}/.ruby-version`
+        gemset = `cat #{job_path}/.ruby-gemset`
+      elsif rvm_versions_conf_enabled?
+        ruby = `cat #{job_path}/.versions.conf | grep -o -P '(?<=ruby=).*'`
+        gemset = `cat #{job_path}/.versions.conf | grep -o -P '(?<=ruby-gemset=).*'`
+      else
+        ruby = `cat #{job_path}/Gemfile | grep -o -P '(?<=ruby=).*'`
+        gemset = `cat #{job_path}/Gemfile | grep -o -P '(?<=ruby-gemset=).*'`
+        if ruby.blank?
+          ruby = `cat #{job_path}/Gemfile  | grep -o -P '(?<=ruby\s).*'`
         end
+      end
+      rvm_load = "#{ruby.present? ? strip_characters_from_string(ruby) : ''}#{gemset.present? ? "@#{strip_characters_from_string(gemset)}" : ''}"
+      if rvm_load.strip.present?
+         "cd #{job_path} && bash --login && rvm use #{rvm_load.strip} --install --quiet-curl"
+      end
+    end
+
+
+    def fetch_deploy_command
+      #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
+      environment_options = setup_command_line.join(' ')
+      original_prefix_command = check_rvm_loaded
+      prefix_command = original_prefix_command.present? ? original_prefix_command : "cd #{job_path}"
+      command = "#{prefix_command} && gem install bundler && (bundle exec bundle check || bundle exec bundle install) && bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      bash_command = get_bash_command(command)
+
+
+      command =<<-CMD
+      cd #{job_path} && bundle exec ruby -e "
+      require 'rubygems'
+      require 'bundler'
+      require 'bundler/cli'
+      require '#{request_handler_gem_name}'
+      require '#{bundler_monkey_patch}'
+      Bundler.with_clean_env {
+        ENV['RAILS_ENV']='development'
+        ENV['BUNDLE_GEMFILE']='#{job_gemfile_multi}'
+        ENV['#{CapistranoSentinel::RequestHooks::ENV_KEY_JOB_ID}']='#{job.id}'
+
+        Kernel.system('#{command}')
+      }
+      "
+      CMD
+    end
 
 
     def job_capfile
@@ -157,12 +213,12 @@ module CapistranoMulticonfigParallel
         FileUtils.copy(File.join(job_path, 'Gemfile'), job_gemfile_multi)
       else
         File.open(job_gemfile_multi, 'w') do |f|
-        cmd=<<-CMD
-source "https://rubygems.org" do
-  gem "#{request_handler_gem_name}", '#{find_loaded_gem_property(request_handler_gem_name)}'
-end
-instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
-        CMD
+          cmd=<<-CMD
+          source "https://rubygems.org" do
+            gem "#{request_handler_gem_name}", '#{find_loaded_gem_property(request_handler_gem_name)}'
+          end
+          instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
+          CMD
           f.write(cmd)
         end
       end
@@ -172,9 +228,9 @@ instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
     def prepare_capfile
       return if File.foreach(job_capfile).grep(/#{request_handler_gem_name}/).any?
       File.open(job_capfile, 'a+') do |f|
-      cmd=<<-CMD
+        cmd=<<-CMD
         require "#{request_handler_gem_name}"
-      CMD
+        CMD
         f.write(cmd)
       end
     end
@@ -194,17 +250,22 @@ instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
       FileUtils.rm_rf("#{job_capfile}.tmp")
     end
 
-      def execute_standard_deploy(action = nil)
-        run_shell_command(fetch_deploy_command)
-      rescue => ex
-        rescue_error(ex, 'stderr')
-        execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
-      end
+    def execute_standard_deploy(action = nil)
+      run_shell_command(fetch_deploy_command)
+    rescue => ex
+      rescue_error(ex, 'stderr')
+      execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
+    end
 
-      private
+    private
 
-      def run_shell_command(command)
-        sh("#{command}")
-      end
+    def get_bash_command(command)
+      escaped_command = Shellwords.escape(command)
+      "bash -c #{escaped_command}"
+    end
+
+    def run_shell_command(command)
+      sh("#{command}")
     end
   end
+end
