@@ -130,7 +130,7 @@ module CapistranoMulticonfigParallel
            ENV['BUNDLE_GEMFILE']='#{job_gemfile_multi}'
            ENV['#{CapistranoSentinel::RequestHooks::ENV_KEY_JOB_ID}']='#{job.id}'
 
-           Kernel.exec('cd #{job_path} && (bundle check || bundle install) && bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}')
+           Kernel.exec('cd #{job_path} && gem install bundler && (bundle check || bundle install) && bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}')
           }
         "
           CMD
@@ -159,7 +159,7 @@ module CapistranoMulticonfigParallel
         File.open(job_gemfile_multi, 'w') do |f|
         cmd=<<-CMD
 source "https://rubygems.org" do
-  gem "#{request_handler_gem_name}", :path => '/home/raul/workspace/github/capistrano_sentinel'
+  gem "#{request_handler_gem_name}", '#{find_loaded_gem_property(request_handler_gem_name)}'
 end
 instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
         CMD
