@@ -44,7 +44,7 @@ module CapistranoMulticonfigParallel
     end
 
     def bundle_gemfile_env(gemfile = job_gemfile)
-      "BUNDLE_GEMFILE='#{gemfile}'"
+      "BUNDLE_GEMFILE=#{gemfile}"
     end
 
 
@@ -170,28 +170,28 @@ module CapistranoMulticonfigParallel
       environment_options = setup_command_line.join(' ')
       original_prefix_command = check_rvm_loaded
       prefix_command = original_prefix_command.present? ? original_prefix_command : "cd #{job_path}"
-      command = "#{prefix_command} && gem install bundler && (bundle check || bundle install) && bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      command = "#{prefix_command} && gem install bundler && (#{bundle_gemfile_env(job_gemfile_multi)} bundle check || #{bundle_gemfile_env(job_gemfile_multi)} bundle install) && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
       if original_prefix_command.present?
-        command = "bash --login -c #{command}"
+        command = "bash --login -c '#{command}'"
       end
+       command_text =<<-CMD
+       require 'rubygems'
+       require 'bundler'
+       require 'bundler/cli'
+       require '#{request_handler_gem_name}'
+       require '#{bundler_monkey_patch}'
+       Bundler.with_clean_env {
+         ENV['BUNDLE_GEMFILE'] = '#{job_gemfile_multi}'
+         ENV['#{CapistranoSentinel::RequestHooks::ENV_KEY_JOB_ID}']='#{job.id}'
+         Kernel.exec(#{command.inspect})
+       }
+       CMD
+       File.open(File.join(job_path, "multi_cap_#{job.id}.rb"), 'w') do |f|
+         f.write(command_text)
+       end
 
-      command =<<-CMD
-      cd #{job_path} && bundle exec ruby -e "
-      require 'rubygems'
-      require 'bundler'
-      require 'bundler/cli'
-      require '#{request_handler_gem_name}'
-      require '#{bundler_monkey_patch}'
-      Bundler.with_clean_env {
-        ENV['RAILS_ENV']='development'
-        ENV['BUNDLE_GEMFILE']='#{job_gemfile_multi}'
-        ENV['#{CapistranoSentinel::RequestHooks::ENV_KEY_JOB_ID}']='#{job.id}'
-
-        Kernel.system('#{command}')
-      }
-      "
-      CMD
+      "ruby #{File.join(job_path, "multi_cap_#{job.id}.rb")}"
     end
 
 
@@ -262,8 +262,7 @@ module CapistranoMulticonfigParallel
     private
 
     def get_bash_command(command)
-      escaped_command = Shellwords.escape(command)
-      "bash -c #{escaped_command}"
+      Shellwords.escape(command)
     end
 
     def run_shell_command(command)
