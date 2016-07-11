@@ -166,6 +166,7 @@ instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
           f.write(cmd)
         end
       end
+      FileUtils.copy(File.join(job_path, 'Gemfile.lock'), "#{job_gemfile_multi}.lock")
     end
 
     def prepare_capfile
