@@ -15,8 +15,10 @@ module CapistranoMulticonfigParallel
       transitions.on(action, state.to_s => action)
       @job.status = action
       if options[:bundler]
+        @job.bundler_status = action
         actor_notify_state_change(state, "preparing_app_bundle_install", action)
       else
+        @job.bundler_status = nil
         machine.trigger(action)
       end
     end

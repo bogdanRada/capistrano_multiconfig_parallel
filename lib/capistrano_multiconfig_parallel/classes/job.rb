@@ -5,8 +5,8 @@ module CapistranoMulticonfigParallel
   class Job
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :options, :application, :manager
-    attr_writer :status, :exit_status
+    attr_reader :options, :application, :manager, :bundler_status
+    attr_writer :status, :exit_status, :bundler_status
 
     delegate :job_stage,
     :capistrano_action,
@@ -50,9 +50,8 @@ module CapistranoMulticonfigParallel
       setup_command_line(filtered_keys: [env_variable])
     end
 
-    def terminal_row(message)
-      message = message.is_a?(Hash) ? message.symbolize_keys : {}
-      if message[:event] == "preparing_app_bundle_install"
+    def terminal_row
+      if bundler_status
         bundler_terminal_row
       else
         [
@@ -76,8 +75,8 @@ module CapistranoMulticonfigParallel
       ]
     end
 
-    def row_size(message)
-      longest_hash = terminal_row(message).max_by do |hash|
+    def row_size
+      longest_hash = terminal_row.max_by do |hash|
         hash[:value].size
       end
       (longest_hash[:value].size.to_f / 80.0).ceil
