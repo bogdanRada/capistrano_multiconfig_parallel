@@ -20,7 +20,7 @@ CAUTION!! PLEASE READ CAREFULLY!! Capistrano is not thread-safe. However in orde
 NEW Improvements in version 1.2.0
 ---------------------------------
 
--	Code for handling websocket events when a task is invoked was moved to a new gem [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel]
+-	Code for handling websocket events when a task is invoked was moved to a new gem [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel)
 -	You can now deploy applications from anywhere on your computer without having to add this gem to the Gemfile, however you need to add the "capistrano_sentinel" gem to your Gemfile, if you want to use this . -
 -	If you don't add it though, the application will automatically create a new file "Gemfile.multi_cap" where the capistrano_sentinel gem will be included and will use that Gemfile when doing deploys.
 -	The Capfile file will also be automatically changed to require 'capistrano_sentinel' if you haven't done so yet.
