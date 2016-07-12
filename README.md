@@ -28,6 +28,7 @@ NEW Improvements in version 2.0.0.alpha
 -	If you are using RVM and there is a .rvmrc file in your project root directory and bash is available , the script will use bash emulator in order to properly load RVM gemsets because .rvmrc files need trusting
 
 If you are using version 1 please refer to [README](https://github.com/bogdanRada/capistrano_multiconfig_parallel/blob/master/V1_README.md)
+===========================================================================================================================================
 
 Requirements
 ------------
