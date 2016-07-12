@@ -123,6 +123,10 @@ module CapistranoMulticonfigParallel
       @rvm_path ||= `which rvm`
     end
 
+    def bash_bin_path
+      @bash_bin_path ||= `which bash`
+    end
+
     def rvm_installed?
       rvm_bin_path.present?
     end
@@ -147,7 +151,7 @@ module CapistranoMulticonfigParallel
     end
 
     def rvm_enabled_for_job?
-      rvm_installed? && File.exists?('/bin/bash') && job_rvmrc_enabled?
+      job_rvmrc_enabled? && rvm_installed? && bash_bin_path.present?
     end
 
     def check_rvm_loaded
@@ -181,7 +185,7 @@ module CapistranoMulticonfigParallel
         "ruby #{@tempfile.path}"
       else
         <<-CMD
-          cd #{job_path} && bundle exec ruby -e "#{command_text}"
+        cd #{job_path} && bundle exec ruby -e "#{command_text}"
         CMD
       end
     end
@@ -234,16 +238,18 @@ module CapistranoMulticonfigParallel
     def rollback_changes_to_application
       FileUtils.rm_rf(job_gemfile_multi)
       FileUtils.rm_rf("#{job_gemfile_multi}.lock")
-      File.open(job_capfile, 'r') do |f|
-        File.open("#{job_capfile}.tmp", 'w') do |f2|
-          f.each_line do |line|
-            f2.write(line) unless line.include?(request_handler_gem_name)
+      unless request_handler_gem_available?
+        File.open(job_capfile, 'r') do |f|
+          File.open("#{job_capfile}.tmp", 'w') do |f2|
+            f.each_line do |line|
+              f2.write(line) unless line.include?(request_handler_gem_name)
+            end
           end
         end
+        FileUtils.mv "#{job_capfile}.tmp", job_capfile
+        FileUtils.rm_rf("#{job_capfile}.tmp")
       end
-      FileUtils.mv "#{job_capfile}.tmp", job_capfile
-      FileUtils.rm_rf("#{job_capfile}.tmp")
-      FileUtils.rm_rf(@tempfile.path)
+      FileUtils.rm_rf(@tempfile.path) if defined?(@tempfile) && @tempfile
     end
 
     def execute_standard_deploy(action = nil)
