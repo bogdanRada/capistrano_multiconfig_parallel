@@ -110,14 +110,6 @@ module CapistranoMulticonfigParallel
       path || detect_root
     end
 
-    def job_monkey_patches_dir
-      File.join(root, get_current_gem_name, 'patches')
-    end
-
-    def bundler_monkey_patch
-      File.join(job_monkey_patches_dir, "bundler")
-    end
-
     def user_home_directory
       user = Etc.getlogin
       Dir.home(user)
@@ -174,9 +166,6 @@ module CapistranoMulticonfigParallel
       command_text =<<-CMD
       require 'rubygems'
       require 'bundler'
-      require 'bundler/cli'
-      require '#{request_handler_gem_name}'
-      require '#{bundler_monkey_patch}'
       Bundler.with_clean_env {
         ENV['BUNDLE_GEMFILE'] = '#{job_gemfile_multi}'
         ENV['#{CapistranoSentinel::RequestHooks::ENV_KEY_JOB_ID}']='#{job.id}'
