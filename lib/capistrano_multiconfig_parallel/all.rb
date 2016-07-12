@@ -19,7 +19,6 @@ require 'terminal-table'
 require 'configliere'
 require 'devnull'
 require 'inquirer'
-require 'rake'
 require "capistrano_sentinel"
 
 require 'etc'
