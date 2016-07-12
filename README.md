@@ -70,6 +70,12 @@ Add the following to your Capfile after requiring **capistrano** and **capistran
   require 'capistrano_sentinel'
 ```
 
+Install locally on your system the capistrano_multiconfig_parallel gem using this command :
+
+```ruby
+  gem install capistrano_multiconfig_parallel -v 2.0.0.alpha
+```
+
 Please read [Release Details](https://github.com/bogdanRada/capistrano_multiconfig_parallel/releases) if you are upgrading. We break backward compatibility between large ticks but you can expect it to be specified at release notes.
 
 Default Configuration:
