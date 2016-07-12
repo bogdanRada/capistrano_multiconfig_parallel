@@ -6,7 +6,7 @@ module CapistranoMulticonfigParallel
     include FileUtils
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :job, :job_capistrano_version, :legacy_capistrano
+    attr_reader :job, :job_capistrano_version, :legacy_capistrano, :tempfile
     delegate :id, :app, :stage, :action, :task_arguments, :env_options, :path, to: :job
 
     def initialize(job)
@@ -127,6 +127,12 @@ module CapistranoMulticonfigParallel
       rvm_bin_path.present?
     end
 
+    def create_job_tempfile_command(output)
+      @tempfile ||= Tempfile.new(["multi_cap_#{job.id}_command_", ".rb"], encoding: 'utf-8')
+      @tempfile.write(output)
+      ObjectSpace.undefine_finalizer(@tempfile) # force garbage collector not to remove automatically the file
+      @tempfile.close
+    end
 
     def rvm_scripts_path
       File.join(File.dirname(File.dirname(rvm_bin_path)), 'scripts', 'rvm')
@@ -140,38 +146,44 @@ module CapistranoMulticonfigParallel
       File.exists?(job_rvmrc_file)
     end
 
+    def rvm_enabled_for_job?
+      rvm_installed? && File.exists?('/bin/bash') && job_rvmrc_enabled?
+    end
+
     def check_rvm_loaded
-      return if !rvm_installed? || !File.exists?('/bin/bash') || !job_rvmrc_enabled?
+      return  "cd #{job_path}" unless rvm_enabled_for_job?
       "source #{rvm_scripts_path} && rvm rvmrc trust #{job_path} && cd #{job_path} && source #{job_rvmrc_file}"
     end
 
     def fetch_deploy_command
       #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
       environment_options = setup_command_line.join(' ')
-      original_prefix_command = check_rvm_loaded
-      prefix_command = original_prefix_command.present? ? original_prefix_command : "cd #{job_path}"
-      command = "#{prefix_command} && if [ `which bundler |wc -l` = 0 ]; then gem install bundler;fi && (#{bundle_gemfile_env(job_gemfile_multi)} bundle install || #{bundle_gemfile_env(job_gemfile_multi)} bundle install ) && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      command = "#{check_rvm_loaded} && if [ `which bundler |wc -l` = 0 ]; then gem install bundler;fi && (#{bundle_gemfile_env(job_gemfile_multi)} bundle install || #{bundle_gemfile_env(job_gemfile_multi)} bundle install ) && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
-      if original_prefix_command.present?
-        command = "bash --login -c '#{command}'"
+      command = "bash --login -c '#{command}'"  if rvm_enabled_for_job?
+      command = command.inspect
+
+      command_text =<<-CMD
+      require 'rubygems'
+      require 'bundler'
+      require 'bundler/cli'
+      require '#{request_handler_gem_name}'
+      require '#{bundler_monkey_patch}'
+      Bundler.with_clean_env {
+        ENV['BUNDLE_GEMFILE'] = '#{job_gemfile_multi}'
+        ENV['#{CapistranoSentinel::RequestHooks::ENV_KEY_JOB_ID}']='#{job.id}'
+        Kernel.exec(#{command})
+      }
+      CMD
+
+      if rvm_enabled_for_job?
+        create_job_tempfile_command(command_text)
+        "ruby #{@tempfile.path}"
+      else
+        <<-CMD
+          cd #{job_path} && bundle exec ruby -e "#{command_text}"
+        CMD
       end
-       command_text =<<-CMD
-       require 'rubygems'
-       require 'bundler'
-       require 'bundler/cli'
-       require '#{request_handler_gem_name}'
-       require '#{bundler_monkey_patch}'
-       Bundler.with_clean_env {
-         ENV['BUNDLE_GEMFILE'] = '#{job_gemfile_multi}'
-         ENV['#{CapistranoSentinel::RequestHooks::ENV_KEY_JOB_ID}']='#{job.id}'
-         Kernel.exec(#{command.inspect})
-       }
-       CMD
-       File.open(File.join(job_path, "multi_cap_#{job.id}.rb"), 'w') do |f|
-         f.write(command_text)
-       end
-
-      "ruby #{File.join(job_path, "multi_cap_#{job.id}.rb")}"
     end
 
 
@@ -189,7 +201,7 @@ module CapistranoMulticonfigParallel
     end
 
     def check_handler_available
-    #  '#{find_loaded_gem_property(request_handler_gem_name)}'
+      #  '#{find_loaded_gem_property(request_handler_gem_name)}'
       FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
       FileUtils.touch(job_gemfile_multi)
       if request_handler_gem_available?
@@ -220,18 +232,18 @@ module CapistranoMulticonfigParallel
 
 
     def rollback_changes_to_application
-      # FileUtils.rm_rf(job_gemfile_multi)
-      # FileUtils.rm_rf("#{job_gemfile_multi}.lock")
-      # File.open(job_capfile, 'r') do |f|
-      #   File.open("#{job_capfile}.tmp", 'w') do |f2|
-      #     f.each_line do |line|
-      #       f2.write(line) unless line.include?(request_handler_gem_name)
-      #     end
-      #   end
-      # end
-      # FileUtils.mv "#{job_capfile}.tmp", job_capfile
-      # FileUtils.rm_rf("#{job_capfile}.tmp")
-      # FileUtils.rm_rf(File.join(job_path, "multi_cap_#{job.id}.rb"))
+      FileUtils.rm_rf(job_gemfile_multi)
+      FileUtils.rm_rf("#{job_gemfile_multi}.lock")
+      File.open(job_capfile, 'r') do |f|
+        File.open("#{job_capfile}.tmp", 'w') do |f2|
+          f.each_line do |line|
+            f2.write(line) unless line.include?(request_handler_gem_name)
+          end
+        end
+      end
+      FileUtils.mv "#{job_capfile}.tmp", job_capfile
+      FileUtils.rm_rf("#{job_capfile}.tmp")
+      FileUtils.rm_rf(@tempfile.path)
     end
 
     def execute_standard_deploy(action = nil)
