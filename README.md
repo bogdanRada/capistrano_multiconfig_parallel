@@ -27,8 +27,8 @@ NEW Improvements in version 2.0.0.alpha
 -	The changes to Capfile will be automatically reverted when the command finishes ( with success or error ) if the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem is not part of your Gemfile
 -	If you are using RVM and there is a .rvmrc file in your project root directory and bash is available , the script will use bash emulator in order to properly load RVM gemsets because .rvmrc files need trusting
 
-If you are using version 1 please refer to [README](https://github.com/bogdanRada/capistrano_multiconfig_parallel/blob/master/V1_README.md)
-===========================================================================================================================================
+If you are using a older version than 2.0 please refer to [README](https://github.com/bogdanRada/capistrano_multiconfig_parallel/blob/master/V1_README.md)
+==========================================================================================================================================================
 
 Requirements
 ------------
