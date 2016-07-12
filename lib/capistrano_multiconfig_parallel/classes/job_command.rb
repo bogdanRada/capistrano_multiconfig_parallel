@@ -119,58 +119,42 @@ module CapistranoMulticonfigParallel
       Dir.home(user)
     end
 
+    def rvm_bin_path
+      @rvm_path ||= `which rvm`
+    end
+
     def rvm_installed?
-      rvm = `rvm help`
-      rvm != 'command not found'
+      rvm_bin_path.present?
+    end
+
+
+    def rvm_scripts_path
+      File.join(File.dirname(File.dirname(rvm_bin_path)), 'scripts', 'rvm')
+    end
+
+    def job_rvmrc_file
+      File.join(job_path, '.rvmrc')
     end
 
     def job_rvmrc_enabled?
-      File.exists?(File.join(job_path, '.rvmrc'))
+      File.exists?(job_rvmrc_file)
     end
 
-    def rvm_ruby_version_enabled?
-      ruby_versions = `ls -la #{job_path}/.ruby-version #{job_path}/.ruby-gemset 2>/dev/null | awk '{ print $9}'`.split("\n")
-      ruby_versions = ruby_versions.map {|a| a.gsub("#{job_path}/", '') } if ruby_versions.present?
-      ruby_versions.present? ? [".ruby-version", '.ruby-gemset'].any?{ |file| ruby_versions.include?(file) } : false
-    end
-
-    def rvm_versions_conf_enabled?
-      versions_conf = `ls -l #{job_path}/.versions.conf 2>/dev/null | awk '{ print $9}'`
-      versions_conf.include?('.versions.conf')
+    def bundler_path
+      @bundler_path ||= `which bundler`
     end
 
     def check_rvm_loaded
-      return [] if !rvm_installed? || !File.exists?('/bin/bash')
-      ruby = rvm_load = gemset = nil
-      if job_rvmrc_enabled?
-        ruby_gemset = strip_characters_from_string(`cat .rvmrc  | tr " " "\n"  |grep -o -P '.*(?<=@).*'`)
-        ruby, gemset = ruby_gemset.split('@')
-      elsif rvm_ruby_version_enabled?
-        ruby =`cat #{job_path}/.ruby-version`
-        gemset = `cat #{job_path}/.ruby-gemset`
-      elsif rvm_versions_conf_enabled?
-        ruby = `cat #{job_path}/.versions.conf | grep -o -P '(?<=ruby=).*'`
-        gemset = `cat #{job_path}/.versions.conf | grep -o -P '(?<=ruby-gemset=).*'`
-      else
-        ruby = `cat #{job_path}/Gemfile | grep -o -P '(?<=ruby=).*'`
-        gemset = `cat #{job_path}/Gemfile | grep -o -P '(?<=ruby-gemset=).*'`
-        if ruby.blank?
-          ruby = `cat #{job_path}/Gemfile  | grep -o -P '(?<=ruby\s).*'`
-        end
-      end
-      rvm_load = "#{ruby.present? ? strip_characters_from_string(ruby) : ''}#{gemset.present? ? "@#{strip_characters_from_string(gemset)}" : ''}"
-      if rvm_load.strip.present?
-         "source #{File.join(user_home_directory, '.rvm', 'scripts', 'rvm')} && cd #{job_path}  && rvm use #{rvm_load.strip}"
-      end
+      return if !rvm_installed? || !File.exists?('/bin/bash') || !job_rvmrc_enabled?
+      "source #{rvm_scripts_path} && rvm rvmrc trust #{job_path} && cd #{job_path} && source #{job_rvmrc_file}"
     end
-
 
     def fetch_deploy_command
       #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
       environment_options = setup_command_line.join(' ')
       original_prefix_command = check_rvm_loaded
       prefix_command = original_prefix_command.present? ? original_prefix_command : "cd #{job_path}"
-      command = "#{prefix_command} && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      command = "#{prefix_command} && if [ `which bundler |wc -l` = 0 ]; then gem install bundler;fi && (#{bundle_gemfile_env(job_gemfile_multi)} bundle check || #{bundle_gemfile_env(job_gemfile_multi)} bundle install ) && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
       if original_prefix_command.present?
         command = "bash --login -c '#{command}'"
@@ -209,6 +193,7 @@ module CapistranoMulticonfigParallel
     end
 
     def check_handler_available
+    #  '#{find_loaded_gem_property(request_handler_gem_name)}'
       FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
       FileUtils.touch(job_gemfile_multi)
       if request_handler_gem_available?
@@ -217,7 +202,7 @@ module CapistranoMulticonfigParallel
         File.open(job_gemfile_multi, 'w') do |f|
           cmd=<<-CMD
           source "https://rubygems.org" do
-            gem "#{request_handler_gem_name}", '#{find_loaded_gem_property(request_handler_gem_name)}'
+            gem "#{request_handler_gem_name}", path: '/home/raul/workspace/github/capistrano_sentinel'
           end
           instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
           CMD
