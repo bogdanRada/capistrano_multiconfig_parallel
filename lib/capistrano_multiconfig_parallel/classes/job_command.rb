@@ -140,10 +140,6 @@ module CapistranoMulticonfigParallel
       File.exists?(job_rvmrc_file)
     end
 
-    def bundler_path
-      @bundler_path ||= `which bundler`
-    end
-
     def check_rvm_loaded
       return if !rvm_installed? || !File.exists?('/bin/bash') || !job_rvmrc_enabled?
       "source #{rvm_scripts_path} && rvm rvmrc trust #{job_path} && cd #{job_path} && source #{job_rvmrc_file}"
