@@ -17,12 +17,36 @@ module CapistranoMulticonfigParallel
     delegate :logger,
     :configuration,
     :configuration_valid?,
-    :capistrano_version_2?,
-    :capistrano_version,
     :original_args,
     to: :CapistranoMulticonfigParallel
 
+
     module_function
+
+    def truncate(string, truncate_at, options = {})
+      return string.dup unless string.length > truncate_at
+
+      options[:omission] ||= '...'
+      length_with_room_for_omission = truncate_at - options[:omission].length
+      stop =        if options[:separator]
+        string.rindex(options[:separator], length_with_room_for_omission) || length_with_room_for_omission
+      else
+        length_with_room_for_omission
+      end
+
+      "#{string[0...stop]}#{options[:omission]}"
+    end
+
+    # Method that is used to parse a string as JSON , if it fails will return nil
+    # @see JSON#parse
+    # @param [string] res The string that will be parsed as JSON
+    # @return [Hash, nil] Returns Hash object if the json parse succeeds or nil otherwise
+    def parse_json(res)
+      return if res.blank?
+      JSON.parse(res)
+    rescue JSON::ParserError
+      nil
+    end
 
     def msg_for_stdin?(message)
       message['action'] == 'stdin'

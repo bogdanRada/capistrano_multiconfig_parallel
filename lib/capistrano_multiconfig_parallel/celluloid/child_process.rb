@@ -96,6 +96,9 @@ module CapistranoMulticonfigParallel
     end
 
     def on_read_stdout(data)
+      # @show_bundler = true if !@show_bundler && data.include?("Resolving dependencies")
+      # @show_bundler = false if data.to_s.include?()
+      # @actor.async.update_machine_state(truncate(data, 40)) if data.strip.present? && data.strip != '.' && @show_bundler
       io_callback('stdout', data)
     end
 

@@ -19,8 +19,8 @@ require 'terminal-table'
 require 'configliere'
 require 'devnull'
 require 'inquirer'
-require 'rack'
 require 'rake'
+require "capistrano_sentinel"
 
 require 'etc'
 require 'logger'
@@ -29,18 +29,15 @@ require 'pp'
 require 'yaml'
 require 'stringio'
 require 'io/console'
+require 'shellwords'
 
 # fix error with not files that can not be found
  Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 
-%w(helpers classes celluloid core_ext).each do |folder_name|
+%w(helpers classes celluloid patches).each do |folder_name|
   Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
 end
 
 %w(version base application).each do |filename|
   Gem.find_files("capistrano_multiconfig_parallel/#{filename}.rb").each { |path| require path }
-end
-
-%w(initializers).each do |folder_name|
-  Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
 end

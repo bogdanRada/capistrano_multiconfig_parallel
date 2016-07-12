@@ -17,35 +17,46 @@ IMPORTANT! The whole reason for this gem was for using [Caphub](https://github.c
 
 CAUTION!! PLEASE READ CAREFULLY!! Capistrano is not thread-safe. However in order to work around this problem, each of the task is executing inside a thread that spawns a new process in order to run capistrano tasks The thread monitors the process. This works well, however if the tasks you are executing is working with files, you might get into deadlocks because multiple proceses try to access same resource. Instead of using files , please consider using StringIO instead.
 
-NEW Improvements in version 2.0.0.alpha
----------------------------------------
+NEW improvements in version 2.0.0.alpha
 
--	Code for handling websocket events when a task is invoked was moved to a new gem [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel)
--	You can now deploy applications from anywhere on your computer without having to add this gem to the Gemfile, however you need to add the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem to your Gemfile, if you want to use this . -
--	If you don't add it though, the application will automatically create a new file "Gemfile.multi_cap" where the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem will be included and will use that Gemfile when doing deploys.
--	The Capfile file will also be automatically changed to require [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) if you haven't done so yet.
--	The changes to Capfile will be automatically reverted when the command finishes ( with success or error ) if the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem is not part of your Gemfile
--	If you are using RVM and there is a .rvmrc file in your project root directory and bash is available , the script will use bash emulator in order to properly load RVM gemsets because .rvmrc files need trusting
+-	Code for handling capistrano requests was moved to a new gem [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel]
 
-If you are using a older version than 2.0 please refer to [README](https://github.com/bogdanRada/capistrano_multiconfig_parallel/blob/master/V1_README.md)
-==========================================================================================================================================================
+NEW Improvements in version 1.2.0
+---------------------------------
+
+-	support for Celluloid 0.17 was added
+
+NEW Improvements in version 1.1.0
+---------------------------------
+
+-	a lot of refactoring and bug fixes
+-	added posibility to run the deployments from a single directory and is described at section **[2.2) Deploying multiple applications from a central location](#22-deploying-multiple-applications-from-a-central-location)**
+
+NEW Improvements in version 1.0.5
+---------------------------------
+
+-	added support for Capistrano version 2 (Capistrano 3 was already supported)
+-	a lot of refactoring and bug fixes
+-	removed BRANCH variable ( this needs to be passed when asked for additional env options for each job!!!) ( for Capistrano 2 should be **-S branch=branch_name**, for Capistrano 3 should be **BRANCH=branch_name**, or could be something else depending on your configuration).
 
 Requirements
 ------------
 
-1.	[celluloid >= 0.16](https://github.com/celluloid/celluloid)
+1.	[ActiveSuport >= 4.2.0](https://rubygems.org/gems/activesupport)
 2.	[celluloid-pmap >= 0.2.2](https://github.com/jwo/celluloid-pmap)
-3.	[celluloid_pubsub >= 0.8.3](https://github.com/bogdanRada/celluloid_pubsub)
-4.	[composable_state_machine >= 1.0.2](https://github.com/swoop-inc/composable_state_machine)
-5.	[terminal-table >= 1.5.2](https://github.com/tj/terminal-table)
-6.	[colorize >= 0.7](https://github.com/fazibear/colorize)
-7.	[eventmachine >= 1.0.3](https://github.com/eventmachine/eventmachine)
-8.	[right_popen >= 1.1.3](https://github.com/rightscale/right_popen)
-9.	[ActiveSuport >= 4.2.0](https://rubygems.org/gems/activesupport)
-10.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
-11.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
-12.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
-13.	[capistrano_sentinel >= 1.6](http://github.com/boigdanRada/capistrano_sentinel)
+3.	[celluloid_pubsub >= 0.1.0](https://github.com/bogdanRada/celluloid_pubsub)
+4.	[celluloid-websocket-client >= 0.0.1](https://github.com/jeremyd/celluloid-websocket-client)
+5.	[composable_state_machine >= 1.0.2](https://github.com/swoop-inc/composable_state_machine)
+6.	[terminal-table >= 1.5.2](https://github.com/tj/terminal-table)
+7.	[colorize >= 0.7](https://github.com/fazibear/colorize)
+8.	[eventmachine >= 1.0.3](https://github.com/eventmachine/eventmachine)
+9.	[right_popen >= 1.1.3](https://github.com/rightscale/right_popen)
+10.	[capistrano >= 2.0](https://github.com/capistrano/capistrano/)
+11.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
+12.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
+13.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
+14.	[rack >= 1.6](http://rack.github.io/)
+15.	[rake >= 10.4](https://github.com/ruby/rake)
 
 Compatibility
 -------------
@@ -62,19 +73,13 @@ Installation Instructions
 Add the following to your Gemfile after requiring **capistrano** and **capistrano-multiconfig**:
 
 ```ruby
-  gem "capistrano_sentinel"
+  gem "capistrano_multiconfig_parallel"
 ```
 
 Add the following to your Capfile after requiring **capistrano** and **capistrano-multiconfig**
 
 ```ruby
-  require 'capistrano_sentinel'
-```
-
-Install locally on your system the capistrano_multiconfig_parallel gem using this command :
-
-```ruby
-  gem install capistrano_multiconfig_parallel -v 2.0.0.alpha
+  require 'capistrano_multiconfig_parallel'
 ```
 
 Please read [Release Details](https://github.com/bogdanRada/capistrano_multiconfig_parallel/releases) if you are upgrading. We break backward compatibility between large ticks but you can expect it to be specified at release notes.
@@ -260,7 +265,7 @@ If you use **capistrano-gitflow**, the workers will first deploy to all the othe
 
 This works like described in section **[2) Multiple applications](#2-multiple-apps--like-caphub-)** ), but now the **application_dependencies** Array can also have a **path** key inside each item that should point to the DocumentRoot of that application, and the configuration now accepts two new arguments **config_dir** ( this should point to the directory where the file **multi_cap.yml** resides) and **log_dir**( this can be used if you want your logs created in different directory)
 
-This will only work if all applications listed in the configuration file have the gem **capistrano_sentinel** as part of their Gemfile.
+This will only work if all applications listed in the configuration file have the gem **capistrano_multiconfig_parallel** as part of their Gemfile.
 
 Example of configuration: - create a directory anywhere (e.g.**mkdir /tmp/app**\) - create a Gemfile and add only this two lines:
 
@@ -309,7 +314,6 @@ Known Limitations
 -----------------
 
 -	Currently it works only if Celluloid.cores >= 2
--	RVM users that use .rvmrc files need to have bash terminal emulator available
 
 Testing
 -------

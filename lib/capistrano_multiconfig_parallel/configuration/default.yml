@@ -17,7 +17,7 @@ default_config:
     type: 'boolean'
     description: >-
       Enables debugging of websocket communication between the workers
-    default: 'false'
+    default: 'true'
     required: false
 
   - name: 'websocket_server.adapter'

@@ -20,10 +20,10 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::BaseActorHelper
     class TaskFailed < StandardError; end
 
-    attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :client, :task_argv,
-                  :rake_tasks, :current_task_number, # tracking tasks
-                  :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-                  :job_termination_condition, :worker_state, :invocation_chain, :filename, :worker_log, :exit_status
+    attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :socket_connection, :task_argv,
+    :rake_tasks, :current_task_number, # tracking tasks
+    :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
+    :job_termination_condition, :worker_state, :invocation_chain, :filename, :worker_log, :exit_status
 
     def initialize(*args)
     end
@@ -35,11 +35,12 @@ module CapistranoMulticonfigParallel
       @manager = manager
       @job_confirmation_conditions = []
       log_to_file("worker #{@job_id} received #{job.inspect}")
-      @subscription_channel = "worker_#{@job_id}"
+      @subscription_channel = "#{CapistranoSentinel::RequestHooks::PUBLISHER_PREFIX}#{@job_id}"
       @machine = CapistranoMulticonfigParallel::StateMachine.new(@job, Actor.current)
       @manager.setup_worker_conditions(@job)
       manager.register_worker_for_job(job, Actor.current)
     end
+
 
     def worker_state
       if Actor.current.alive?
@@ -51,21 +52,18 @@ module CapistranoMulticonfigParallel
     end
 
     def start_task
-      log_to_file("exec worker #{@job_id} starts task")
-      @client = CelluloidPubsub::Client.new(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel, log_file_path: websocket_config.fetch('log_file_path', nil))
+      log_to_file("exec worker #{@job_id} starts task and subscribes to #{@subscription_channel}")
+      @socket_connection = CelluloidPubsub::Client.new(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel, log_file_path: websocket_config.fetch('log_file_path', nil))
     end
 
     def publish_rake_event(data)
-      @client.publish(rake_actor_id(data), data)
-    end
-
-    def rake_actor_id(_data)
-      "rake_worker_#{@job_id}"
+      log_to_file("worker #{@job_id} rties to publish into channel #{CapistranoSentinel::RequestHooks::SUBSCRIPTION_PREFIX}#{@job_id} data #{data.inspect}")
+      @socket_connection.publish("#{CapistranoSentinel::RequestHooks::SUBSCRIPTION_PREFIX}#{@job_id}", data)
     end
 
     def on_message(message)
       log_to_file("worker #{@job_id} received:  #{message.inspect}")
-      if @client.succesfull_subscription?(message)
+      if @socket_connection.succesfull_subscription?(message)
         @successfull_subscription = true
         execute_after_succesfull_subscription
       else
@@ -89,7 +87,8 @@ module CapistranoMulticonfigParallel
     def execute_deploy
       log_to_file("invocation chain #{@job_id} is : #{@rake_tasks.inspect}")
       check_child_proces
-      command = job.command.to_s
+      job.command.prepare_application_for_deployment
+      command = job.command.fetch_deploy_command
       log_to_file("worker #{@job_id} executes: #{command}")
       @child_process.async.work(@job, command, actor: Actor.current, silent: true)
     end
@@ -98,7 +97,7 @@ module CapistranoMulticonfigParallel
       @child_process = CapistranoMulticonfigParallel::ChildProcess.new
       Actor.current.link @child_process
       @child_process
-    end
+     end
 
     def on_close(code, reason)
       log_to_file("worker #{@job_id} websocket connection closed: #{code.inspect}, #{reason.inspect}")
@@ -119,10 +118,19 @@ module CapistranoMulticonfigParallel
       elsif message_is_for_stdout?(message)
         result = Celluloid::Actor[:terminal_server].show_confirmation(message['question'], message['default'])
         publish_rake_event(message.merge('action' => 'stdin', 'result' => result, 'client_action' => 'stdin'))
+    elsif message_from_bundler?(message)
+
+        #gem_messsage = job.gem_specs.find{|spec| message['task'].include?(spec.name) }
+        # if gem_messsage.present?
+        #     async.update_machine_state("insta")
+        # else
+          async.update_machine_state(message['task'])
+        #end
       else
-        log_to_file(message, @job_id)
+        log_to_file(message, job_id: @job_id)
       end
     end
+
 
     def executed_task?(task)
       rake_tasks.present? && rake_tasks.index(task.to_s).present?
@@ -130,7 +138,9 @@ module CapistranoMulticonfigParallel
 
     def task_approval(message)
       job_conditions = @manager.job_to_condition[@job_id]
+      log_to_file("worker #{@job_id} checks if task : #{message['task'].inspect} is included in #{configuration.task_confirmations.inspect}")
       if job_conditions.present? && configuration.task_confirmations.include?(message['task']) && message['action'] == 'invoke'
+        log_to_file("worker #{@job_id} signals approval for task : #{message['task'].inspect}")
         task_confirmation = job_conditions[message['task']]
         task_confirmation[:status] = 'confirmed'
         task_confirmation[:condition].signal(message['task'])

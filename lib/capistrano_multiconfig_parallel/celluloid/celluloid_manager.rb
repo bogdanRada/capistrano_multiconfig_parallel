@@ -6,7 +6,7 @@ module CapistranoMulticonfigParallel
   # manager class that handles workers
   class CelluloidManager
     include CapistranoMulticonfigParallel::BaseActorHelper
-    attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated, :stderr_buffer
+   attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated, :stderr_buffer
 
     attr_reader :worker_supervisor, :workers
     trap_exit :worker_died
@@ -26,10 +26,10 @@ module CapistranoMulticonfigParallel
       Actor.current.link @workers
       setup_actor_supervision(@worker_supervisor, actor_name: :terminal_server, type: CapistranoMulticonfigParallel::TerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
       setup_actor_supervision(@worker_supervisor, actor_name: :web_server, type: CapistranoMulticonfigParallel::WebServer, args: websocket_config)
-
       # Get a handle on the PoolManager
       # http://rubydoc.info/gems/celluloid/Celluloid/PoolManager
       # @workers = workers_pool.actor
+
       @stderr_buffer = StringIO.new
       @conditions = []
       @jobs = {}
@@ -221,6 +221,7 @@ module CapistranoMulticonfigParallel
     def worker_died(worker, reason)
       job = @worker_to_job[worker.mailbox.address]
       return true if job.blank? || job.rolling_back? || job.action != 'deploy'
+      job.rollback_changes_to_application
       mailbox = worker.mailbox
       @worker_to_job.delete(mailbox.address)
       log_to_file("RESTARTING: worker job #{job.inspect} with mailbox #{mailbox.inspect} and #{mailbox.address.inspect} died  for reason:  #{reason}")

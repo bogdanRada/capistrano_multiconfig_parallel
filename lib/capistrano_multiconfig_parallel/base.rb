@@ -1,6 +1,5 @@
 # base module that has the statis methods that this gem is using
 module CapistranoMulticonfigParallel
-  ENV_KEY_JOB_ID = 'multi_cap_job_id'
   GITFLOW_TAG_STAGING_TASK = 'gitflow:tag_staging'
   GITFLOW_CALCULATE_TAG_TASK = 'gitflow:calculate_tag'
   GITFLOW_VERIFY_UPTODATE_TASK = 'gitflow:verify_up_to_date'
@@ -13,6 +12,10 @@ module CapistranoMulticonfigParallel
     def configuration
       @config ||= fetch_configuration
       @config
+    end
+
+    def env_job_key_id
+      CapistranoSentinel::RequestHooks::ENV_KEY_JOB_ID
     end
 
     def configuration_flags
@@ -29,21 +32,18 @@ module CapistranoMulticonfigParallel
       set_celluloid_exception_handling
     end
 
-    def job_id
-      original_args_hash.fetch(CapistranoMulticonfigParallel::ENV_KEY_JOB_ID, nil)
-    end
-
     def original_args_hash
       multi_fetch_argv((original_args || ARGV).dup)
     end
 
-    def capistrano_version
-      find_loaded_gem_property('capistrano', 'version')
-    end
+    # def capistrano_version
+    #   find_loaded_gem_property('capistrano', 'version')
+    # end
+    #
+    # def capistrano_version_2?
+    #   capistrano_version.blank? ? false : verify_gem_version(capistrano_version, '3.0', operator: '<')
+    # end
 
-    def capistrano_version_2?
-      capistrano_version.blank? ? false : verify_gem_version(capistrano_version, '3.0', operator: '<')
-    end
 
   private
 

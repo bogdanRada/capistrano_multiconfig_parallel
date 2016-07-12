@@ -12,7 +12,9 @@ module CapistranoMulticonfigParallel
              :capistrano_action,
              :execute_standard_deploy,
              :setup_command_line,
+             :job_capistrano_version,
              :gem_specs,
+             :rollback_changes_to_application,
              to: :command
 
     delegate :stderr_buffer,
@@ -25,6 +27,7 @@ module CapistranoMulticonfigParallel
       @gitflow ||= command.gitflow_enabled?
     end
 
+
     def save_stderr_error(data)
       return unless development_debug?
       return unless @manager.alive?
@@ -35,7 +38,7 @@ module CapistranoMulticonfigParallel
     end
 
     def env_variable
-      CapistranoMulticonfigParallel::ENV_KEY_JOB_ID
+      CapistranoMulticonfigParallel.env_job_key_id
     end
 
     def command
@@ -90,10 +93,16 @@ module CapistranoMulticonfigParallel
     ].each do |hash|
       define_method hash[:name] do
         value = @options.fetch(hash[:name], hash[:default])
-        value["#{env_variable}"] = id if hash[:name] == 'env_options'
+        setup_additional_env_variables(value) if hash[:name] == 'env_options'
         value = verify_empty_options(value)
         instance_variable_set("@#{hash[:name]}", instance_variable_get("@#{hash[:name]}") || value)
       end
+    end
+
+
+    def setup_additional_env_variables(value)
+      value["#{env_variable}"] = id
+      value["capistrano_version"] = job_capistrano_version
     end
 
     def finished?
