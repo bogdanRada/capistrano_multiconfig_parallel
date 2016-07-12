@@ -25,6 +25,7 @@ module CapistranoMulticonfigParallel
       @actor = @options.fetch(:actor, nil)
       @job_id = @job.id
       @exit_status = nil
+      @show_bundler = true
     end
 
     def setup_em_error_handler
@@ -96,9 +97,8 @@ module CapistranoMulticonfigParallel
     end
 
     def on_read_stdout(data)
-      # @show_bundler = true if !@show_bundler && data.include?("Resolving dependencies")
-      # @show_bundler = false if data.to_s.include?()
-      # @actor.async.update_machine_state(truncate(data, 40)) if data.strip.present? && data.strip != '.' && @show_bundler
+      @show_bundler = false if  data.to_s.include?("The Gemfile's dependencies are satisfied") || data.to_s.include?("Bundle complete")
+      @actor.async.update_machine_state(truncate(data, 40), :bundler => true) if @show_bundler == true && data.strip.present? && data.strip != '.'
       io_callback('stdout', data)
     end
 

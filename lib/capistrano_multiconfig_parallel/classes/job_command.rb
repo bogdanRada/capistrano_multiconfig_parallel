@@ -62,6 +62,10 @@ module CapistranoMulticonfigParallel
       gitflow_version.present? ? true : false
     end
 
+    def job_stage_for_terminal
+      app.present? ? "#{app}:#{stage}" : "#{stage}"
+    end
+
     def job_stage
       multi_apps?(job_path) && app.present? ? "#{app}:#{stage}" : "#{stage}"
     end
@@ -162,7 +166,7 @@ module CapistranoMulticonfigParallel
     def fetch_deploy_command
       #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
       environment_options = setup_command_line.join(' ')
-      command = "#{check_rvm_loaded} && if [ `which bundler |wc -l` = 0 ]; then gem install bundler;fi && (#{bundle_gemfile_env(job_gemfile_multi)} bundle install || #{bundle_gemfile_env(job_gemfile_multi)} bundle install ) && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      command = "#{check_rvm_loaded} && if [ `which bundler |wc -l` = 0 ]; then gem install bundler;fi && (#{bundle_gemfile_env(job_gemfile_multi)} bundle check || #{bundle_gemfile_env(job_gemfile_multi)} bundle install ) && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
       command = "bash --login -c '#{command}'"  if rvm_enabled_for_job?
       command = command.inspect

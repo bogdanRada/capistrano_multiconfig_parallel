@@ -11,15 +11,19 @@ module CapistranoMulticonfigParallel
       machine
     end
 
-    def go_to_transition(action)
+    def go_to_transition(action, options = {})
       transitions.on(action, state.to_s => action)
       @job.status = action
-      machine.trigger(action)
+      if options[:bundler]
+        actor_notify_state_change(state, "preparing_app_bundle_install", action)
+      else
+        machine.trigger(action)
+      end
     end
 
     def machine
       @machine ||= ComposableStateMachine::MachineWithExternalState.new(
-        model, method(:state), method(:state=), state: @initial_state.to_s, callback_runner: self)
+      model, method(:state), method(:state=), state: @initial_state.to_s, callback_runner: self)
       @machine
     end
 
@@ -30,23 +34,24 @@ module CapistranoMulticonfigParallel
 
     def model
       ComposableStateMachine.model(
-        transitions: transitions,
-        behaviors: {
-          enter: {
-            any: proc do |current_state, event, new_state|
-              actor_notify_state_change(current_state, event, new_state)
-            end
-          }
-        },
-        initial_state: @initial_state
+      transitions: transitions,
+      behaviors: {
+        enter: {
+          any: proc do |current_state, event, new_state|
+            actor_notify_state_change(current_state, event, new_state)
+          end
+        }
+      },
+      initial_state: @initial_state
       )
     end
 
-  private
+    private
 
     def actor_notify_state_change(current_state, event, new_state)
       return unless @actor.alive?
-      @actor.send_msg(CapistranoMulticonfigParallel::TerminalTable.topic, type: 'event', new_state: new_state, message: "Going from #{current_state} to #{new_state}  due to a #{event} event")
+      @actor.log_to_file("statemachine #{@job.id} triest to transition from #{@current_state} to  #{new_state} for event #{event}")
+      @actor.async.send_msg(CapistranoMulticonfigParallel::TerminalTable.topic, type: 'event', new_state: new_state , current_state: current_state, event: event, message: "Going from #{current_state} to #{new_state}  due to a #{event} event")
     end
   end
 end

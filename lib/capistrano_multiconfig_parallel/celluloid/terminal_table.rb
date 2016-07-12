@@ -28,6 +28,7 @@ module CapistranoMulticonfigParallel
       @screen_erased = false
       async.run
     rescue => ex
+      puts ex.inspect
       rescue_exception(ex)
     end
 
@@ -39,10 +40,10 @@ module CapistranoMulticonfigParallel
       subscribe(CapistranoMulticonfigParallel::TerminalTable.topic, :notify_time_change)
     end
 
-    def notify_time_change(_channel, _message)
+    def notify_time_change(_channel, message)
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_heaadings)
-      jobs = setup_table_jobs(table)
-      display_table_on_terminal(table, jobs)
+      jobs = setup_table_jobs(table, message)
+      display_table_on_terminal(table, jobs, message)
     end
 
     def rescue_exception(ex)
@@ -51,13 +52,13 @@ module CapistranoMulticonfigParallel
       terminate
     end
 
-    def fetch_table_size(jobs)
-      job_rows = jobs.sum { |_job_id, job| job.row_size }
+    def fetch_table_size(jobs, message)
+      job_rows = jobs.sum { |_job_id, job| job.row_size(message) }
       (job_rows + 2)**2
     end
 
-    def display_table_on_terminal(table, jobs)
-      table_size = fetch_table_size(jobs)
+    def display_table_on_terminal(table, jobs, message)
+      table_size = fetch_table_size(jobs, message)
       @position, @terminal_rows, @screen_erased = @cursor.display_on_screen(
         "#{table}",
         @options.merge(
@@ -74,10 +75,10 @@ module CapistranoMulticonfigParallel
       puts(@errors.join("\n")) if @errors.present? && @options.fetch('clear_screen', false).to_s == 'false' && development_debug?
     end
 
-    def setup_table_jobs(table)
+    def setup_table_jobs(table, message)
       jobs = managers_alive? ? @manager.jobs.dup : []
       jobs.each do |job_id, job|
-        table.add_row(job.terminal_row)
+        table.add_row(job.terminal_row(message))
         table.add_separator if jobs.keys.last != job_id
       end
       jobs

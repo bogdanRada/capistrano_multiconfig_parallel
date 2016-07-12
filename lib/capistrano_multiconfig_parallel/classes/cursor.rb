@@ -6,8 +6,12 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     def display_on_screen(string, options = {})
-      options = options.is_a?(Hash) ? options.stringify_keys : {}
-      handle_string_display(string, options)
+      begin
+        options = options.is_a?(Hash) ? options.stringify_keys : {}
+        handle_string_display(string, options)
+      rescue => ex
+        rescue_error(ex, 'stderr')
+      end
     end
 
     private

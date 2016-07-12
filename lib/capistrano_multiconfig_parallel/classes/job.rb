@@ -9,16 +9,17 @@ module CapistranoMulticonfigParallel
     attr_writer :status, :exit_status
 
     delegate :job_stage,
-             :capistrano_action,
-             :execute_standard_deploy,
-             :setup_command_line,
-             :job_capistrano_version,
-             :gem_specs,
-             :rollback_changes_to_application,
-             to: :command
+    :capistrano_action,
+    :execute_standard_deploy,
+    :setup_command_line,
+    :job_capistrano_version,
+    :gem_specs,
+    :job_stage_for_terminal,
+    :rollback_changes_to_application,
+    to: :command
 
     delegate :stderr_buffer,
-             to: :manager
+    to: :manager
 
     def initialize(application, options)
       @options = options.stringify_keys
@@ -49,18 +50,34 @@ module CapistranoMulticonfigParallel
       setup_command_line(filtered_keys: [env_variable])
     end
 
-    def terminal_row
+    def terminal_row(message)
+      message = message.is_a?(Hash) ? message.symbolize_keys : {}
+      if message[:event] == "preparing_app_bundle_install"
+        bundler_terminal_row
+      else
+        [
+          { value: id.to_s },
+          { value: wrap_string(job_stage_for_terminal) },
+          { value: wrap_string(capistrano_action) },
+          { value: terminal_env_variables.map { |str| wrap_string(str) }.join("\n") },
+          { value: wrap_string(worker_state) }
+        ]
+      end
+    end
+
+
+    def bundler_terminal_row
       [
         { value: id.to_s },
-        { value: wrap_string(job_stage) },
-        { value: wrap_string(capistrano_action) },
+        { value: wrap_string(job_stage_for_terminal) },
+        { value: "Preparing app..DOING BUNDLE INSTALL" },
         { value: terminal_env_variables.map { |str| wrap_string(str) }.join("\n") },
-        { value: wrap_string(worker_state) }
+        { value: wrap_string(status.to_s.green) }
       ]
     end
 
-    def row_size
-      longest_hash = terminal_row.max_by do |hash|
+    def row_size(message)
+      longest_hash = terminal_row(message).max_by do |hash|
         hash[:value].size
       end
       (longest_hash[:value].size.to_f / 80.0).ceil

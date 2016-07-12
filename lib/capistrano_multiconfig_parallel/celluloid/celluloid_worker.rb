@@ -155,15 +155,17 @@ module CapistranoMulticonfigParallel
       invocation_chain << message['task'] if invocation_chain.last != message['task']
     end
 
-    def update_machine_state(name)
-      log_to_file("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}")
-      @machine.go_to_transition(name.to_s)
+    def update_machine_state(name, options = {})
+      log_to_file("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}") unless options[:bundler]
+      @machine.go_to_transition(name.to_s, options)
       error_message = "worker #{@job_id} task #{name} failed "
       raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message) if job.failed? # force worker to rollback
     end
 
     def send_msg(channel, message = nil)
-      publish channel, message.present? && message.is_a?(Hash) ? { job_id: @job_id }.merge(message) : { job_id: @job_id, time: Time.now }
+      message = message.present? && message.is_a?(Hash) ? { job_id: @job_id }.merge(message) : { job_id: @job_id, message: message }
+      log_to_file("worker #{@job_id} triest to send to #{channel} #{message}")
+      publish channel, message
     end
 
     def finish_worker(exit_status)
