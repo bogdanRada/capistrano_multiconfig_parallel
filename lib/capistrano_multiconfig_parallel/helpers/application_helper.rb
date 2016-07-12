@@ -15,13 +15,27 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::CapistranoHelper
 
     delegate :logger,
-             :configuration,
-             :configuration_valid?,
-             :original_args,
-             to: :CapistranoMulticonfigParallel
+    :configuration,
+    :configuration_valid?,
+    :original_args,
+    to: :CapistranoMulticonfigParallel
 
 
     module_function
+
+    def truncate(string, truncate_at, options = {})
+      return string.dup unless string.length > truncate_at
+
+      options[:omission] ||= '...'
+      length_with_room_for_omission = truncate_at - options[:omission].length
+      stop =        if options[:separator]
+        string.rindex(options[:separator], length_with_room_for_omission) || length_with_room_for_omission
+      else
+        length_with_room_for_omission
+      end
+
+      "#{string[0...stop]}#{options[:omission]}"
+    end
 
     # Method that is used to parse a string as JSON , if it fails will return nil
     # @see JSON#parse

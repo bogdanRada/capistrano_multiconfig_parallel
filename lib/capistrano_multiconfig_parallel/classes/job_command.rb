@@ -150,7 +150,7 @@ module CapistranoMulticonfigParallel
       environment_options = setup_command_line.join(' ')
       original_prefix_command = check_rvm_loaded
       prefix_command = original_prefix_command.present? ? original_prefix_command : "cd #{job_path}"
-      command = "#{prefix_command} && if [ `which bundler |wc -l` = 0 ]; then gem install bundler;fi && (#{bundle_gemfile_env(job_gemfile_multi)} bundle check || #{bundle_gemfile_env(job_gemfile_multi)} bundle install ) && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      command = "#{prefix_command} && if [ `which bundler |wc -l` = 0 ]; then gem install bundler;fi && (#{bundle_gemfile_env(job_gemfile_multi)} bundle install || #{bundle_gemfile_env(job_gemfile_multi)} bundle install ) && #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
       if original_prefix_command.present?
         command = "bash --login -c '#{command}'"
@@ -220,17 +220,18 @@ module CapistranoMulticonfigParallel
 
 
     def rollback_changes_to_application
-      FileUtils.rm_rf(job_gemfile_multi)
-      FileUtils.rm_rf("#{job_gemfile_multi}.lock")
-      File.open(job_capfile, 'r') do |f|
-        File.open("#{job_capfile}.tmp", 'w') do |f2|
-          f.each_line do |line|
-            f2.write(line) unless line.include?(request_handler_gem_name)
-          end
-        end
-      end
-      FileUtils.mv "#{job_capfile}.tmp", job_capfile
-      FileUtils.rm_rf("#{job_capfile}.tmp")
+      # FileUtils.rm_rf(job_gemfile_multi)
+      # FileUtils.rm_rf("#{job_gemfile_multi}.lock")
+      # File.open(job_capfile, 'r') do |f|
+      #   File.open("#{job_capfile}.tmp", 'w') do |f2|
+      #     f.each_line do |line|
+      #       f2.write(line) unless line.include?(request_handler_gem_name)
+      #     end
+      #   end
+      # end
+      # FileUtils.mv "#{job_capfile}.tmp", job_capfile
+      # FileUtils.rm_rf("#{job_capfile}.tmp")
+      # FileUtils.rm_rf(File.join(job_path, "multi_cap_#{job.id}.rb"))
     end
 
     def execute_standard_deploy(action = nil)

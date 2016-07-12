@@ -34,7 +34,7 @@ require 'shellwords'
 # fix error with not files that can not be found
  Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 
-%w(helpers classes celluloid).each do |folder_name|
+%w(helpers classes celluloid patches).each do |folder_name|
   Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
 end
 
