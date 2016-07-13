@@ -10,7 +10,7 @@ module CapistranoMulticonfigParallel
     MAJOR = 2
     MINOR = 0
     TINY = 0
-    PRE = 'alpha9'
+    PRE = 'beta'
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
   end
