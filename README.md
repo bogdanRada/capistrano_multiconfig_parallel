@@ -26,6 +26,7 @@ NEW Improvements in version 2.0.0.alpha
 -	The Capfile file will also be automatically changed to require [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) if you haven't done so yet.
 -	The changes to Capfile will be automatically reverted when the command finishes ( with success or error ) if the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem is not part of your Gemfile
 -	If you are using RVM and there is a .rvmrc file in your project root directory and bash is available , the script will use bash emulator in order to properly load RVM gemsets because .rvmrc files need trusting
+-	**Dont use BUNDLE EXEC command when running the executable for this gem unless you are using version 1 or this gem is part of the Gemfile of the application you are using. Otherwise just use the ```multicap``` executable without any prefix**
 
 If you are using a older version than 2.0 please refer to [README](https://github.com/bogdanRada/capistrano_multiconfig_parallel/blob/master/V1_README.md)
 ==========================================================================================================================================================
@@ -183,7 +184,7 @@ development_stages:
 #<development_stage> - the name of one of the stages you previously configured
 #<task_name> - the capistrano task that you want to execute ( example: 'deploy' )
 
-bundle exec multi_cap  <development_stage> <task_name>   BOX=<box_name>,<box_name>  
+multi_cap  <development_stage> <task_name>   BOX=<box_name>,<box_name>  
 
 ```
 
@@ -195,7 +196,7 @@ The script will ask if there are any other environment variables that user might
 
 ```shell
 
-bundle exec multi_cap deploy_multi_stages  STAGES=development, staging, production
+ multi_cap deploy_multi_stages  STAGES=development, staging, production
 ```
 
 NOTE: IF you want to execute a different command on all stages, you can specify environment variable **ACTION=task_name** either when you specify the STAGES, or can be done individually for each task when prompted about additional ENV options
@@ -234,7 +235,7 @@ The dependencies are being kept in the option "application_dependencies" This is
 In this example, if we execute this command:
 
 ```ruby
-bundle exec multi_cap foo2:development deploy
+ multi_cap foo2:development deploy
 ```
 
 Will ask user if he wants to deploy the apps "foo" and "bar" , since they appear in the dependencies list for the application "foo2"
@@ -243,7 +244,7 @@ Will ask user if he wants to deploy the apps "foo" and "bar" , since they appear
 
 ```shell
 
-bundle exec multi_cap deploy_multi_stages  STAGES=development, staging, production
+ multi_cap deploy_multi_stages  STAGES=development, staging, production
 ```
 
 Demo:
