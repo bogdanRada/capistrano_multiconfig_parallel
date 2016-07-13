@@ -29,7 +29,7 @@ NEW Improvements started in version 2.0.0.alpha ( currently gem is in beta versi
 -	If you are using RVM and there is a .rvmrc file in your project root directory and bash is available , the script will use bash emulator in order to properly load RVM gemsets because .rvmrc files need trusting
 -	**Dont use BUNDLE EXEC command when running the executable for this gem unless you are using version 1 or this gem is part of the Gemfile of the application you are using. Otherwise just use the ```multi_cap``` executable without any prefix**
 
-If you are using a older version than 2.0 please refer to this  [README for version 1 or lower](https://github.com/bogdanRada/capistrano_multiconfig_parallel/blob/master/V1_README.md)
+If you are using a older version than 2.0 please refer to this  [README for version 1.7.2 or lower](https://github.com/bogdanRada/capistrano_multiconfig_parallel/blob/master/V1_README.md)
 ==========================================================================================================================================================
 
 Requirements
