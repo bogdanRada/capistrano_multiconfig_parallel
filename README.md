@@ -21,9 +21,10 @@ NEW Improvements started in version 2.0.0.alpha ( currently gem is in beta versi
 ---------------------------------------
 
 -	Code for handling websocket events when a task is invoked was moved to a new gem [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel)
--	You can now deploy applications from anywhere on your computer without having to add this gem to the Gemfile, however you need to add the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem to your Gemfile, if you want to use this . -
--	If you don't add it though, the application will automatically create a new file "Gemfile.multi_cap" where the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem will be included and will use that Gemfile when doing deploys.
--	The Capfile file will also be automatically changed to require [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) if you haven't done so yet.
+-	You can now deploy applications from anywhere on your computer without having to add this gem to the Gemfile, however you need to add the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem to your Gemfile, if you want to use this .
+-	And only create anywhere on your computer a YAML file as described in section **[2.2) Deploying multiple applications from a central location](#22-deploying-multiple-applications-from-a-central-location)**
+-	If you don't add the **capistrano_sentinel** to each of your applications, the executable of this gem will automatically create a new file "Gemfile.multi_cap" in the root of each of the applications that you are deploying,  where the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem will be included and will use that Gemfile when doing deploys.
+-	The Capfile file of each of the applications that you are deploying  will also be automatically changed to require [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) if you haven't done so yet.
 -	The changes to Capfile will be automatically reverted when the command finishes ( with success or error ) if the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem is not part of your Gemfile
 -	If you are using RVM and there is a .rvmrc file in your project root directory and bash is available , the script will use bash emulator in order to properly load RVM gemsets because .rvmrc files need trusting
 -	**Dont use BUNDLE EXEC command when running the executable for this gem unless you are using version 1 or this gem is part of the Gemfile of the application you are using. Otherwise just use the ```multi_cap``` executable without any prefix**
