@@ -199,6 +199,7 @@ module CapistranoMulticonfigParallel
 
     def check_handler_available
       #  '#{find_loaded_gem_property(request_handler_gem_name)}'
+      #  path: '/home/raul/workspace/github/capistrano_sentinel'
       FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
       FileUtils.touch(job_gemfile_multi)
       if request_handler_gem_available?
@@ -207,7 +208,7 @@ module CapistranoMulticonfigParallel
         File.open(job_gemfile_multi, 'w') do |f|
           cmd=<<-CMD
           source "https://rubygems.org" do
-            gem "#{request_handler_gem_name}", path: '/home/raul/workspace/github/capistrano_sentinel'
+            gem "#{request_handler_gem_name}", '#{find_loaded_gem_property(request_handler_gem_name)}'
           end
           instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
           CMD
