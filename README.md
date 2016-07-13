@@ -17,7 +17,7 @@ IMPORTANT! The whole reason for this gem was for using [Caphub](https://github.c
 
 CAUTION!! PLEASE READ CAREFULLY!! Capistrano is not thread-safe. However in order to work around this problem, each of the task is executing inside a thread that spawns a new process in order to run capistrano tasks The thread monitors the process. This works well, however if the tasks you are executing is working with files, you might get into deadlocks because multiple proceses try to access same resource. Instead of using files , please consider using StringIO instead.
 
-NEW Improvements in version 2.0.0.alpha
+NEW Improvements started in version 2.0.0.alpha ( currently gem is in beta version)
 ---------------------------------------
 
 -	Code for handling websocket events when a task is invoked was moved to a new gem [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel)
@@ -75,7 +75,7 @@ Add the following to your Capfile after requiring **capistrano** and **capistran
 Install locally on your system the capistrano_multiconfig_parallel gem using this command :
 
 ```ruby
-  gem install capistrano_multiconfig_parallel -v 2.0.0.alpha
+  gem install capistrano_multiconfig_parallel -v 2.0.0.beta
 ```
 
 Please read [Release Details](https://github.com/bogdanRada/capistrano_multiconfig_parallel/releases) if you are upgrading. We break backward compatibility between large ticks but you can expect it to be specified at release notes.
