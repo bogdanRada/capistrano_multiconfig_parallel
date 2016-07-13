@@ -69,7 +69,7 @@ module CapistranoMulticonfigParallel
       [
         { value: id.to_s },
         { value: wrap_string(job_stage_for_terminal) },
-        { value: "Preparing app..DOING BUNDLE INSTALL" },
+        { value: "Preparing app...setting up gems" },
         { value: terminal_env_variables.map { |str| wrap_string(str) }.join("\n") },
         { value: wrap_string(status.to_s.green) }
       ]
