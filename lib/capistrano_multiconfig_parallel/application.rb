@@ -220,6 +220,10 @@ module CapistranoMulticonfigParallel
                                                                     path: options.fetch('path', nil)
 
       ))
+
+      unless job.capistrano_sentinel_needs_updating?
+         raise "Please consider upgrading the gem #{job.capistrano_sentinel_name} to version #{job.loaded_capistrano_sentinel_version} from #{job.job_capistrano_sentinel_version} in #{job.job_path} "
+      end
       @jobs << job unless job_can_tag_staging?(job)
     end
 

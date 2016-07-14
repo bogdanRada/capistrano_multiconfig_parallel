@@ -6,11 +6,12 @@ module CapistranoMulticonfigParallel
     include FileUtils
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :job, :job_capistrano_version, :legacy_capistrano, :tempfile
+    attr_reader :job, :job_capistrano_version, :legacy_capistrano, :tempfile, :job_final_gemfile
     delegate :id, :app, :stage, :action, :task_arguments, :env_options, :path, to: :job
 
     def initialize(job)
       @job = job
+      @job_final_gemfile = job_gemfile_multi
       @legacy_capistrano = legacy_capistrano? ? true : false
     end
 
@@ -53,13 +54,21 @@ module CapistranoMulticonfigParallel
       gitflow_version.present? ? true : false
     end
 
-    def request_handler_gem_name
+    def capistrano_sentinel_name
       "capistrano_sentinel"
     end
 
-    def request_handler_gem_available?
-      gitflow_version = job_gem_version(request_handler_gem_name)
+    def capistrano_sentinel_available?
+      gitflow_version = job_gem_version(capistrano_sentinel_name)
       gitflow_version.present? ? true : false
+    end
+
+    def loaded_capistrano_sentinel_version
+      find_loaded_gem_property(capistrano_sentinel_name)
+    end
+
+    def job_capistrano_sentinel_version
+      job_gem_version(capistrano_sentinel_name)
     end
 
     def job_stage_for_terminal
@@ -104,6 +113,15 @@ module CapistranoMulticonfigParallel
 
     def legacy_capistrano?
       verify_gem_version(job_capistrano_version, '3.0', operator: '<')
+    end
+
+    def capistrano_sentinel_needs_updating?
+      if capistrano_sentinel_available?
+        loaded_capistrano_sentinel_version == job_capistrano_sentinel_version
+      else
+        # the capistrano_sentinel is not part of the Gemfile so no need checking if needs updating
+        true
+      end
     end
 
     def job_path
@@ -158,7 +176,7 @@ module CapistranoMulticonfigParallel
     def fetch_deploy_command
       #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
       environment_options = setup_command_line.join(' ')
-      command = "#{check_rvm_loaded} && if [ `which bundler |wc -l` = 0 ]; then gem install bundler;fi && (#{bundle_gemfile_env(job_gemfile_multi)} bundle check || #{bundle_gemfile_env(job_gemfile_multi)} bundle install ) && WEBSOCKET_LOGGING=#{debug_websocket?} LOG_FILE=#{websocket_config.fetch('log_file_path', nil)} #{bundle_gemfile_env(job_gemfile_multi)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      command = "#{check_rvm_loaded} && if [ `which bundler |wc -l` = 0 ]; then gem install bundler;fi && (#{bundle_gemfile_env(@job_final_gemfile)} bundle check || #{bundle_gemfile_env(@job_final_gemfile)} bundle install ) && WEBSOCKET_LOGGING=#{debug_websocket?} LOG_FILE=#{websocket_config.fetch('log_file_path', nil)} #{bundle_gemfile_env(@job_final_gemfile)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
       command = "bash --login -c '#{command}'"  if rvm_enabled_for_job?
       command = command.inspect
@@ -193,22 +211,22 @@ module CapistranoMulticonfigParallel
     end
 
     def prepare_application_for_deployment
-      check_handler_available
+      check_capistrano_sentinel_availability
       prepare_capfile
     end
 
-    def check_handler_available
-      #  '#{find_loaded_gem_property(request_handler_gem_name)}'
+    def check_capistrano_sentinel_availability
+      #  '#{find_loaded_gem_property(capistrano_sentinel_name)}'
       #  path: '/home/raul/workspace/github/capistrano_sentinel'
       FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
       FileUtils.touch(job_gemfile_multi)
-      if request_handler_gem_available?
-        FileUtils.copy(File.join(job_path, 'Gemfile'), job_gemfile_multi)
+      if capistrano_sentinel_available? && capistrano_sentinel_needs_updating?
+        @job_final_gemfile = job_gemfile
       else
         File.open(job_gemfile_multi, 'w') do |f|
           cmd=<<-CMD
           source "https://rubygems.org" do
-            gem "#{request_handler_gem_name}", '#{find_loaded_gem_property(request_handler_gem_name)}'
+            gem "#{capistrano_sentinel_name}", '#{find_loaded_gem_property(capistrano_sentinel_name)}'
           end
           instance_eval(File.read(File.dirname(__FILE__) + "/Gemfile"))
           CMD
@@ -219,10 +237,10 @@ module CapistranoMulticonfigParallel
     end
 
     def prepare_capfile
-      return if File.foreach(job_capfile).grep(/#{request_handler_gem_name}/).any?
+      return if File.foreach(job_capfile).grep(/#{capistrano_sentinel_name}/).any?
       File.open(job_capfile, 'a+') do |f|
         cmd=<<-CMD
-        require "#{request_handler_gem_name}"
+        require "#{capistrano_sentinel_name}"
         CMD
         f.write(cmd)
       end
@@ -232,11 +250,11 @@ module CapistranoMulticonfigParallel
     def rollback_changes_to_application
       FileUtils.rm_rf(job_gemfile_multi)
       FileUtils.rm_rf("#{job_gemfile_multi}.lock")
-      unless request_handler_gem_available?
+      unless capistrano_sentinel_available?
         File.open(job_capfile, 'r') do |f|
           File.open("#{job_capfile}.tmp", 'w') do |f2|
             f.each_line do |line|
-              f2.write(line) unless line.include?(request_handler_gem_name)
+              f2.write(line) unless line.include?(capistrano_sentinel_name)
             end
           end
         end

@@ -8,16 +8,6 @@ module CapistranoMulticonfigParallel
     attr_reader :options, :application, :manager, :bundler_status
     attr_writer :status, :exit_status, :bundler_status
 
-    delegate :job_stage,
-    :capistrano_action,
-    :execute_standard_deploy,
-    :setup_command_line,
-    :job_capistrano_version,
-    :gem_specs,
-    :job_stage_for_terminal,
-    :rollback_changes_to_application,
-    to: :command
-
     delegate :stderr_buffer,
     to: :manager
 
@@ -164,5 +154,14 @@ module CapistranoMulticonfigParallel
       end
       hash
     end
+
+    def method_missing(sym, *args, &block)
+      command.public_send(sym, *args, &block)
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      command.public_methods.include?(method_name) || super
+    end
+
   end
 end
