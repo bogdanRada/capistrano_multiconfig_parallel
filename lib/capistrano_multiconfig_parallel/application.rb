@@ -217,10 +217,12 @@ module CapistranoMulticonfigParallel
       job = CapistranoMulticonfigParallel::Job.new(self, options.merge(
                                                                     action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
                                                                     env_options: job_env_options,
-                                                                    path: options.fetch('path', nil)
+                                                                    path:  job_path(options)
 
       ))
-
+      if job.find_capfile.blank?
+        raise "Please make sure you have a Capfile in the project root directory #{job.job_path}"
+      end
       unless job.capistrano_sentinel_needs_updating?
          raise "Please consider upgrading the gem #{job.capistrano_sentinel_name} to version #{job.loaded_capistrano_sentinel_version} from #{job.job_capistrano_sentinel_version} in #{job.job_path} "
       end

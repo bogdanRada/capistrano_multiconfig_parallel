@@ -16,11 +16,19 @@ module CapistranoMulticonfigParallel
     end
 
     def lockfile_parser
-      if File.exists?(job_gemfile_lock)
+      if File.exists?(job_gemfile) && File.exists?(job_gemfile_lock)
         @lockfile_parser ||= Bundler::LockfileParser.new(Bundler.read_file("#{job_gemfile_lock}"))
       else
         raise RuntimeError, "please install the gems separately for this application #{job_path} and re-try again!"
       end
+    end
+
+    def find_capfile(custom_path = job_path)
+      @capfile_path ||= Pathname.new(custom_path).children.find { |file| check_file(file, 'capfile') }
+    end
+
+    def capfile_name
+      find_capfile.present? ? find_capfile.basename : nil
     end
 
     def gem_specs
@@ -125,7 +133,11 @@ module CapistranoMulticonfigParallel
     end
 
     def job_path
-      path || detect_root
+      if path.present? && File.directory?(path) && find_capfile(path).present?
+        path
+      else
+        detect_root
+      end
     end
 
     def user_home_directory
@@ -173,13 +185,17 @@ module CapistranoMulticonfigParallel
       "source #{rvm_scripts_path} && rvm rvmrc trust #{job_path} && cd #{job_path} && source #{job_rvmrc_file}"
     end
 
+    def rvm_bash_prefix(command)
+      rvm_enabled_for_job? ? "bash --login -c '#{command}'" : command
+    end
+
     def fetch_deploy_command
       prepare_application_for_deployment
       #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
       environment_options = setup_command_line.join(' ')
       command = "#{check_rvm_loaded} && if [ `which bundler |wc -l` = 0 ]; then gem install bundler;fi && (#{bundle_gemfile_env(@job_final_gemfile)} bundle check || #{bundle_gemfile_env(@job_final_gemfile)} bundle install ) && WEBSOCKET_LOGGING=#{debug_websocket?} LOG_FILE=#{websocket_config.fetch('log_file_path', nil)} #{bundle_gemfile_env(@job_final_gemfile)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
-      command = "bash --login -c '#{command}'"  if rvm_enabled_for_job?
+      command = rvm_bash_prefix(command)
       command = command.inspect
 
       command_text =<<-CMD
@@ -204,7 +220,7 @@ module CapistranoMulticonfigParallel
 
 
     def job_capfile
-      File.join(job_path, "Capfile")
+      File.join(job_path, capfile_name.to_s)
     end
 
     def job_gemfile_multi
