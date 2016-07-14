@@ -174,6 +174,7 @@ module CapistranoMulticonfigParallel
     end
 
     def fetch_deploy_command
+      prepare_application_for_deployment
       #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
       environment_options = setup_command_line.join(' ')
       command = "#{check_rvm_loaded} && if [ `which bundler |wc -l` = 0 ]; then gem install bundler;fi && (#{bundle_gemfile_env(@job_final_gemfile)} bundle check || #{bundle_gemfile_env(@job_final_gemfile)} bundle install ) && WEBSOCKET_LOGGING=#{debug_websocket?} LOG_FILE=#{websocket_config.fetch('log_file_path', nil)} #{bundle_gemfile_env(@job_final_gemfile)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
