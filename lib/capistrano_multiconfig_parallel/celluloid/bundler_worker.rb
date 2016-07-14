@@ -18,21 +18,8 @@ module CapistranoMulticonfigParallel
 
 
       def do_bundle_sync_command(command)
-        RightScale::RightPopen.popen3_sync(
-        command,
-        target: self,
-        environment: @options.fetch(:environment, nil),
-        :stdout_handler          => :on_read_stdout,
-        :stderr_handler          => :on_read_stderr,
-        :pid_handler             => :on_pid,
-        :timeout_handler         => :on_timeout,
-        :size_limit_handler      => :on_size_limit,
-        :exit_handler            => :on_exit,
-        :async_exception_handler => :on_async_exception
-
-        input: :on_input_stdin,
-        watch_handler: :watch_handler
-      )
+        runner = CapistranoMulticonfigParallel::Runner.new
+        runner.run_right_popen3(:sync, command)
       end
 
 
