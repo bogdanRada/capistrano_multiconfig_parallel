@@ -219,11 +219,11 @@ module CapistranoMulticonfigParallel
     def check_capistrano_sentinel_availability
       #  '#{find_loaded_gem_property(capistrano_sentinel_name)}'
       #  path: '/home/raul/workspace/github/capistrano_sentinel'
-      FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
-      FileUtils.touch(job_gemfile_multi)
       if capistrano_sentinel_available? && capistrano_sentinel_needs_updating?
         @job_final_gemfile = job_gemfile
       else
+        FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
+        FileUtils.touch(job_gemfile_multi)
         File.open(job_gemfile_multi, 'w') do |f|
           cmd=<<-CMD
           source "https://rubygems.org" do
@@ -233,8 +233,8 @@ module CapistranoMulticonfigParallel
           CMD
           f.write(cmd)
         end
+        FileUtils.copy(File.join(job_path, 'Gemfile.lock'), "#{job_gemfile_multi}.lock")
       end
-      FileUtils.copy(File.join(job_path, 'Gemfile.lock'), "#{job_gemfile_multi}.lock")
     end
 
     def prepare_capfile
@@ -249,8 +249,8 @@ module CapistranoMulticonfigParallel
 
 
     def rollback_changes_to_application
-      FileUtils.rm_rf(job_gemfile_multi)
-      FileUtils.rm_rf("#{job_gemfile_multi}.lock")
+      FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
+      FileUtils.rm_rf("#{job_gemfile_multi}.lock") if File.exists?("#{job_gemfile_multi}.lock")
       unless capistrano_sentinel_available?
         File.open(job_capfile, 'r') do |f|
           File.open("#{job_capfile}.tmp", 'w') do |f2|
