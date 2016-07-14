@@ -22,7 +22,7 @@ module CapistranoMulticonfigParallel
         raise RuntimeError, "please install the gems separately for this application #{job_path} and re-try again!"
       end
     end
-
+    
     def find_capfile(custom_path = job_path)
       @capfile_path ||= Pathname.new(custom_path).children.find { |file| check_file(file, 'capfile') }
     end
@@ -289,10 +289,6 @@ module CapistranoMulticonfigParallel
     end
 
     private
-
-    def get_bash_command(command)
-      Shellwords.escape(command)
-    end
 
     def run_shell_command(command)
       sh("#{command}")
