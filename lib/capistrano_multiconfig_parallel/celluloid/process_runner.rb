@@ -12,15 +12,7 @@ module CapistranoMulticonfigParallel
       :actor,
       :job_id,
       :timer,
-      :count,
-      :done,
-      :last_exception,
-      :last_iteration,
-      :callback,
-      :synchronicity,
-      :iterations,
-      :repeats,
-      :stats
+      :synchronicity
     ]
 
     attr_reader *@attrs
@@ -29,35 +21,26 @@ module CapistranoMulticonfigParallel
     finalizer :process_finalizer
 
     def work(job, cmd, options = {})
-      @count          = 0
-      @done           = false
-      @last_exception = nil
-      @last_iteration = 0
-      @callback = options[:callback].present? ? options[:callback] : nil
-
       @options = options.is_a?(Hash) ? options.symbolize_keys : {}
       @job = job
       @cmd = cmd
+
       @runner_status_klass = @options[:runner_status_klass].present? ? @options[:runner_status_klass] : RunnerStatus
       @runner_status = @runner_status_klass.new(Actor.current, job, cmd,  @options)
       @synchronicity = @options[:sync]
       start_running
-
     end
-
-
 
     def start_running
       setup_attributes
       run_right_popen3
-      setup_em_error_handler
+      setup_em_error_handler if @synchronicity == :async
     end
 
     def setup_attributes
       @actor = @options.fetch(:actor, nil)
       @job_id = @job.id
     end
-
 
     def setup_em_error_handler
       EM.error_handler do|exception|
@@ -72,7 +55,6 @@ module CapistranoMulticonfigParallel
         @timer.cancel if @runner_status.exit_status.present?
       end
     end
-
 
     def check_exit_status
       return if @runner_status.exit_status.blank?
@@ -94,75 +76,44 @@ module CapistranoMulticonfigParallel
     end
 
     def run_right_popen3
-      runner_options = {
-        :repeats           => 1,
-        :expect_timeout    => false,
-        :expect_size_limit => false
-      }.merge(@runner_status.options)
       popen3_options = {
-      #  :timeout_seconds  => runner_options.has_key?(:timeout) ? runner_options[:timeout] : 2,
-        :size_limit_bytes => runner_options[:size_limit_bytes],
-        :watch_directory  => runner_options[:watch_directory],
-        :user             => runner_options[:user],
-        :group            => runner_options[:group],
+        #  :timeout_seconds  => @options.has_key?(:timeout) ? @options[:timeout] : 2,
+        :size_limit_bytes => @options[:size_limit_bytes],
+        :watch_directory  => @options[:watch_directory],
+        :user             => @options[:user],
+        :group            => @options[:group],
       }
       command = @runner_status.command
-      callback = @callback
       case @synchronicity
       when :sync
-        run_right_popen3_sync(command, runner_options, popen3_options, &callback)
+        run_right_popen3_sync(command, popen3_options)
       when :async
-        run_right_popen3_async(command, runner_options, popen3_options, &callback)
+        run_right_popen3_async(command, popen3_options)
       else
         raise "unknown synchronicity = #{synchronicity.inspect}"
       end
     end
 
-    def run_right_popen3_sync(command, runner_options, popen3_options, &callback)
-      @iterations = 0
-      @repeats = runner_options[:repeats]
-      @stats = []
-      while @iterations < @repeats
-        @iterations += 1
-        do_right_popen3_sync(command, runner_status, runner_options, popen3_options) do |runner_status|
-          @stats << runner_status
-          callback.call(runner_status) if callback
-          if @repeats > 1
-            puts if 1 == (@iterations % 64)
-            print '+'
-            puts if @iterations == @repeats
-          end
-        end
-      end
-      @stats.uniq!
-      @stats.size < 2 ? @stats.first : @stats
+    def run_right_popen3_sync(command, popen3_options)
+      do_right_popen3_sync(command, popen3_options)
+      sleep(0.1) until @runner_status.exit_status.present?
     end
 
-    def run_right_popen3_async(command, runner_options, popen3_options, &callback)
-      @iterations = 0
-      @repeats = runner_options[:repeats]
-      @stats = []
-      last_exception = nil
+    def run_right_popen3_async(command, popen3_options)
       EM.run do
         EM.defer do
           begin
-            do_right_popen3_async(command, runner_options, popen3_options,  &callback)
-            # do |runner_status_callback|
-            #   last_exception ||= maybe_continue_popen3_async(runner_status_callback, command, runner_options, popen3_options, &callback)
-            # end
+            do_right_popen3_async(command, popen3_options)
           rescue Exception => e
-            last_exception = e
+            log_error(exception, job_id: @job_id, output: 'stderr')
             EM.stop
           end
         end
         setup_periodic_timer
       end
-      raise last_exception if last_exception
-      @stats.uniq!
-      @stats.size < 2 ? @stats.first : @stats
     end
 
-    def do_right_popen3(synchronicity, command,   runner_options, popen3_options, &callback)
+    def do_right_popen3(synchronicity, command, popen3_options)
       popen3_options = {
         :target                  => @runner_status,
         :environment             => @options.fetch(:environment, nil),
@@ -187,40 +138,13 @@ module CapistranoMulticonfigParallel
       result == true
     end
 
-    def do_right_popen3_sync(command, runner_options, popen3_options, &callback)
-      do_right_popen3(:sync, command, runner_options, popen3_options, &callback)
+    def do_right_popen3_sync(command, popen3_options)
+      do_right_popen3(:sync, command, popen3_options)
     end
 
-    def do_right_popen3_async( command, runner_options, popen3_options, &callback)
-      do_right_popen3(:async, command, runner_options, popen3_options, &callback)
+    def do_right_popen3_async( command, popen3_options)
+      do_right_popen3(:async, command, popen3_options)
     end
 
-    # def maybe_continue_popen3_async(runner_status, command, runner_options, popen3_options, &callback)
-    #   @iterations += 1
-    #   @stats << runner_status
-    #   callback.call(runner_status) if callback
-    #   last_exception = nil
-    #   if @iterations < @repeats
-    #     if @repeats > 1
-    #       puts if 1 == (@iterations % 64)
-    #       print '+'
-    #       puts if @iterations == @repeats
-    #     end
-    #     EM.defer do
-    #       begin
-    #         do_right_popen3_async(command, runner_options, popen3_options) do |runner_status2|
-    #           last_exception ||= maybe_continue_popen3_async(runner_status2, command,  runner_options, popen3_options, &callback)
-    #         end
-    #       rescue Exception => e
-    #         last_exception = e
-    #         EM.stop
-    #       end
-    #     end
-    #   else
-    #     EM.stop
-    #   end
-    #   last_exception ||= runner_status.async_exception
-    #   last_exception
-    # end
   end
 end
