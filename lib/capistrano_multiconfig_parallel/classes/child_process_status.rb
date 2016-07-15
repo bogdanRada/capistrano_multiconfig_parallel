@@ -62,7 +62,6 @@ module CapistranoMulticonfigParallel
 
     def watch_handler(process)
       @process ||= process
-      process_runner.check_exit_status
     end
 
     def io_callback(io, data)

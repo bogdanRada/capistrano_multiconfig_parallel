@@ -26,7 +26,7 @@ module CapistranoMulticonfigParallel
       :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :socket_connection, :task_argv,
       :rake_tasks, :current_task_number, # tracking tasks
       :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-      :job_termination_condition, :invocation_chain, :filename, :worker_log, :exit_status
+      :job_termination_condition, :invocation_chain, :filename, :worker_log, :exit_status, :old_job
     ]
 
     attr_reader *CapistranoMulticonfigParallel::CelluloidWorker::ATTRIBUTE_LIST
@@ -35,13 +35,14 @@ module CapistranoMulticonfigParallel
     def initialize(*args)
     end
 
-    def work(job, manager)
+    def work(job, manager, old_job)
       @job = job
+      @old_job = old_job
       @job_id = job.id
       @worker_state = job.status
       @manager = manager
       @job_confirmation_conditions = []
-      log_to_file("worker #{@job_id} received #{job.inspect}")
+      log_to_file("worker #{@job_id} received #{job.inspect} and #{old_job.inspect}")
       @subscription_channel = "#{CapistranoSentinel::RequestHooks::PUBLISHER_PREFIX}#{@job_id}"
       @machine = CapistranoMulticonfigParallel::StateMachine.new(@job, Actor.current)
       @manager.setup_worker_conditions(@job)
@@ -60,6 +61,9 @@ module CapistranoMulticonfigParallel
 
     def start_task
       log_to_file("exec worker #{@job_id} starts task and subscribes to #{@subscription_channel}")
+      if @old_job.present? && @old_job.is_a?(CapistranoMulticonfigParallel::Job)
+        @old_job.new_jobs_dispatched << @job.id
+      end
       @socket_connection = CelluloidPubsub::Client.new(actor: Actor.current, enable_debug: debug_websocket?, channel: subscription_channel, log_file_path: websocket_config.fetch('log_file_path', nil))
     end
 
@@ -111,6 +115,7 @@ module CapistranoMulticonfigParallel
 
     def check_gitflow
       return if @job.stage != 'staging' || !@manager.can_tag_staging? || !executed_task?(CapistranoMulticonfigParallel::GITFLOW_TAG_STAGING_TASK)
+      mark_for_dispatching_new_job
       @manager.dispatch_new_job(@job, stage: 'production')
     end
 
@@ -165,7 +170,6 @@ module CapistranoMulticonfigParallel
       log_to_file("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}") unless options[:bundler]
       @machine.go_to_transition(name.to_s, options)
       error_message = "worker #{@job_id} task #{name} failed "
-#      @manager.worker_died(Actor.current, error_message) if job.failed?
       raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message) if job.failed? # force worker to rollback
     end
 
@@ -178,17 +182,22 @@ module CapistranoMulticonfigParallel
     def finish_worker(exit_status)
       log_to_file("worker #{job_id} tries to terminate with exit_status #{exit_status}")
       @manager.mark_completed_remaining_tasks(@job) if Actor.current.alive?
-      exit_status == 0 ? update_machine_state('FINISHED') : update_machine_state('DEAD')
-#      @manager.worker_died(Actor.current, exit_status) if exit_status != 0
-      @manager.workers_terminated.signal('completed') if @manager.present? && @manager.alive? && @manager.all_workers_finished?
+      update_machine_state('FINISHED') if exit_status == 0
+      @manager.workers_terminated.signal('completed') if !@job.marked_for_dispatching_new_job? && @manager.present? && @manager.alive? && @manager.all_workers_finished?
+    end
+
+    def mark_for_dispatching_new_job
+      @job.will_dispatch_new_job = @job.new_jobs_dispatched.size + 1 unless @job.rolling_back?
     end
 
     def notify_finished(exit_status)
+      mark_for_dispatching_new_job if exit_status != 0
+      @job.exit_status = exit_status
       finish_worker(exit_status)
-       return if exit_status == 0
-       error_message = "worker #{@job_id} task  failed with exit status #{exit_status.inspect}  "
-       raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message)
-     end
+      return if exit_status == 0
+      error_message = "worker #{@job_id} task  failed with exit status #{exit_status.inspect}  "
+      raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message)
+    end
 
     # def inspect
     #   to_s

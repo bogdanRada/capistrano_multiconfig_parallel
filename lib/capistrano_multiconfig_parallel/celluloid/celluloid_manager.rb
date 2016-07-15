@@ -6,7 +6,7 @@ module CapistranoMulticonfigParallel
   # manager class that handles workers
   class CelluloidManager
     include CapistranoMulticonfigParallel::BaseActorHelper
-   attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated, :stderr_buffer
+    attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated, :stderr_buffer
 
     attr_reader :worker_supervisor, :workers
     trap_exit :worker_died
@@ -40,11 +40,11 @@ module CapistranoMulticonfigParallel
 
     # call to send an actor
     # a job
-    def delegate_job(job)
+    def delegate_job(job, old_job = "")
       @jobs[job.id] = job
       # debug(@jobs)
       # start work and send it to the background
-      @workers.work(job, Actor.current)
+      @workers.work(job, Actor.current, old_job)
     end
 
     # call back from actor once it has received it's job
@@ -72,12 +72,24 @@ module CapistranoMulticonfigParallel
         wait_task_confirmations
       end
       terminal_show
+      async.check_workers_done?
       condition = @workers_terminated.wait
       until condition.present?
         sleep(0.1) # keep current thread alive
       end
       log_to_file("all jobs have completed #{condition}")
       terminal_show
+    end
+
+    def check_workers_done?
+      Thread.new do
+        loop do
+          if Actor.current.alive? && all_workers_finished?
+            @workers_terminated.signal('completed')
+            break
+          end
+        end
+      end
     end
 
     def terminal_show
@@ -169,10 +181,10 @@ module CapistranoMulticonfigParallel
         worker = get_worker_for_job(job_id)
         if worker.alive?
           worker.publish_rake_event('approved' => 'yes',
-                                    'action' => 'invoke',
-                                    'job_id' => job.id,
-                                    'task' => task
-                                   )
+          'action' => 'invoke',
+          'job_id' => job.id,
+          'task' => task
+          )
         end
       end
     end
@@ -191,7 +203,7 @@ module CapistranoMulticonfigParallel
 
     def can_tag_staging?
       @job_manager.can_tag_staging? && @job_manager.tag_staging_exists? &&
-        @jobs.find { |_job_id, job| job.stage == 'production' }.blank?
+      @jobs.find { |_job_id, job| job.stage == 'production' }.blank?
     end
 
     def dispatch_new_job(job, options = {})
@@ -201,7 +213,7 @@ module CapistranoMulticonfigParallel
       new_job_options = job.options.except!('id', 'status', 'exit_status').merge('env_options' => job.env_options.merge(env_opts))
       new_job = CapistranoMulticonfigParallel::Job.new(@job_manager, new_job_options.merge(options))
       log_to_file("Trying to DiSPATCH new JOB #{new_job.inspect}")
-      async.delegate_job(new_job) unless job.rolling_back?
+      async.delegate_job(new_job, job) unless job.rolling_back?
     end
 
     # lookup status of job by asking actor running it
@@ -227,6 +239,7 @@ module CapistranoMulticonfigParallel
       job.rollback_changes_to_application
       @worker_to_job.delete(mailbox.address)
       log_to_file("RESTARTING: worker job #{job.inspect} with mailbox #{mailbox.inspect} and #{mailbox.address.inspect} died  for reason:  #{reason}")
+
       dispatch_new_job(job, skip_env_options: true, action: 'deploy:rollback')
     end
   end

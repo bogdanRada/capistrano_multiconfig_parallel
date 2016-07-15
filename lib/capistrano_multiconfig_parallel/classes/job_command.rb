@@ -211,11 +211,14 @@ module CapistranoMulticonfigParallel
 
       if rvm_enabled_for_job?
         create_job_tempfile_command(command_text)
+        log_to_file "JOB #{@job_id}  created Tempfile #{@tempfile.path} with contents #{File.read(@tempfile.path)}"
         "ruby #{@tempfile.path}"
       else
-        <<-CMD
+        final_command=<<-CMD
         cd #{job_path} && bundle exec ruby -e "#{command_text}"
         CMD
+        log_to_file "JOB #{@job_id}  prepared command #{final_command}"
+        final_command
       end
     end
 
@@ -224,7 +227,7 @@ module CapistranoMulticonfigParallel
       prepare_application_for_deployment
       #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
       environment_options = setup_command_line.join(' ')
-      command = "#{fetch_bundler_check_command(@job_final_gemfile)} && WEBSOCKET_LOGGING=#{debug_websocket?} LOG_FILE=#{websocket_config.fetch('log_file_path', nil)} #{bundle_gemfile_env(@job_final_gemfile)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      command = "#{fetch_bundler_check_command(@job_final_gemfile)} && WEBSOCKET_LOGGING=#{true} LOG_FILE=#{websocket_config.fetch('log_file_path', nil)} #{bundle_gemfile_env(@job_final_gemfile)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
       get_command_script(command)
     end
@@ -239,7 +242,7 @@ module CapistranoMulticonfigParallel
     end
 
     def prepare_application_for_deployment
-      if ENV['MULTI_CAP_WEB_APP']
+      if ENV['MULTI_CAP_WEB_APP'].present?
         bundler_worker = CapistranoMulticonfigParallel::BundlerWorker.new
         result = bundler_worker.work(job)
       end

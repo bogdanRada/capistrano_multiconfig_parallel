@@ -6,7 +6,7 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :options, :application, :manager, :bundler_status
-    attr_writer :status, :exit_status, :bundler_status
+    attr_writer :status, :exit_status,  :bundler_status, :new_jobs_dispatched, :will_dispatch_new_job
 
     delegate :stderr_buffer,
     to: :manager
@@ -80,7 +80,7 @@ module CapistranoMulticonfigParallel
     def worker_state
       worker_obj = worker
       default = status.to_s.upcase.red
-      worker_obj.present? && worker_obj.alive? ? worker_obj.worker_state : default
+      worker_died? ? default : worker_obj.worker_state
     end
 
     def id
@@ -95,7 +95,10 @@ module CapistranoMulticonfigParallel
       { name: 'env_options', default: {} },
       { name: 'path', default: nil },
       { name: 'status', default: :unstarted },
-      { name: 'exit_status', default: nil }
+      { name: 'exit_status', default: nil },
+      { name: 'bundler_status', default: nil },
+      { name: 'new_jobs_dispatched', default: [] },
+      { name: 'will_dispatch_new_job', default: nil },
     ].each do |hash|
       define_method hash[:name] do
         value = @options.fetch(hash[:name], hash[:default])
@@ -123,8 +126,19 @@ module CapistranoMulticonfigParallel
       ['deploy:rollback'].include?(action)
     end
 
+    def marked_for_dispatching_new_job?
+      will_dispatch_new_job.to_i != new_jobs_dispatched.size
+    end
+
+    def new_jobs_dispatched_finished?
+      if marked_for_dispatching_new_job?
+        sleep(0.1) until will_dispatch_new_job.to_i == new_jobs_dispatched.size
+      end
+      true
+    end
+
     def crashed?
-      worker_died? || failed? || dead? || exit_status.present?
+      worker_died? || failed? || exit_status.present?
     end
 
     def dead?
@@ -132,11 +146,11 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_died?
-      worker.blank? || !worker.alive?
+      dead? || worker == nil || worker.dead?
     end
 
     def work_done?
-      finished? || crashed?
+      new_jobs_dispatched_finished? && (finished? || crashed?)
     end
 
     def inspect
@@ -149,8 +163,8 @@ module CapistranoMulticonfigParallel
 
     def to_json
       hash = {}
-      %w(id app stage action task_arguments env_options status exit_status).each do |key|
-        hash[key] = send(key)
+      %w(id app stage action task_arguments env_options status exit_status bundler_status will_dispatch_new_job new_jobs_dispatched).each do |key|
+        hash[key] = send(key).inspect
       end
       hash
     end
