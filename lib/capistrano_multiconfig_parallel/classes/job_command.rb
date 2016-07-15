@@ -22,7 +22,11 @@ module CapistranoMulticonfigParallel
         raise RuntimeError, "please install the gems separately for this application #{job_path} and re-try again!"
       end
     end
-    
+
+    def fetch_bundler_check_command
+      "#{rvm_bash_prefix(check_rvm_loaded)} && bundle check"
+    end
+
     def find_capfile(custom_path = job_path)
       @capfile_path ||= Pathname.new(custom_path).children.find { |file| check_file(file, 'capfile') }
     end
@@ -158,7 +162,7 @@ module CapistranoMulticonfigParallel
     end
 
     def create_job_tempfile_command(output)
-      @tempfile ||= Tempfile.new(["multi_cap_#{job.id}_command_", ".rb"], encoding: 'utf-8')
+      @tempfile = Tempfile.new(["multi_cap_#{job.id}_command_", ".rb"], encoding: 'utf-8')
       @tempfile.write(output)
       ObjectSpace.undefine_finalizer(@tempfile) # force garbage collector not to remove automatically the file
       @tempfile.close

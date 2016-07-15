@@ -1,6 +1,7 @@
-require_relative './child_process'
-require_relative './state_machine'
 require_relative '../helpers/base_actor_helper'
+require_relative '../classes/child_process_status'
+require_relative './state_machine'
+require_relative './process_runner'
 module CapistranoMulticonfigParallel
   # worker that will spawn a child process in order to execute a capistrano job and monitor that process
   #
@@ -20,10 +21,16 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::BaseActorHelper
     class TaskFailed < StandardError; end
 
-    attr_accessor :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :socket_connection, :task_argv,
-    :rake_tasks, :current_task_number, # tracking tasks
-    :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
-    :job_termination_condition, :worker_state, :invocation_chain, :filename, :worker_log, :exit_status
+
+    ATTRIBUTE_LIST = [
+      :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :socket_connection, :task_argv,
+      :rake_tasks, :current_task_number, # tracking tasks
+      :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
+      :job_termination_condition, :invocation_chain, :filename, :worker_log, :exit_status
+    ]
+
+    attr_reader *CapistranoMulticonfigParallel::CelluloidWorker::ATTRIBUTE_LIST
+    attr_accessor *CapistranoMulticonfigParallel::CelluloidWorker::ATTRIBUTE_LIST
 
     def initialize(*args)
     end
@@ -43,7 +50,7 @@ module CapistranoMulticonfigParallel
 
 
     def worker_state
-      if Actor.current.alive?
+      if job.status.to_s.downcase != 'dead' && Actor.current.alive?
         @machine.state.to_s.green
       else
         job.status = 'dead'
@@ -89,14 +96,14 @@ module CapistranoMulticonfigParallel
       check_child_proces
       command = job.fetch_deploy_command
       log_to_file("worker #{@job_id} executes: #{command}")
-      @child_process.async.work(@job, command, actor: Actor.current, silent: true)
+      @child_process.async.work(@job, command, actor: Actor.current, silent: true,sync: :async, runner_status_klass: CapistranoMulticonfigParallel::ChildProcessStatus)
     end
 
     def check_child_proces
-      @child_process = CapistranoMulticonfigParallel::ChildProcess.new
+      @child_process = CapistranoMulticonfigParallel::ProcessRunner.new
       Actor.current.link @child_process
       @child_process
-     end
+    end
 
     def on_close(code, reason)
       log_to_file("worker #{@job_id} websocket connection closed: #{code.inspect}, #{reason.inspect}")
@@ -117,13 +124,13 @@ module CapistranoMulticonfigParallel
       elsif message_is_for_stdout?(message)
         result = Celluloid::Actor[:terminal_server].show_confirmation(message['question'], message['default'])
         publish_rake_event(message.merge('action' => 'stdin', 'result' => result, 'client_action' => 'stdin'))
-    elsif message_from_bundler?(message)
+      elsif message_from_bundler?(message)
 
         #gem_messsage = job.gem_specs.find{|spec| message['task'].include?(spec.name) }
         # if gem_messsage.present?
         #     async.update_machine_state("insta")
         # else
-          async.update_machine_state(message['task'])
+        async.update_machine_state(message['task'])
         #end
       else
         log_to_file(message, job_id: @job_id)
@@ -158,6 +165,7 @@ module CapistranoMulticonfigParallel
       log_to_file("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}") unless options[:bundler]
       @machine.go_to_transition(name.to_s, options)
       error_message = "worker #{@job_id} task #{name} failed "
+#      @manager.worker_died(Actor.current, error_message) if job.failed?
       raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message) if job.failed? # force worker to rollback
     end
 
@@ -170,15 +178,27 @@ module CapistranoMulticonfigParallel
     def finish_worker(exit_status)
       log_to_file("worker #{job_id} tries to terminate with exit_status #{exit_status}")
       @manager.mark_completed_remaining_tasks(@job) if Actor.current.alive?
-      update_machine_state('FINISHED') if exit_status == 0
+      exit_status == 0 ? update_machine_state('FINISHED') : update_machine_state('DEAD')
+#      @manager.worker_died(Actor.current, exit_status) if exit_status != 0
       @manager.workers_terminated.signal('completed') if @manager.present? && @manager.alive? && @manager.all_workers_finished?
     end
 
     def notify_finished(exit_status)
       finish_worker(exit_status)
-      return if exit_status == 0
-      error_message = "worker #{@job_id} task  failed with exit status #{exit_status.inspect}  "
-      raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message)
-    end
+       return if exit_status == 0
+       error_message = "worker #{@job_id} task  failed with exit status #{exit_status.inspect}  "
+       raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message)
+     end
+
+    # def inspect
+    #   to_s
+    # end
+    #
+    # def to_s
+    #    "#<#{self.class}(#{Actor.current.mailbox.address.inspect}) alive>"
+    # rescue
+    #   "#<#{self.class}(#{Actor.current.mailbox.address.inspect}) dead>"
+    # end
+
   end
 end

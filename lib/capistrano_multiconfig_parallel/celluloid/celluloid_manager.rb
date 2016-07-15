@@ -21,8 +21,8 @@ module CapistranoMulticonfigParallel
       # Get a handle on the SupervisionGroup::Member
       @mutex = Mutex.new
       # http://rubydoc.info/gems/celluloid/Celluloid/SupervisionGroup/Member
-      setup_pool_of_actor(@worker_supervisor, actor_name: :workers, type: CapistranoMulticonfigParallel::CelluloidWorker, size: 10)
-      @workers = Celluloid::Actor[:workers]
+      @workers = setup_pool_of_actor(@worker_supervisor, actor_name: :workers, type: CapistranoMulticonfigParallel::CelluloidWorker, size: 10)
+      #@workers = Celluloid::Actor[:workers].pool
       Actor.current.link @workers
       setup_actor_supervision(@worker_supervisor, actor_name: :terminal_server, type: CapistranoMulticonfigParallel::TerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
       setup_actor_supervision(@worker_supervisor, actor_name: :web_server, type: CapistranoMulticonfigParallel::WebServer, args: websocket_config)
@@ -200,6 +200,7 @@ module CapistranoMulticonfigParallel
       env_opts = options['skip_env_options'].present? ? {} : @job_manager.get_app_additional_env_options(job.app, job.stage)
       new_job_options = job.options.except!('id', 'status', 'exit_status').merge('env_options' => job.env_options.merge(env_opts))
       new_job = CapistranoMulticonfigParallel::Job.new(@job_manager, new_job_options.merge(options))
+      log_to_file("Trying to DiSPATCH new JOB #{new_job.inspect}")
       async.delegate_job(new_job) unless job.rolling_back?
     end
 
@@ -220,9 +221,10 @@ module CapistranoMulticonfigParallel
 
     def worker_died(worker, reason)
       job = @worker_to_job[worker.mailbox.address]
+      mailbox = worker.mailbox
+      log_to_file("worker_died: worker job #{job.inspect} with mailbox #{mailbox.inspect} and #{mailbox.address.inspect} died  for reason:  #{reason}")
       return true if job.blank? || job.rolling_back? || job.action != 'deploy'
       job.rollback_changes_to_application
-      mailbox = worker.mailbox
       @worker_to_job.delete(mailbox.address)
       log_to_file("RESTARTING: worker job #{job.inspect} with mailbox #{mailbox.inspect} and #{mailbox.address.inspect} died  for reason:  #{reason}")
       dispatch_new_job(job, skip_env_options: true, action: 'deploy:rollback')

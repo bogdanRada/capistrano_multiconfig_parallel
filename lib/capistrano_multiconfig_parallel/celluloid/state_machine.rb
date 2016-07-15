@@ -12,6 +12,7 @@ module CapistranoMulticonfigParallel
     end
 
     def go_to_transition(action, options = {})
+      return if @job.status.to_s.downcase == 'dead'
       transitions.on(action, state.to_s => action)
       @job.status = action
       if options[:bundler]
