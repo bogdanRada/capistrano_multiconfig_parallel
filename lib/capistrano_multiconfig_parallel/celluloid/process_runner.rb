@@ -146,10 +146,10 @@ module CapistranoMulticonfigParallel
       EM.run do
         EM.defer do
           begin
-            do_right_popen3_async(command, runner_options, popen3_options) do |runner_status_callback|
-              raise runner_status_callback.inspect
-              last_exception ||= maybe_continue_popen3_async(runner_status_callback, command, runner_options, popen3_options, &callback)
-            end
+            do_right_popen3_async(command, runner_options, popen3_options,  &callback)
+            # do |runner_status_callback|
+            #   last_exception ||= maybe_continue_popen3_async(runner_status_callback, command, runner_options, popen3_options, &callback)
+            # end
           rescue Exception => e
             last_exception = e
             EM.stop
@@ -162,7 +162,7 @@ module CapistranoMulticonfigParallel
       @stats.size < 2 ? @stats.first : @stats
     end
 
-    def do_right_popen3(synchronicity, command,   runner_options, popen3_options)
+    def do_right_popen3(synchronicity, command,   runner_options, popen3_options, &callback)
       popen3_options = {
         :target                  => @runner_status,
         :environment             => @options.fetch(:environment, nil),
@@ -195,32 +195,32 @@ module CapistranoMulticonfigParallel
       do_right_popen3(:async, command, runner_options, popen3_options, &callback)
     end
 
-    def maybe_continue_popen3_async(runner_status, command, runner_options, popen3_options, &callback)
-      @iterations += 1
-      @stats << runner_status
-      callback.call(runner_status) if callback
-      last_exception = nil
-      if @iterations < @repeats
-        if @repeats > 1
-          puts if 1 == (@iterations % 64)
-          print '+'
-          puts if @iterations == @repeats
-        end
-        EM.defer do
-          begin
-            do_right_popen3_async(command, runner_options, popen3_options) do |runner_status2|
-              last_exception ||= maybe_continue_popen3_async(runner_status2, command,  runner_options, popen3_options, &callback)
-            end
-          rescue Exception => e
-            last_exception = e
-            EM.stop
-          end
-        end
-      else
-        EM.stop
-      end
-      last_exception ||= runner_status.async_exception
-      last_exception
-    end
+    # def maybe_continue_popen3_async(runner_status, command, runner_options, popen3_options, &callback)
+    #   @iterations += 1
+    #   @stats << runner_status
+    #   callback.call(runner_status) if callback
+    #   last_exception = nil
+    #   if @iterations < @repeats
+    #     if @repeats > 1
+    #       puts if 1 == (@iterations % 64)
+    #       print '+'
+    #       puts if @iterations == @repeats
+    #     end
+    #     EM.defer do
+    #       begin
+    #         do_right_popen3_async(command, runner_options, popen3_options) do |runner_status2|
+    #           last_exception ||= maybe_continue_popen3_async(runner_status2, command,  runner_options, popen3_options, &callback)
+    #         end
+    #       rescue Exception => e
+    #         last_exception = e
+    #         EM.stop
+    #       end
+    #     end
+    #   else
+    #     EM.stop
+    #   end
+    #   last_exception ||= runner_status.async_exception
+    #   last_exception
+    # end
   end
 end

@@ -69,7 +69,10 @@ module CapistranoMulticonfigParallel
         if version_less_than_seventeen?
           class_name.pool(options[:type], as: options[:actor_name], size:  options.fetch(:size, 10))
         else
-            setup_actor_supervision(class_name, options)
+          # config = Celluloid::Supervision::Configuration.new
+          # config.define setup_actor_supervision_details(class_name, options)
+          options = setup_actor_supervision_details(class_name, options)
+          class_name.pool *[options[:type], options.except(:type)]
         end
       end
     end

@@ -51,7 +51,7 @@ module CapistranoMulticonfigParallel
       Celluloid.logger = logger
       Celluloid.task_class = defined?(Celluloid::TaskThread) ? Celluloid::TaskThread : Celluloid::Task::Threaded
       Celluloid.exception_handler do |ex|
-        unless ex.is_a?(Interrupt)
+        unless ex.is_a?(Interrupt) || ex.is_a?(SystemExit) || ex.is_a?(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed)
           rescue_error(ex, 'stderr')
         end
       end

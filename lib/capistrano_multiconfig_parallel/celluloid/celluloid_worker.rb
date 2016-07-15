@@ -165,7 +165,7 @@ module CapistranoMulticonfigParallel
       log_to_file("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}") unless options[:bundler]
       @machine.go_to_transition(name.to_s, options)
       error_message = "worker #{@job_id} task #{name} failed "
-      @manager.worker_died(Actor.current, error_message) if job.failed?
+#      @manager.worker_died(Actor.current, error_message) if job.failed?
       raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message) if job.failed? # force worker to rollback
     end
 
@@ -179,26 +179,26 @@ module CapistranoMulticonfigParallel
       log_to_file("worker #{job_id} tries to terminate with exit_status #{exit_status}")
       @manager.mark_completed_remaining_tasks(@job) if Actor.current.alive?
       exit_status == 0 ? update_machine_state('FINISHED') : update_machine_state('DEAD')
-      @manager.worker_died(Actor.current, exit_status) if exit_status != 0
+#      @manager.worker_died(Actor.current, exit_status) if exit_status != 0
       @manager.workers_terminated.signal('completed') if @manager.present? && @manager.alive? && @manager.all_workers_finished?
     end
 
     def notify_finished(exit_status)
       finish_worker(exit_status)
-      return if exit_status == 0
+       return if exit_status == 0
        error_message = "worker #{@job_id} task  failed with exit status #{exit_status.inspect}  "
        raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message)
      end
 
-    def inspect
-      to_s
-    end
-
-    def to_s
-       "#<#{self.class}(#{Actor.current.mailbox.address.inspect}) alive>"
-    rescue
-      "#<#{self.class}(#{Actor.current.mailbox.address.inspect}) dead>"
-    end
+    # def inspect
+    #   to_s
+    # end
+    #
+    # def to_s
+    #    "#<#{self.class}(#{Actor.current.mailbox.address.inspect}) alive>"
+    # rescue
+    #   "#<#{self.class}(#{Actor.current.mailbox.address.inspect}) dead>"
+    # end
 
   end
 end
