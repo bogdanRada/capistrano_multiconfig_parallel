@@ -132,7 +132,7 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_died?
-      !worker.alive?
+      worker.blank? || !worker.alive?
     end
 
     def work_done?

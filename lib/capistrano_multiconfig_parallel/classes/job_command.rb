@@ -162,7 +162,7 @@ module CapistranoMulticonfigParallel
     end
 
     def create_job_tempfile_command(output)
-      @tempfile ||= Tempfile.new(["multi_cap_#{job.id}_command_", ".rb"], encoding: 'utf-8')
+      @tempfile = Tempfile.new(["multi_cap_#{job.id}_command_", ".rb"], encoding: 'utf-8')
       @tempfile.write(output)
       ObjectSpace.undefine_finalizer(@tempfile) # force garbage collector not to remove automatically the file
       @tempfile.close

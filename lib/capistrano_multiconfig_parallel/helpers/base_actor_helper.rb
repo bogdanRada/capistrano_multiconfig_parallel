@@ -53,9 +53,7 @@ module CapistranoMulticonfigParallel
         if version_less_than_seventeen?
           class_name.supervise_as(*setup_actor_supervision_details(class_name, options))
         else
-          setup_supervision_group do |supervisor|
-            supervisor.supervise setup_actor_supervision_details(class_name, options)
-          end
+          class_name.supervise setup_actor_supervision_details(class_name, options)
         end
       end
 
@@ -63,9 +61,7 @@ module CapistranoMulticonfigParallel
         if version_less_than_seventeen?
           Celluloid::SupervisionGroup.run!
         else
-          Class.new(Celluloid::Supervision::Container) do
-            yield(self) if block_given?
-          end.run!
+          Celluloid::Supervision::Container.run!
         end
       end
 
@@ -73,10 +69,7 @@ module CapistranoMulticonfigParallel
         if version_less_than_seventeen?
           class_name.pool(options[:type], as: options[:actor_name], size:  options.fetch(:size, 10))
         else
-          options = setup_actor_supervision_details(class_name, options)
-          setup_supervision_group do |supervisor|
-            supervisor.pool *[options[:type], options.except(:type)]
-          end
+            setup_actor_supervision(class_name, options)
         end
       end
     end
