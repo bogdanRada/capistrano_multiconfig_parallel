@@ -238,7 +238,7 @@ module CapistranoMulticonfigParallel
       prepare_application_for_deployment
       #  config_flags = CapistranoMulticonfigParallel.configuration_flags.merge("capistrano_version": job_capistrano_version)
       environment_options = setup_command_line.join(' ')
-      command = "#{fetch_bundler_check_command(@job_final_gemfile)} && WEBSOCKET_LOGGING=#{true} LOG_FILE=#{websocket_config.fetch('log_file_path', nil)} #{bundle_gemfile_env(@job_final_gemfile)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
+      command = "#{fetch_bundler_check_command(@job_final_gemfile)} && WEBSOCKET_LOGGING=#{debug_websocket?} LOG_FILE=#{websocket_config.fetch('log_file_path', nil)} #{bundle_gemfile_env(@job_final_gemfile)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
       if @job_final_capfile != job_capfile
         command += " -f #{@job_final_capfile}"

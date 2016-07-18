@@ -129,7 +129,7 @@ module CapistranoMulticonfigParallel
 
     def mark_for_dispatching_new_job
       return if rolling_back?
-      will_dispatch_new_job = new_jobs_dispatched.size + 1
+      self.will_dispatch_new_job = new_jobs_dispatched.size + 1
     end
 
     def marked_for_dispatching_new_job?
