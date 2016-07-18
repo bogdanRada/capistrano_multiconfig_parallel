@@ -88,6 +88,7 @@ Default Configuration:
 ---
 multi_debug: true
 multi_secvential: false
+check_app_bundler_dependencies: false
 websocket_server:
   enable_debug: false
   adapter: ''
@@ -118,6 +119,10 @@ Available command line options when executing a command
 -	--multi-secvential
 
 	-	If parallel executing does not work for you, you can use this option so that each process is executed normally and ouputted to the screen. However this means that all other tasks will have to wait for each other to finish before starting
+
+-	--check_app_bundler_dependencies
+
+	-	if option is present and has value TRUE , will check the application bundler dependecies are satisfied before delegating the job to the actor that executes the capistrano action
 
 -	--websocket_server.enable_debug
 
