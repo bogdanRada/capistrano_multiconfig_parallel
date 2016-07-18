@@ -6,7 +6,7 @@ module CapistranoMulticonfigParallel
     include FileUtils
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :job, :job_capistrano_version, :legacy_capistrano, :tempfile, :job_final_gemfile
+    attr_reader :job, :job_capistrano_version, :legacy_capistrano, :tempfile, :job_final_gemfile, :job_final_capfile
     delegate :id, :app, :stage, :action, :task_arguments, :env_options, :path, to: :job
 
     def initialize(job)
@@ -229,12 +229,20 @@ module CapistranoMulticonfigParallel
       environment_options = setup_command_line.join(' ')
       command = "#{fetch_bundler_check_command(@job_final_gemfile)} && WEBSOCKET_LOGGING=#{true} LOG_FILE=#{websocket_config.fetch('log_file_path', nil)} #{bundle_gemfile_env(@job_final_gemfile)} bundle exec cap #{job_stage} #{capistrano_action} #{environment_options}"
 
+      if @job_final_capfile != job_capfile
+        command += " -f #{@job_final_capfile}"
+      end
+
       get_command_script(command)
     end
 
 
     def job_capfile
       File.join(job_path, capfile_name.to_s)
+    end
+
+    def job_capfile_multi
+      "#{job_capfile}.multi_cap"
     end
 
     def job_gemfile_multi
@@ -253,7 +261,7 @@ module CapistranoMulticonfigParallel
     def check_capistrano_sentinel_availability
       #  '#{find_loaded_gem_property(capistrano_sentinel_name)}'
       #  path: '/home/raul/workspace/github/capistrano_sentinel'
-      if capistrano_sentinel_available? && capistrano_sentinel_needs_updating?
+      if capistrano_sentinel_available?
         @job_final_gemfile = job_gemfile
       else
         FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
@@ -272,12 +280,26 @@ module CapistranoMulticonfigParallel
     end
 
     def prepare_capfile
-      return if File.foreach(job_capfile).grep(/#{capistrano_sentinel_name}/).any?
-      File.open(job_capfile, 'a+') do |f|
-        cmd=<<-CMD
-        require "#{capistrano_sentinel_name}"
-        CMD
-        f.write(cmd)
+      capfile_valid = File.foreach(job_capfile).grep(/#{capistrano_sentinel_name}/).any?
+      if capistrano_sentinel_available? && capfile_valid.present?
+        @job_final_capfile = job_capfile
+      elsif capfile_valid.blank? && capistrano_sentinel_available?
+        @job_final_capfile = job_capfile
+        File.open(job_capfile, 'a+') do |f|
+          cmd=<<-CMD
+          require "#{capistrano_sentinel_name}"
+          CMD
+          f.write(cmd)
+        end
+      elsif capistrano_sentinel_available? == false
+        @job_final_capfile = job_capfile_multi
+        FileUtils.copy(job_capfile, job_capfile_multi)
+        File.open(job_capfile_multi, 'a+') do |f|
+          cmd=<<-CMD
+          require "#{capistrano_sentinel_name}"
+          CMD
+          f.write(cmd)
+        end
       end
     end
 
