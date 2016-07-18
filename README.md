@@ -21,13 +21,19 @@ NEW Improvements started in version 2.0.0.alpha ( currently gem is in stable ver
 -------------------------------------------------------------------------------------
 
 -	Code for handling websocket events when a task is invoked was moved to a new gem [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel)
--	You can now deploy applications from anywhere on your computer without having to add this gem to the Gemfile, however you need to add the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem to your Gemfile, if you want to use this .
--	And only create anywhere on your computer a YAML file as described in section **[2.2) Deploying multiple applications from a central location](#22-deploying-multiple-applications-from-a-central-location)**
--	If you don't add the **capistrano_sentinel** to each of your applications, the executable of this gem will automatically create a new file "Gemfile.multi_cap" in the root of each of the applications that you are deploying, where the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem will be included and will use that Gemfile when doing deploys.
--	The Capfile file of each of the applications that you are deploying will also be automatically changed to require [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) if you haven't done so yet if the gem is part of the Gemfile, but was not required.
--	If the **capistrano_sentinel** gem is not part of the Gemfile, a new file will be created "Capfile.multi_cap" in order to require the gem upon execution of jobs.
--	When the command will finish , the files created will be removed.
--	If you are using RVM and there is a .rvmrc file in your project root directory and bash is available , the script will use bash emulator in order to properly load RVM gemsets because .rvmrc files need trusting
+
+-	You can now deploy applications from anywhere on your computer **without having to add any gem to the Gemfiles of those applications**, however we recommend you to add the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem to those Gemfiles for better stability.
+
+-	If [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) is included in one of the applications you are deploying, but you forget to require it, this gem will automcatically patch the Capfile to require the gem. Otherwise the Capfile is not changed.
+
+-	However this will work even if you don't add the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) to your Gemfile, because the new version will automatically create three files "Gemfile.multi_cap", "Gemfile.multi_cap.lock" and "Capfile.multi_cap" where the dependency to **capistrano_sentinel** will be added and those new files will be used when deploying. This new Gemfile and the new Capfile will be clones of the original files, but will only add as dependency the **capistrano_sentinel** gem which is used to produce websocket events before a capistrano task is executed. And this gem will consume them and act depending on configuration.
+
+-	After installing this gem locally on your system, you can just create anywhere on your computer a YAML file as described in section **[2.2) Deploying multiple applications from a central location](#22-deploying-multiple-applications-from-a-central-location)** ( we suggest using the home directory) and then you can start deploying applications without adding new dependencies to those applications.
+
+-	When the command will finish , the files created will be removed. ("Gemfile.multi_cap", "Gemfile.multi_cap.lock" and "Capfile.multi_cap") if they exist in the application root directory.
+
+-	If you are using RVM and there is a .rvmrc file in your project root directory and bash is available , the script will use bash emulator in order to properly load RVM gemsets because .rvmrc files need trusting. **If you use .rvmrc files please make sure you have the `bash` executable available in your PATH**
+
 -	**Dont use BUNDLE EXEC command when running the executable for this gem unless you are using version 1 or this gem is part of the Gemfile of the application you are using. Otherwise just use the `multi_cap` executable without any prefix ( Unless this gem is part of your gemfile, in which case the BUNDLE EXEC prefix is needed )**
 
 If you are using a older version than 2.0 please refer to this [README for version 1.7.2 or lower](https://github.com/bogdanRada/capistrano_multiconfig_parallel/blob/master/V1_README.md)
@@ -76,8 +82,10 @@ Add the following to your Capfile after requiring **capistrano** and **capistran
 
 Install locally on your system the capistrano_multiconfig_parallel gem using this command :
 
+**Please check first what is the last release here: [Release Details](https://github.com/bogdanRada/capistrano_multiconfig_parallel/releases) and use that version instead of the one below**
+
 ```ruby
-  gem install capistrano_multiconfig_parallel -v 2.0.0
+  gem install capistrano_multiconfig_parallel -v 2.0.1
 ```
 
 Please read [Release Details](https://github.com/bogdanRada/capistrano_multiconfig_parallel/releases) if you are upgrading. We break backward compatibility between large ticks but you can expect it to be specified at release notes.
