@@ -125,6 +125,15 @@ module CapistranoMulticonfigParallel
       root.children.find { |file| check_file(file, filename) }.present? || pathname_is_root?(root)
     end
 
+    def find_file_by_names(custom_path = detect_root, names = ['capfile'])
+      names = names.is_a?(Array) ? names : [names]
+      pathnames = names.collect do |name|
+        Pathname.new(custom_path).children.find { |file| check_file(file, name) }
+      end
+      pathnames.present? && pathnames.is_a?(Array) ? pathnames.compact : pathnames
+    end
+
+
     def try_detect_file(filename = 'capfile')
       root = pwd_parent_dir
       root = root.parent until find_file_in_directory(root, filename)

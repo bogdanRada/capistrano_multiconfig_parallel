@@ -15,9 +15,11 @@ module CapistranoMulticonfigParallel
       @options = options.stringify_keys
       @application = application
       @manager = @application.manager
-      @gitflow ||= command.gitflow_enabled?
     end
 
+    def gitflow
+      @gitflow ||= command.gitflow_enabled?
+    end
 
     def save_stderr_error(data)
       return unless development_debug?
@@ -111,7 +113,6 @@ module CapistranoMulticonfigParallel
 
     def setup_additional_env_variables(value)
       value["#{env_variable}"] = id
-      value["capistrano_version"] = job_capistrano_version
     end
 
     def finished?
@@ -124,6 +125,11 @@ module CapistranoMulticonfigParallel
 
     def rolling_back?
       ['deploy:rollback'].include?(action)
+    end
+
+    def mark_for_dispatching_new_job
+      return if rolling_back?
+      will_dispatch_new_job = new_jobs_dispatched.size + 1
     end
 
     def marked_for_dispatching_new_job?

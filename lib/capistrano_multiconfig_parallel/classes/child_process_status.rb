@@ -65,7 +65,7 @@ module CapistranoMulticonfigParallel
     end
 
     def io_callback(io, data)
-      log_to_file("#{io.upcase} ---- #{data}", job_id: @job_id)
+      log_to_worker(data, io)
     end
   end
 end

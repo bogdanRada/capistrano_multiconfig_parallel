@@ -20,6 +20,7 @@ require 'configliere'
 require 'devnull'
 require 'inquirer'
 require "capistrano_sentinel"
+require 'ruby-progressbar'
 
 require 'etc'
 require 'logger'

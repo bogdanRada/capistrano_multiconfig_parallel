@@ -12,14 +12,13 @@ module CapistranoMulticonfigParallel
     def initialize(job)
       @job = job
       @job_final_gemfile = job_gemfile_multi
-      @legacy_capistrano = legacy_capistrano? ? true : false
     end
 
     def lockfile_parser
       if File.exists?(job_gemfile) && File.exists?(job_gemfile_lock)
         @lockfile_parser ||= Bundler::LockfileParser.new(Bundler.read_file("#{job_gemfile_lock}"))
       else
-        raise RuntimeError, "please install the gems separately for this application #{job_path} and re-try again!"
+        raise "please install the gems separately for this application #{job_path} and re-try again!"
       end
     end
 
@@ -28,12 +27,12 @@ module CapistranoMulticonfigParallel
     end
 
     def fetch_bundler_worker_command
-      get_command_script(fetch_bundler_check_command)
+      get_command_script(fetch_bundler_check_command, "bundler")
     end
 
 
     def find_capfile(custom_path = job_path)
-      @capfile_path ||= Pathname.new(custom_path).children.find { |file| check_file(file, 'capfile') }
+      @capfile_path ||= find_file_by_names(custom_path, 'capfile').first
     end
 
     def capfile_name
@@ -109,13 +108,13 @@ module CapistranoMulticonfigParallel
       array_options = []
       filtered_keys = options.delete(:filtered_keys) || []
       env_options.each do |key, value|
-        array_options << "#{env_prefix(key, @legacy_capistrano)} #{env_key_format(key, @legacy_capistrano)}=#{value}" if value.present? && !env_option_filtered?(key, filtered_keys)
+        array_options << "#{env_prefix(key, legacy_capistrano)} #{env_key_format(key, legacy_capistrano)}=#{value}" if value.present? && !env_option_filtered?(key, filtered_keys)
       end
       setup_remaining_flags(array_options, options)
     end
 
     def setup_remaining_flags(array_options, options)
-      array_options << trace_flag(@legacy_capistrano) if app_debug_enabled?
+      array_options << trace_flag(legacy_capistrano) if app_debug_enabled?
       array_options.concat(setup_flags_for_job(options))
     end
 
@@ -128,8 +127,12 @@ module CapistranoMulticonfigParallel
       @job_capistrano_version ||= job_gem_version("capistrano")
     end
 
-    def legacy_capistrano?
+    def legacy_capistrano_version?
       verify_gem_version(job_capistrano_version, '3.0', operator: '<')
+    end
+
+    def legacy_capistrano
+      @legacy_capistrano  ||= legacy_capistrano_version? ? true : false
     end
 
     def capistrano_sentinel_needs_updating?
@@ -198,7 +201,15 @@ module CapistranoMulticonfigParallel
       rvm_enabled_for_job? ? "bash --login -c '#{command}'" : command
     end
 
-    def get_command_script(command)
+    def log_to_worker(message, action = nil)
+      if action.present? || action.to_s == id.to_s
+        log_to_file(message, job_id: id, prefix: action)
+      else
+        log_to_file(message)
+      end
+    end
+
+    def get_command_script(command, action = nil)
       command = rvm_bash_prefix(command)
       command = command.inspect
       command_text =<<-CMD
@@ -211,13 +222,13 @@ module CapistranoMulticonfigParallel
 
       if rvm_enabled_for_job?
         create_job_tempfile_command(command_text)
-        log_to_file "JOB #{@job_id}  created Tempfile #{@tempfile.path} with contents #{File.read(@tempfile.path)}"
+        log_to_worker("JOB #{@job_id}  created Tempfile #{@tempfile.path} with contents #{File.read(@tempfile.path)}", action)
         "ruby #{@tempfile.path}"
       else
         final_command=<<-CMD
         cd #{job_path} && bundle exec ruby -e "#{command_text}"
         CMD
-        log_to_file "JOB #{@job_id}  prepared command #{final_command}"
+        log_to_worker("JOB #{@job_id}  prepared command #{final_command}", action)
         final_command
       end
     end
@@ -250,12 +261,15 @@ module CapistranoMulticonfigParallel
     end
 
     def prepare_application_for_deployment
-      if ENV['MULTI_CAP_WEB_APP'].present?
-        bundler_worker = CapistranoMulticonfigParallel::BundlerWorker.new
-        result = bundler_worker.work(job)
+      config = @job.application.patched_job_paths.find{|hash| hash[:path] == job_path}
+      if config.present?
+        @job_final_gemfile = config[:gemfile]
+        @job_final_capfile = config[:capfile]
+      else
+        check_capistrano_sentinel_availability
+        prepare_capfile
+        @job.application.patched_job_paths << {path: job_path, gemfile: @job_final_gemfile, capfile: @job_final_capfile}
       end
-      check_capistrano_sentinel_availability
-      prepare_capfile
     end
 
     def check_capistrano_sentinel_availability
@@ -307,17 +321,7 @@ module CapistranoMulticonfigParallel
     def rollback_changes_to_application
       FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
       FileUtils.rm_rf("#{job_gemfile_multi}.lock") if File.exists?("#{job_gemfile_multi}.lock")
-      unless capistrano_sentinel_available?
-        File.open(job_capfile, 'r') do |f|
-          File.open("#{job_capfile}.tmp", 'w') do |f2|
-            f.each_line do |line|
-              f2.write(line) unless line.include?(capistrano_sentinel_name)
-            end
-          end
-        end
-        FileUtils.mv "#{job_capfile}.tmp", job_capfile
-        FileUtils.rm_rf("#{job_capfile}.tmp")
-      end
+      FileUtils.rm_rf(job_capfile_multi) if  File.exists?(job_capfile_multi)
       FileUtils.rm_rf(@tempfile.path) if defined?(@tempfile) && @tempfile
     end
 
@@ -331,7 +335,7 @@ module CapistranoMulticonfigParallel
     private
 
     def run_shell_command(command)
-      sh("#{command}")
+      Kernel.system("#{command}")
     end
   end
 end

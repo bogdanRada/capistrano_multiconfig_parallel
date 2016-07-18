@@ -52,49 +52,59 @@ module CapistranoMulticonfigParallel
       @async_exception   = nil
     end
 
+    def log_to_worker(message, io = nil)
+      if io.present?
+        log_to_file("#{io.upcase} ---- #{message}", job_id: @job_id, prefix: @options[:log_prefix])
+      elsif @options[:log_prefix].present?
+        log_to_file(message, job_id: @job_id, prefix: @options[:log_prefix])
+      else
+        log_to_file(message)
+      end
+    end
+
     def on_pid(pid)
-      log_to_file "Child process for worker #{@job_id} on_pid  #{pid.inspect}"
+      log_to_worker"Child process for worker #{@job_id} on_pid  #{pid.inspect}"
       @pid ||= pid
     end
 
 
     def on_input_stdin(data)
-        log_to_file "Child process for worker #{@job_id} on_input_stdin  #{data.inspect}"
-        @output_text << data
+      log_to_worker(data, "stdin")
+      @output_text << data
     end
 
     def on_read_stdout(data)
-      log_to_file "Child process for worker #{@job_id} on_read_stdout  #{data.inspect}"
+      log_to_worker(data, "stdout")
       @output_text << data
     end
 
     def on_read_stderr(data)
-      log_to_file "Child process for worker #{@job_id} on_read_stderr  #{data.inspect}"
+      log_to_worker(data, "stderr")
       @error_text << data
     end
 
 
     def on_timeout
-      log_to_file "Child process for worker #{@job_id} on_timeout  disconnected"
+      log_to_worker "Child process for worker #{@job_id} on_timeout  disconnected"
       @did_timeout = true
-      @callback.call(self) if @callback && @expect_timeout
+      @callback.call(self) if @callback && process_runner.synchronicity == :sync && @expect_timeout
     end
 
     def on_size_limit
-      log_to_file "Child process for worker #{@job_id} on_size_limit  disconnected"
+      log_to_worker "Child process for worker #{@job_id} on_size_limit  disconnected"
       @did_size_limit = true
-      @callback.call(self) if  @callback && @expect_size_limit
+      @callback.call(self) if @callback && process_runner.synchronicity == :sync && @expect_size_limit
     end
 
     def on_exit(status)
-      log_to_file "Child process for worker #{@job_id} on_exit  disconnected due to error #{status.inspect}"
+      log_to_worker "Child process for worker #{@job_id} on_exit  disconnected due to #{status.inspect}"
       @exit_status = status.exitstatus
-      @callback.call(self) if @callback
+      @callback.call(self) if @callback && process_runner.synchronicity == :sync
     end
 
     def async_exception_handler(async_exception)
       @async_exception = async_exception
-      log_to_file "Child process for worker #{@job_id} async_exception_handler  disconnected due to error #{data.inspect}"
+      log_to_worker "Child process for worker #{@job_id} async_exception_handler  disconnected due to error #{data.inspect}"
       @exit_status = 1
     end
 

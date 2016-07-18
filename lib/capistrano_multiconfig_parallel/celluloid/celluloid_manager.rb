@@ -236,7 +236,7 @@ module CapistranoMulticonfigParallel
       mailbox = worker.mailbox
       log_to_file("worker_died: worker job #{job.inspect} with mailbox #{mailbox.inspect} and #{mailbox.address.inspect} died  for reason:  #{reason}")
       return true if job.blank? || job.rolling_back? || job.action != 'deploy'
-      job.rollback_changes_to_application
+      #job.rollback_changes_to_application
       @worker_to_job.delete(mailbox.address)
       log_to_file("RESTARTING: worker job #{job.inspect} with mailbox #{mailbox.inspect} and #{mailbox.address.inspect} died  for reason:  #{reason}")
 

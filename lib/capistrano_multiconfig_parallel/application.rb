@@ -4,7 +4,8 @@ module CapistranoMulticonfigParallel
   class Application
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :stage_apps, :top_level_tasks, :jobs, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage
+    attr_reader :stage_apps, :top_level_tasks, :jobs, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage,:patched_job_paths
+    attr_writer :patched_job_paths
 
     def initialize
       Celluloid.boot unless Celluloid.running?
@@ -12,6 +13,8 @@ module CapistranoMulticonfigParallel
       @stage_apps = multi_apps? ? app_names_from_stages : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
       @jobs = []
+      @checked_job_paths = []
+      @patched_job_paths = [] # for deploy
     end
 
     def start
@@ -50,13 +53,13 @@ module CapistranoMulticonfigParallel
     end
 
     def verify_valid_data
-     return if  @top_level_tasks != ['default']
-     raise_invalid_job_config
+      return if  @top_level_tasks != ['default']
+      raise_invalid_job_config
     end
 
     def raise_invalid_job_config
-        puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
-        exit(false)
+      puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
+      exit(false)
     end
 
     def initialize_data
@@ -105,7 +108,6 @@ module CapistranoMulticonfigParallel
 
     def process_jobs
       return unless @jobs.present?
-      FileUtils.rm Dir["#{log_directory}/worker_*.log"]
       if configuration.multi_secvential.to_s.downcase == 'true'
         @jobs.each(&:execute_standard_deploy)
       else
@@ -153,6 +155,8 @@ module CapistranoMulticonfigParallel
     end
 
     def run
+      FileUtils.rm Dir["#{log_directory}/worker_*.log"]
+      FileUtils.rm Dir["#{log_directory}/multi_cap_worker_*.log"]
       options = {}
       if custom_command?
         options = verify_options_custom_command(options)
@@ -214,17 +218,27 @@ module CapistranoMulticonfigParallel
 
       env_options = options['env_options']
       job_env_options = custom_command? ? env_options.except(action_key) : env_options
+
       job = CapistranoMulticonfigParallel::Job.new(self, options.merge(
-                                                                    action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
-                                                                    env_options: job_env_options,
-                                                                    path:  job_path(options)
+      action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
+      env_options: job_env_options,
+      path:  job_path(options)
 
       ))
+        if job.job_gemfile.present?
+          if !@checked_job_paths.include?(job.job_path)
+            @checked_job_paths << job.job_path
+            bundler_worker = CapistranoMulticonfigParallel::BundlerWorker.new
+            bundler_worker.work(job) # make sure we have installed the dependencies first for this application
+          end
+        else
+          raise "Please make sure you have a Gemfile in the project root directory #{job.job_path}"
+        end
       if job.find_capfile.blank?
         raise "Please make sure you have a Capfile in the project root directory #{job.job_path}"
       end
       unless job.capistrano_sentinel_needs_updating?
-         raise "Please consider upgrading the gem #{job.capistrano_sentinel_name} to version #{job.loaded_capistrano_sentinel_version} from #{job.job_capistrano_sentinel_version} in #{job.job_path} "
+        raise "Please consider upgrading the gem #{job.capistrano_sentinel_name} to version #{job.loaded_capistrano_sentinel_version} from #{job.job_capistrano_sentinel_version} in #{job.job_path} "
       end
       @jobs << job unless job_can_tag_staging?(job)
     end
@@ -234,7 +248,8 @@ module CapistranoMulticonfigParallel
     end
 
     def job_path(options)
-      options.fetch("path", nil).present? ? options["path"] : detect_root
+      path = options["path"].present? ? options["path"] : nil
+      path.present? && File.directory?(path) ? path : detect_root
     end
 
     def job_stage_valid?(options)

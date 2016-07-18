@@ -100,7 +100,7 @@ module CapistranoMulticonfigParallel
       check_child_proces
       command = job.fetch_deploy_command
       log_to_file("worker #{@job_id} executes: #{command}")
-      @child_process.async.work(@job, command, actor: Actor.current, silent: true,sync: :async, runner_status_klass: CapistranoMulticonfigParallel::ChildProcessStatus)
+      @child_process.async.work(@job, command, actor: Actor.current, silent: true, process_sync: :async, runner_status_klass: CapistranoMulticonfigParallel::ChildProcessStatus)
     end
 
     def check_child_proces
@@ -186,12 +186,9 @@ module CapistranoMulticonfigParallel
       @manager.workers_terminated.signal('completed') if !@job.marked_for_dispatching_new_job? && @manager.present? && @manager.alive? && @manager.all_workers_finished?
     end
 
-    def mark_for_dispatching_new_job
-      @job.will_dispatch_new_job = @job.new_jobs_dispatched.size + 1 unless @job.rolling_back?
-    end
 
-    def notify_finished(exit_status)
-      mark_for_dispatching_new_job if exit_status != 0
+    def notify_finished(exit_status, _runner_status)
+      @job.mark_for_dispatching_new_job if exit_status != 0
       @job.exit_status = exit_status
       finish_worker(exit_status)
       return if exit_status == 0

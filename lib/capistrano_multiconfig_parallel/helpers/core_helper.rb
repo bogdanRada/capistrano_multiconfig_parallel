@@ -84,7 +84,7 @@ module CapistranoMulticonfigParallel
     end
 
     def log_to_file(message, options = {})
-      worker_log = options.fetch(:job_id, '').present? ? find_worker_log(options[:job_id]) : logger
+      worker_log = options.fetch(:job_id, '').present? ? find_worker_log(options[:job_id], options[:prefix]) : logger
       print_to_log_file(worker_log, options.merge(message: message)) if worker_log.present? && app_debug_enabled?
     end
 
@@ -94,10 +94,10 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    def find_worker_log(job_id)
+    def find_worker_log(job_id, prefix = nil)
       return if job_id.blank?
       FileUtils.mkdir_p(log_directory) unless File.directory?(log_directory)
-      filename = File.join(log_directory, "worker_#{job_id}.log")
+      filename = File.join(log_directory, "multi_cap_worker_#{prefix.present? ? "#{prefix}_" : ''}#{job_id}.log")
       setup_filename_logger(filename)
     end
 

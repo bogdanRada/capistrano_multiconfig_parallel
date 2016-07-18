@@ -27,14 +27,14 @@ module CapistranoMulticonfigParallel
 
       @runner_status_klass = @options[:runner_status_klass].present? ? @options[:runner_status_klass] : RunnerStatus
       @runner_status = @runner_status_klass.new(Actor.current, job, cmd,  @options)
-      @synchronicity = @options[:sync]
+      @synchronicity = @options[:process_sync]
       start_running
     end
 
     def start_running
       setup_attributes
       run_right_popen3
-      setup_em_error_handler if @synchronicity == :async
+      setup_em_error_handler
     end
 
     def setup_attributes
@@ -63,9 +63,9 @@ module CapistranoMulticonfigParallel
       log_to_file("worker #{@job_id} startsnotify finished with exit status #{exit_status.inspect}")
       if @actor.present? && @actor.respond_to?(:notify_finished)
         if @actor.respond_to?(:async) && @synchronicity == :async
-          @actor.async.notify_finished(exit_status)
-        elsif @synchronicity == :sync
-          @actor.notify_finished(exit_status)
+          @actor.async.notify_finished(exit_status, @runner_status)
+        else
+          @actor.notify_finished(exit_status, @runner_status)
         end
       end
     end
@@ -96,7 +96,6 @@ module CapistranoMulticonfigParallel
 
     def run_right_popen3_sync(command, popen3_options)
       do_right_popen3_sync(command, popen3_options)
-      sleep(0.1) until @runner_status.exit_status.present?
     end
 
     def run_right_popen3_async(command, popen3_options)
