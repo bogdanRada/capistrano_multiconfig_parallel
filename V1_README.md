@@ -3,10 +3,8 @@ capistrano_multiconfig_parallel
 
 [![Gem Version](https://badge.fury.io/rb/capistrano_multiconfig_parallel.svg)](http://badge.fury.io/rb/capistrano_multiconfig_parallel) [![Repo Size](https://reposs.herokuapp.com/?path=bogdanRada/capistrano_multiconfig_parallel)](https://github.com/bogdanRada/capistrano_multiconfig_parallel) [![Gem Downloads](https://ruby-gem-downloads-badge.herokuapp.com/capistrano_multiconfig_parallel?type=total&style=dynamic)](https://github.com/bogdanRada/capistrano_multiconfig_parallel) [![Analytics](https://ga-beacon.appspot.com/UA-72570203-1/bogdanRada/capistrano_multiconfig_parallel)](https://github.com/bogdanRada/capistrano_multiconfig_parallel) [![Join the chat at https://gitter.im/bogdanRada/capistrano_multiconfig_parallel](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bogdanRada/capistrano_multiconfig_parallel?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-
-This README is for version 1.7.2 or lower. Please consider upgrading to latest version. Or at least try it out :)  
--------------------------------------------------------------------------------------------------------------------
-
+This README is for version 1.7.2 or lower. Please consider upgrading to latest version. Or at least try it out :)
+-----------------------------------------------------------------------------------------------------------------
 
 DEMO
 ----
@@ -96,6 +94,7 @@ Default Configuration:
 ---
 multi_debug: true
 multi_secvential: false
+check_app_bundler_dependencies: false
 websocket_server:
   enable_debug: false
   adapter: ''
@@ -126,6 +125,10 @@ Available command line options when executing a command
 -	--multi-secvential
 
 	-	If parallel executing does not work for you, you can use this option so that each process is executed normally and ouputted to the screen. However this means that all other tasks will have to wait for each other to finish before starting
+
+-	--check_app_bundler_dependencies
+
+	-	if option is present and has value TRUE , will check the application bundler dependecies are satisfied before delegating the job to the actor that executes the capistrano action -
 
 -	--websocket_server.enable_debug
 

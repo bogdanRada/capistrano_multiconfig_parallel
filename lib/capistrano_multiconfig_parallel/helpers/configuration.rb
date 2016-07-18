@@ -114,7 +114,7 @@ module CapistranoMulticonfigParallel
 
     def check_configuration(config)
       @check_config = config.stringify_keys
-      check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug terminal.clear_screen))
+      check_boolean_props(%w(multi_debug multi_secvential websocket_server.enable_debug terminal.clear_screen check_app_bundler_dependencies))
       check_string_props(%w(websocket_server.adapter))
       check_array_props(%w(task_confirmations development_stages apply_stage_confirmation))
       check_directories(%w(log_dir config_dir))

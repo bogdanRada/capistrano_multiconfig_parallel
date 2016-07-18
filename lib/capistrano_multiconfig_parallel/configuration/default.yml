@@ -6,6 +6,13 @@ default_config:
     default: TRUE
     required: false
 
+  - name: 'check_app_bundler_dependencies'
+    type: 'boolean'
+    description: >-
+      Forces execution of jobs in sequence
+    default: 'false'
+    required: false
+
   - name: 'multi_secvential'
     type: 'boolean'
     description: >-

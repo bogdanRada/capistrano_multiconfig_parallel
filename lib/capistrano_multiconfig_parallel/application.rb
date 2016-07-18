@@ -225,6 +225,7 @@ module CapistranoMulticonfigParallel
       path:  job_path(options)
 
       ))
+      if configuration.check_app_bundler_dependencies.to_s.downcase == 'true'
         if job.job_gemfile.present?
           if !@checked_job_paths.include?(job.job_path)
             @checked_job_paths << job.job_path
@@ -234,6 +235,7 @@ module CapistranoMulticonfigParallel
         else
           raise "Please make sure you have a Gemfile in the project root directory #{job.job_path}"
         end
+      end
       if job.find_capfile.blank?
         raise "Please make sure you have a Capfile in the project root directory #{job.job_path}"
       end
