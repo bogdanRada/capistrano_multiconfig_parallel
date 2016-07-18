@@ -54,7 +54,8 @@ Requirements
 10.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
 11.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
 12.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
-13.	[capistrano_sentinel >= 1.6](http://github.com/bogdanRada/capistrano_sentinel)
+13.	[capistrano_sentinel >= 0.0.16](http://github.com/bogdanRada/capistrano_sentinel)
+14.	[ruby-progressbar >= 1.8.1](https://github.com/jfelchner/ruby-progressbar)
 
 Compatibility
 -------------
