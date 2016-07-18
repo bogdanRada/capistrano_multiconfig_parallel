@@ -24,7 +24,7 @@ NEW Improvements started in version 2.0.0.alpha ( currently gem is in stable ver
 
 -	You can now deploy applications from anywhere on your computer **without having to add THIS gem to the Gemfiles of those applications**, however we recommend you to add the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem to those Gemfiles for better stability. **The applications though must contain proper configuration for capistrano as you would normally do!!!**
 
--	If [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) is included in one of the applications you are deploying, but you forget to require it, this gem will automcatically patch the Capfile to require the gem. Otherwise the Capfile is not changed.
+-	If [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) is included in one of the applications you are deploying, but you forget to require it, this gem will automatically patch the Capfile to require the gem. Otherwise the Capfile is not changed.
 
 -	However this will work even if you don't add the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) to your Gemfile, because the new version will automatically create three files "Gemfile.multi_cap", "Gemfile.multi_cap.lock" and "Capfile.multi_cap" where the dependency to **capistrano_sentinel** will be added and those new files will be used when deploying. This new Gemfile and the new Capfile will be clones of the original files, but will only add as dependency the **capistrano_sentinel** gem which is used to produce websocket events before a capistrano task is executed. And this gem will consume them and act depending on configuration.
 
