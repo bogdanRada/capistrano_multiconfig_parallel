@@ -19,7 +19,6 @@ module CapistranoMulticonfigParallel
   #
   class CelluloidWorker
     include CapistranoMulticonfigParallel::BaseActorHelper
-    class TaskFailed < StandardError; end
 
 
     ATTRIBUTE_LIST = [
@@ -170,7 +169,7 @@ module CapistranoMulticonfigParallel
       log_to_file("worker #{@job_id} triest to transition from #{@machine.state} to  #{name}") unless options[:bundler]
       @machine.go_to_transition(name.to_s, options)
       error_message = "worker #{@job_id} task #{name} failed "
-      raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message) if job.failed? # force worker to rollback
+      raise(CapistranoMulticonfigParallel::TaskFailed.new(error_message), error_message) if job.failed? # force worker to rollback
     end
 
     def send_msg(channel, message = nil)
@@ -193,7 +192,7 @@ module CapistranoMulticonfigParallel
       finish_worker(exit_status)
       return if exit_status == 0
       error_message = "worker #{@job_id} task  failed with exit status #{exit_status.inspect}  "
-      raise(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed.new(error_message), error_message)
+      raise(CapistranoMulticonfigParallel::TaskFailed.new(error_message), error_message)
     end
 
     # def inspect

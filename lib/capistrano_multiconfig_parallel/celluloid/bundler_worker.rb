@@ -15,7 +15,7 @@ module CapistranoMulticonfigParallel
       :show_bundler
     ]
 
-    def work(job)
+    def work(job, &callback)
       @job = job
       @job_id = job.id
       @runner_status = nil
@@ -24,7 +24,7 @@ module CapistranoMulticonfigParallel
       @total_dependencies = bundler_dependencies.size
       @show_bundler = true
       progress_bar
-      check_missing_deps
+      async.check_missing_deps
     end
 
     def progress_bar
@@ -41,7 +41,10 @@ module CapistranoMulticonfigParallel
     def show_bundler_progress(data)
       @show_bundler = false if  data.to_s.include?("The Gemfile's dependencies are satisfied") || data.to_s.include?("Bundle complete")
       gem_spec = bundler_dependencies.find{|spec| data.include?(spec.name) }
-      if  @show_bundler == true && gem_spec.present?
+      if data.include?("Error") && @show_bundler == true && gem_spec.present?
+        error_message = "Bundler worker #{@job_id} task  failed for #{gem_spec.inspect}"
+        raise(CapistranoMulticonfigParallel::TaskFailed.new(error_message), error_message)
+      elsif  @show_bundler == true && gem_spec.present?
         @checked_bundler_deps = [gem_spec.name]
         progress_bar.increment
       elsif @show_bundler == false
@@ -57,11 +60,20 @@ module CapistranoMulticonfigParallel
 
     def do_bundle_sync_command(command)
       process_runner = CapistranoMulticonfigParallel::ProcessRunner.new
-      process_runner.work(@job, command, process_sync: :sync, actor: Actor.current, log_prefix: @log_prefix, runner_status_klass: CapistranoMulticonfigParallel::BundlerStatus, :callback => lambda {|runner_status| @runner_status = runner_status })
-      sleep(0.1) until @runner_status.present?
-      @runner_status.output_text
+      process_runner.work(@job, command, process_sync: :async, actor: Actor.current, log_prefix: @log_prefix, runner_status_klass: CapistranoMulticonfigParallel::BundlerStatus)
     end
 
+    def notify_finished(exit_status, runner_status)
+      @runner_status = runner_status
+      @exit_status = exit_status
+      progress_bar.finish
+      if exit_status == 0
+        callback.call(@job)
+      else
+        error_message = "Bundler worker #{@job_id} task  failed with exit status #{exit_status.inspect}"
+        raise(CapistranoMulticonfigParallel::TaskFailed.new(error_message), error_message)
+      end
+    end
 
   end
 end

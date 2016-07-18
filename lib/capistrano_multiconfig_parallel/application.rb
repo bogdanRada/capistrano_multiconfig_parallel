@@ -12,6 +12,7 @@ module CapistranoMulticonfigParallel
       CapistranoMulticonfigParallel.enable_logging
       @stage_apps = multi_apps? ? app_names_from_stages : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
+      @bundler_workers = []
       @jobs = []
       @checked_job_paths = []
       @patched_job_paths = [] # for deploy
@@ -164,6 +165,9 @@ module CapistranoMulticonfigParallel
       else
         collect_jobs(options)
       end
+      if configuration.check_app_bundler_dependencies.to_s.downcase == 'true'
+        sleep(0.1) until @jobs.size == @bundler_workers.size
+      end
       process_jobs
     end
 
@@ -225,21 +229,28 @@ module CapistranoMulticonfigParallel
       path:  job_path(options)
 
       ))
+
+      bundler_callback = lambda { |job|
+        raise "Please make sure you have a Gemfile in the project root directory #{job.job_path}" unless job.job_gemfile.present?
+        if job.find_capfile.blank?
+          raise "Please make sure you have a Capfile in the project root directory #{job.job_path}"
+        end
+        unless job.capistrano_sentinel_needs_updating?
+          raise "Please consider upgrading the gem #{job.capistrano_sentinel_name} to version #{job.loaded_capistrano_sentinel_version} from #{job.job_capistrano_sentinel_version} in #{job.job_path} "
+        end
+        job.application.jobs << job unless job.application.job_can_tag_staging?(job)
+      }
       if configuration.check_app_bundler_dependencies.to_s.downcase == 'true' && job.job_gemfile.present?
         if !@checked_job_paths.include?(job.job_path)
           @checked_job_paths << job.job_path
           bundler_worker = CapistranoMulticonfigParallel::BundlerWorker.new
-          bundler_worker.work(job) # make sure we have installed the dependencies first for this application
+          @bundler_workers << {job: job, worker: bundler_worker }
+          bundler_worker.work(job, &bundler_callback) # make sure we have installed the dependencies first for this application
         end
+      else
+        bundler_callback.call(job)
       end
-      raise "Please make sure you have a Gemfile in the project root directory #{job.job_path}" unless job.job_gemfile.present?
-      if job.find_capfile.blank?
-        raise "Please make sure you have a Capfile in the project root directory #{job.job_path}"
-      end
-      unless job.capistrano_sentinel_needs_updating?
-        raise "Please consider upgrading the gem #{job.capistrano_sentinel_name} to version #{job.loaded_capistrano_sentinel_version} from #{job.job_capistrano_sentinel_version} in #{job.job_path} "
-      end
-      @jobs << job unless job_can_tag_staging?(job)
+
     end
 
     def job_can_tag_staging?(job)

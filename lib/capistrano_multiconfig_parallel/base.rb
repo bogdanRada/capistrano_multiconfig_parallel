@@ -4,6 +4,9 @@ module CapistranoMulticonfigParallel
   GITFLOW_CALCULATE_TAG_TASK = 'gitflow:calculate_tag'
   GITFLOW_VERIFY_UPTODATE_TASK = 'gitflow:verify_up_to_date'
 
+  class TaskFailed < StandardError; end
+
+
   class << self
     attr_accessor :logger, :original_args, :config, :config_keys
     include CapistranoMulticonfigParallel::Configuration
@@ -51,7 +54,7 @@ module CapistranoMulticonfigParallel
       Celluloid.logger = logger
       Celluloid.task_class = defined?(Celluloid::TaskThread) ? Celluloid::TaskThread : Celluloid::Task::Threaded
       Celluloid.exception_handler do |ex|
-        unless ex.is_a?(Interrupt) || ex.is_a?(SystemExit) || ex.is_a?(CapistranoMulticonfigParallel::CelluloidWorker::TaskFailed)
+        unless ex.is_a?(Interrupt) || ex.is_a?(SystemExit) || ex.is_a?(CapistranoMulticonfigParallel::TaskFailed)
           rescue_error(ex, 'stderr')
         end
       end
