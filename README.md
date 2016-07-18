@@ -22,7 +22,7 @@ NEW Improvements started in version 2.0.0.alpha ( currently gem is in stable ver
 
 -	Code for handling websocket events when a task is invoked was moved to a new gem [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel)
 
--	You can now deploy applications from anywhere on your computer **without having to add any gem to the Gemfiles of those applications**, however we recommend you to add the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem to those Gemfiles for better stability.
+-	You can now deploy applications from anywhere on your computer **without having to add THIS gem to the Gemfiles of those applications**, however we recommend you to add the [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) gem to those Gemfiles for better stability. **The applications though must contain proper configuration for capistrano as you would normally do!!!**
 
 -	If [capistrano_sentinel](https://github.com/bogdanRada/capistrano_sentinel) is included in one of the applications you are deploying, but you forget to require it, this gem will automcatically patch the Capfile to require the gem. Otherwise the Capfile is not changed.
 
