@@ -9,7 +9,7 @@ module CapistranoMulticonfigParallel
 
     MAJOR = 2
     MINOR = 0
-    TINY = 5
+    TINY = 6
     PRE = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')

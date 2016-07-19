@@ -50,14 +50,12 @@ module CapistranoMulticonfigParallel
       log_to_file "Child process for worker #{@job_id} on_exit  disconnected due to error #{exit_status.inspect}"
       print_error_if_exist
       @exit_status = status.exitstatus
-      process_runner.check_exit_status
     end
 
     def async_exception_handler(*data)
       log_to_file "Child process for worker #{@job_id} async_exception_handler  disconnected due to error #{data.inspect}"
       io_callback('stderr', data)
       @exit_status = 1
-      process_runner.check_exit_status
     end
 
     def watch_handler(process)
