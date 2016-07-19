@@ -5,8 +5,8 @@ module CapistranoMulticonfigParallel
   class Job
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    attr_reader :options, :application, :manager, :bundler_status
-    attr_writer :status, :exit_status,  :bundler_status, :new_jobs_dispatched, :will_dispatch_new_job
+    attr_reader :options, :application, :manager, :bundler_status, :bundler_check_status
+    attr_writer :status, :exit_status,  :bundler_status, :new_jobs_dispatched, :will_dispatch_new_job, :bundler_check_status
 
     delegate :stderr_buffer,
     to: :manager
@@ -43,7 +43,9 @@ module CapistranoMulticonfigParallel
     end
 
     def terminal_row
-      if bundler_status
+      if bundler_check_status
+        bundler_check_terminal_row
+      elsif bundler_status
         bundler_terminal_row
       else
         [
@@ -56,6 +58,14 @@ module CapistranoMulticonfigParallel
       end
     end
 
+    def bundler_check_terminal_row
+      [
+        { value: id.to_s },
+        { value: wrap_string(File.basename(job.job_path)) },
+        { value: "bundle check || bundle install" },
+        { value: bundler_check_status.to_s }
+      ]
+    end
 
     def bundler_terminal_row
       [
@@ -99,6 +109,7 @@ module CapistranoMulticonfigParallel
       { name: 'status', default: :unstarted },
       { name: 'exit_status', default: nil },
       { name: 'bundler_status', default: nil },
+      { name: 'bundler_check_status', default: nil },
       { name: 'new_jobs_dispatched', default: [] },
       { name: 'will_dispatch_new_job', default: nil },
     ].each do |hash|

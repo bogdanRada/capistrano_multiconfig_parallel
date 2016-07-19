@@ -2,9 +2,24 @@ require_relative './helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # finds app dependencies, shows menu and delegates jobs to celluloid manager
   class Application
-    include CapistranoMulticonfigParallel::ApplicationHelper
+    include CapistranoMulticonfigParallel::BaseActorHelper
 
-    attr_reader :stage_apps, :top_level_tasks, :jobs, :condition, :manager, :dependency_tracker, :application, :stage, :name, :args, :argv, :default_stage,:patched_job_paths
+    attr_reader :stage_apps,
+      :top_level_tasks,
+      :jobs,
+      :condition,
+      :manager,
+      :dependency_tracker,
+      :application,
+      :stage,
+      :name,
+      :args,
+      :argv,
+      :default_stage,
+      :patched_job_paths,
+      :bundler_workers_store,
+      :checked_job_paths
+      
     attr_writer :patched_job_paths
 
     def initialize
@@ -12,7 +27,7 @@ module CapistranoMulticonfigParallel
       CapistranoMulticonfigParallel.enable_logging
       @stage_apps = multi_apps? ? app_names_from_stages : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
-      @bundler_workers = []
+      @bundler_workers_store = {}
       @jobs = []
       @checked_job_paths = []
       @patched_job_paths = [] # for deploy
@@ -93,10 +108,20 @@ module CapistranoMulticonfigParallel
     end
 
     def check_before_starting
-      @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(self)
+      @dependency_tracker = CapistranoMulticonfigParallel::DependencyTracker.new(Actor.current)
       @default_stage = configuration.development_stages.present? ? configuration.development_stages.first : 'development'
       @condition = Celluloid::Condition.new
-      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(self)
+      @manager = CapistranoMulticonfigParallel::CelluloidManager.new(Actor.current)
+      start_bundler_supervision_if_needed
+    end
+
+    def start_bundler_supervision_if_needed
+      return if configuration.check_app_bundler_dependencies.to_s.downcase != 'true'
+      @bundler_worker_supervisor = setup_supervision_group
+      @mutex = Mutex.new
+      @bundler_workers = setup_pool_of_actor(@bundler_worker_supervisor, actor_name: :bundler_workers, type: CapistranoMulticonfigParallel::BundlerWorker, size: 10)
+      Actor.current.link @bundler_workers
+      setup_actor_supervision(@bundler_worker_supervisor, actor_name: :bundler_terminal_server, type: CapistranoMulticonfigParallel::BundlerTerminalTable, args: [@manager, Actor.current, configuration.fetch(:terminal, {})])
     end
 
     def collect_jobs(options = {}, &_block)
@@ -166,7 +191,7 @@ module CapistranoMulticonfigParallel
         collect_jobs(options)
       end
       if configuration.check_app_bundler_dependencies.to_s.downcase == 'true'
-        sleep(0.1) until @jobs.size == @bundler_workers.size
+        sleep(0.1) until @jobs.size == @bundler_workers_store.size
       end
       process_jobs
     end
@@ -223,7 +248,7 @@ module CapistranoMulticonfigParallel
       env_options = options['env_options']
       job_env_options = custom_command? ? env_options.except(action_key) : env_options
 
-      job = CapistranoMulticonfigParallel::Job.new(self, options.merge(
+      job = CapistranoMulticonfigParallel::Job.new(Actor.current, options.merge(
       action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
       env_options: job_env_options,
       path:  job_path(options)
@@ -238,14 +263,13 @@ module CapistranoMulticonfigParallel
         unless job.capistrano_sentinel_needs_updating?
           raise "Please consider upgrading the gem #{job.capistrano_sentinel_name} to version #{job.loaded_capistrano_sentinel_version} from #{job.job_capistrano_sentinel_version} in #{job.job_path} "
         end
+        log_to_file("bundler callback called with #{job.inspect}")
         job.application.jobs << job unless job.application.job_can_tag_staging?(job)
       }
       if configuration.check_app_bundler_dependencies.to_s.downcase == 'true' && job.job_gemfile.present?
         if !@checked_job_paths.include?(job.job_path)
           @checked_job_paths << job.job_path
-          bundler_worker = CapistranoMulticonfigParallel::BundlerWorker.new
-          @bundler_workers << {job: job, worker: bundler_worker }
-          bundler_worker.work(job, &bundler_callback) # make sure we have installed the dependencies first for this application
+          @bundler_workers.work(job, &bundler_callback) # make sure we have installed the dependencies first for this application
         end
       else
         bundler_callback.call(job)

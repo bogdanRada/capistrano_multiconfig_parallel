@@ -23,6 +23,7 @@ module CapistranoMulticonfigParallel
       @terminal_rows = nil
       @cursor = CapistranoMulticonfigParallel::Cursor.new
       @errors = []
+      @notifications = 0
       @options = options.is_a?(Hash) ? options.stringify_keys : options
       @job_manager = job_manager
       @screen_erased = false
@@ -43,7 +44,10 @@ module CapistranoMulticonfigParallel
     def notify_time_change(_channel, message)
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_heaadings)
       jobs = setup_table_jobs(table)
+      @cursor.erase_screen if @notifications.to_i.zero? && @job_manager.checked_job_paths.size > 0 && jobs.find{|job_id, job| job.bundler_check_status.present? }.present?
+      @notifications=@notifications+1
       display_table_on_terminal(table, jobs)
+      signal_complete
     end
 
     def rescue_exception(ex)
@@ -68,7 +72,6 @@ module CapistranoMulticonfigParallel
         )
       )
       print_errors
-      signal_complete
     end
 
     def print_errors
@@ -91,7 +94,7 @@ module CapistranoMulticonfigParallel
     end
 
     def managers_alive?
-       @manager.alive?
+      @job_manager.alive? && @manager.alive?
     end
 
     def signal_complete

@@ -14,8 +14,6 @@ module CapistranoMulticonfigParallel
       end
     end
 
-    private
-
     def move_to_home!(row = 0, column = 1)
       erase_screen
       position_cursor(row, column)
