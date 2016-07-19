@@ -1,0 +1,27 @@
+  task_confirmations:
+    - gitflow:calculate_tag
+  apply_stage_confirmation:
+    - webdev
+  multi_debug:
+    true
+  websocket_server:
+    use_redis: false
+    enable_debug: false
+  terminal:
+    clear_screen: false
+  application_dependencies:
+    - app: 'foo'
+      priority: 1
+      path: '/some/path/to/foo'
+      dependencies: []
+    - app: 'bar'
+      priority: 1
+      path: '/some/path/to/bar'
+      dependencies:
+        - foo
+    - app: 'foo2'
+      priority: 1
+      path: '/some/path/to/foo2'
+      dependencies:
+        - foo
+        - bar
