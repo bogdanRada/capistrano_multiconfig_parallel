@@ -34,9 +34,5 @@ module CapistranoMulticonfigParallel
       jobs
     end
 
-    def managers_alive?
-      @job_manager.alive?
-    end
-
   end
 end
