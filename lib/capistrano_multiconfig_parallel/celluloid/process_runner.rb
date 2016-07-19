@@ -60,8 +60,8 @@ module CapistranoMulticonfigParallel
       exit_status = @runner_status.exit_status
       return if exit_status.blank?
       @timer.cancel
-      log_to_file("worker #{@job_id} startsnotify finished with exit status #{exit_status.inspect}")
       if @actor.present? && @actor.respond_to?(:notify_finished)
+        log_to_file("#{@actor.class} #{@job_id} startsnotify finished with exit status #{exit_status.inspect}")
         if @actor.respond_to?(:async) && @synchronicity == :async
           @actor.async.notify_finished(exit_status, @runner_status)
         else

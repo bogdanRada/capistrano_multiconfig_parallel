@@ -15,9 +15,8 @@ module CapistranoMulticonfigParallel
       :show_bundler
     ]
 
-    def work(job, &callback)
+    def work(job)
       @job = job
-      @callback = callback
       @job.application.bundler_workers_store[job] = Actor.current
       @job_id = job.id
       @runner_status = nil
@@ -90,8 +89,9 @@ module CapistranoMulticonfigParallel
       @runner_status = runner_status
       @exit_status = exit_status
       progress_bar.close if defined?(@progress_bar)
-      if exit_status == 0
-        @callback.call(@job)
+        log_to_file("bundler worker #{@job_id} notifuy finished with #{exit_status.inspect}")
+      if exit_status.to_i == 0
+        @job.application.add_job_to_list_of_jobs(@job)
       else
         error_message = "Bundler worker #{@job_id} task  failed with exit status #{exit_status.inspect}"
         raise(CapistranoMulticonfigParallel::TaskFailed.new(error_message), error_message)

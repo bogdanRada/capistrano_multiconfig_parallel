@@ -8,7 +8,7 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::BaseActorHelper
     attr_accessor :jobs, :job_to_worker, :worker_to_job, :job_to_condition, :mutex, :registration_complete, :workers_terminated, :stderr_buffer
 
-    attr_reader :worker_supervisor, :workers
+    attr_reader :worker_supervisor, :workers, :bundler_workers
     trap_exit :worker_died
 
     def initialize(job_manager)
@@ -36,6 +36,13 @@ module CapistranoMulticonfigParallel
       @job_to_worker = {}
       @worker_to_job = {}
       @job_to_condition = {}
+    end
+
+    def start_bundler_supervision_if_needed
+      return if configuration.check_app_bundler_dependencies.to_s.downcase != 'true'
+      @bundler_workers = setup_pool_of_actor(@worker_supervisor, actor_name: :bundler_workers, type: CapistranoMulticonfigParallel::BundlerWorker, size: 10)
+      Actor.current.link @bundler_workers
+      setup_actor_supervision(@worker_supervisor, actor_name: :bundler_terminal_server, type: CapistranoMulticonfigParallel::BundlerTerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
     end
 
     # call to send an actor

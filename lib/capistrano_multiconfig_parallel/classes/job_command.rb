@@ -261,6 +261,9 @@ module CapistranoMulticonfigParallel
     end
 
     def prepare_application_for_deployment
+      unless capistrano_sentinel_needs_updating?
+        raise "Please consider upgrading the gem #{capistrano_sentinel_name} to version #{loaded_capistrano_sentinel_version} from #{job_capistrano_sentinel_version} in #{job_path} "
+      end
       config = @job.application.patched_job_paths.find{|hash| hash[:path] == job_path}
       if config.present?
         @job_final_gemfile = config[:gemfile]
