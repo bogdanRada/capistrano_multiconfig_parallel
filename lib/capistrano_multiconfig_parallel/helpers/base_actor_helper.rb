@@ -34,9 +34,14 @@ module CapistranoMulticonfigParallel
     end
 
     module InstanceMethods
-      delegate :version_less_than_seventeen?,
-      to: :'CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods'
-
+      
+      [
+        :version_less_than_seventeen?,
+      ].each do |method_name|
+        define_method(method_name) do
+          CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods.send(method_name)
+        end
+      end
 
       def setup_actor_supervision_details(class_name, options)
         arguments = (options[:args].is_a?(Array) ? options[:args] : [options[:args]]).compact
@@ -44,7 +49,7 @@ module CapistranoMulticonfigParallel
           [options[:actor_name], options[:type], *arguments]
         else
           #supervises_opts = options[:supervises].present? ? { supervises: options[:supervises] } : {}
-         { as: options[:actor_name], type: options[:type], args: arguments, size: options.fetch(:size, nil) }
+          { as: options[:actor_name], type: options[:type], args: arguments, size: options.fetch(:size, nil) }
         end
       end
 

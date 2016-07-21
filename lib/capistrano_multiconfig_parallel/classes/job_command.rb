@@ -3,11 +3,12 @@ require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class used to find application dependencies
   class JobCommand
-    include FileUtils
+    extend Forwardable
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :job, :job_capistrano_version, :legacy_capistrano, :tempfile, :job_final_gemfile, :job_final_capfile
-    delegate :id, :app, :stage, :action, :task_arguments, :env_options, :path, to: :job
+
+    def_delegators :@job, :id, :app, :stage, :action, :task_arguments, :env_options, :path
 
     def initialize(job)
       @job = job
