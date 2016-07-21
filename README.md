@@ -32,7 +32,7 @@ NEW Improvements started in version 2.0.0.alpha ( currently gem is in stable ver
 
 -	When the command will finish , the files created will be removed. ("Gemfile.multi_cap", "Gemfile.multi_cap.lock" and "Capfile.multi_cap") if they exist in the application root directory.
 
--	If you are using RVM and there is a .rvmrc file in your project root directory and bash is available , the script will use bash emulator in order to properly load RVM gemsets because .rvmrc files need trusting. **If you use .rvmrc files please make sure you have the `bash` executable available in your PATH**
+-	If you are using RVM and there is a .rvmrc file in your project root directory and bash is available , the script will use bash emulator in order to properly load RVM gemsets because .rvmrc files need trusting. **If you use .rvmrc files please make sure you have the `bash` executable available in your PATH** . Please consider switching to .ruby-version and .ruby-gemset files instead which are faster and don't require trusting. You can read more about it here [RVM Workflow](https://rvm.io/workflow/projects)
 
 -	**Dont use BUNDLE EXEC command when running the executable for this gem unless you are using version 1 or this gem is part of the Gemfile of the application you are using. Otherwise just use the `multi_cap` executable without any prefix ( Unless this gem is part of your gemfile, in which case the BUNDLE EXEC prefix is needed )**
 
@@ -60,11 +60,11 @@ Requirements
 Compatibility
 -------------
 
-Rails >3.0 only. [MRI 1.9.x or 2.x](http://www.ruby-lang.org)
+[MRI >= 2.2](http://www.ruby-lang.org) due to activesupport dependency. We will accept further compatibilty for **MRI > 2.0 and <= 2.2** pull-requests but no upcoming versions will be tested against it.
 
-Ruby 1.8 is not officially supported. We will accept further compatibilty pull-requests but no upcoming versions will be tested against it.
+Ruby 1.8, 1.9 are not officially supported.
 
-Rubinius and Jruby support temporarily dropped due to Rails 4 incompatibility.
+Rubinius and Jruby support dropped.
 
 Installation Instructions
 -------------------------
