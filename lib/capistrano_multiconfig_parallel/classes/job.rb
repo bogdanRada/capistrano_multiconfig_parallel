@@ -3,13 +3,14 @@ require_relative './job_command'
 module CapistranoMulticonfigParallel
   # class used for defining the job class
   class Job
+    extend Forwardable
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :options, :application, :manager, :bundler_status, :bundler_check_status
     attr_writer :status, :exit_status,  :bundler_status, :new_jobs_dispatched, :will_dispatch_new_job, :bundler_check_status
 
-    delegate :stderr_buffer,
-    to: :manager
+    def_delegators :@manager, :stderr_buffer
+
 
     def initialize(application, options)
       @options = options.stringify_keys

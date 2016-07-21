@@ -3,15 +3,13 @@ require_relative '../helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # class used to display the progress of each worker on terminal screen using a table
   class TerminalTable
-  include CapistranoMulticonfigParallel::BaseActorHelper
+    extend Forwardable
+    include CapistranoMulticonfigParallel::BaseActorHelper
 
     attr_reader :options, :errors, :manager, :position, :job_manager, :terminal_rows, :screen_erased
 
-    delegate :workers_terminated,
-             to: :manager
-
-    delegate :condition,
-             to: :job_manager
+    def_delegators :@manager, :workers_terminated
+    def_delegators :@job_manager, :condition
 
     def self.topic
       'sshkit_terminal'
@@ -64,12 +62,12 @@ module CapistranoMulticonfigParallel
     def display_table_on_terminal(table, jobs)
       table_size = fetch_table_size(jobs)
       @position, @terminal_rows, @screen_erased = @cursor.display_on_screen(
-        "#{table}",
-        @options.merge(
-          position: @position,
-          table_size: table_size,
-          screen_erased: @screen_erased
-        )
+      "#{table}",
+      @options.merge(
+      position: @position,
+      table_size: table_size,
+      screen_erased: @screen_erased
+      )
       )
       print_errors
     end
@@ -94,7 +92,7 @@ module CapistranoMulticonfigParallel
     end
 
     def managers_alive?
-       @manager.alive?
+      @manager.alive?
     end
 
     def signal_complete

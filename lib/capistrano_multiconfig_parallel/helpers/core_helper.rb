@@ -89,9 +89,7 @@ module CapistranoMulticonfigParallel
     end
 
     def print_to_log_file(worker_log, options = {})
-      ActiveSupport::Deprecation.silence do
-        worker_log.send(options.fetch(:log_method, 'debug'), "#{options.fetch(:message, '')}\n")
-      end
+      worker_log.send(options.fetch(:log_method, 'debug'), "#{options.fetch(:message, '')}\n")
     end
 
     def find_worker_log(job_id, prefix = nil)

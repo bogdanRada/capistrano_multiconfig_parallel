@@ -44,7 +44,7 @@ Requirements
 
 1.	[celluloid >= 0.16](https://github.com/celluloid/celluloid)
 2.	[celluloid-pmap >= 0.2.2](https://github.com/jwo/celluloid-pmap)
-3.	[celluloid_pubsub >= 0.8.3](https://github.com/bogdanRada/celluloid_pubsub)
+3.	[celluloid_pubsub >= 0.8.4](https://github.com/bogdanRada/celluloid_pubsub)
 4.	[composable_state_machine >= 1.0.2](https://github.com/swoop-inc/composable_state_machine)
 5.	[terminal-table >= 1.5.2](https://github.com/tj/terminal-table)
 6.	[colorize >= 0.7](https://github.com/fazibear/colorize)
@@ -54,7 +54,7 @@ Requirements
 10.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
 11.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
 12.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
-13.	[capistrano_sentinel >= 0.0.16](http://github.com/bogdanRada/capistrano_sentinel)
+13.	[capistrano_sentinel >= 0.0.17](http://github.com/bogdanRada/capistrano_sentinel)
 14.	[powerbar >= 1.0.17](https://github.com/busyloop/powerbar)
 
 Compatibility
