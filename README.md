@@ -97,7 +97,7 @@ Or if you need to use [MRI > 2.0 and < 2.2](http://www.ruby-lang.org) you can us
   gem install capistrano_multiconfig_parallel:2.1.1 activesupport:4.0.0
 ```
 
-You can replace the activesupport dependency with any version greater than 4.0
+You can replace the activesupport dependency with any version greater than 4.0 ( Please check this issue though first: [Rubygems installation of multiple gems doesn't install dependencies](https://github.com/rubygems/rubygems/issues/1672) . I would suggest to use until that issue is resolved the first scenario.
 
 Please read [Release Details](https://github.com/bogdanRada/capistrano_multiconfig_parallel/releases) if you are upgrading. We break backward compatibility between large ticks but you can expect it to be specified at release notes.
 
