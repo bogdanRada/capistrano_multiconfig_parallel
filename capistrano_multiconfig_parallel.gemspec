@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.test_files = s.files.grep(/^(spec)/)
   s.require_paths = ['lib']
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  s.required_ruby_version = '>= 2.2'
+  s.required_ruby_version = '>= 2.0'
 
   s.add_runtime_dependency 'celluloid', '>= 0.16', '>= 0.16'
   s.add_runtime_dependency 'celluloid-pmap', '~> 0.2', '>= 0.2.2'
