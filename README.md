@@ -60,7 +60,7 @@ Requirements
 Compatibility
 -------------
 
-The gem is compatible with [MRI >= 2.0](http://www.ruby-lang.org) . But when installing with command `gem install capistrano_multiconfig_parallel` you will need to have [MRI >= 2.2](http://www.ruby-lang.org) due to activesupport dependency, because in this case there is no way of specifying the required activesupport version.
+[MRI >= 2.0](http://www.ruby-lang.org)
 
 Ruby 1.8, 1.9 are not officially supported.
 
@@ -86,10 +86,18 @@ Install locally on your system the capistrano_multiconfig_parallel gem using thi
 **Please check first what is the last release here: [Release Details](https://github.com/bogdanRada/capistrano_multiconfig_parallel/releases) and use that version instead of the one below**
 
 ```ruby
-  gem install capistrano_multiconfig_parallel -v 2.0.1
+  gem install capistrano_multiconfig_parallel -v 2.1.1
 ```
 
-You will need to have [MRI >= 2.2](http://www.ruby-lang.org) when you install in this way due to activesupport dependency, because this way there is no way of specifying a older version of activesupport.
+You will need to have [MRI >= 2.2](http://www.ruby-lang.org) when you install in this way due to activesupport dependency.
+
+Or if you need to use [MRI > 2.0 and < 2.2](http://www.ruby-lang.org) you can use this command:
+
+```ruby
+  gem install capistrano_multiconfig_parallel:2.1.1 activesupport:4.0.0
+```
+
+You can replace the activesupport dependency with any version greater than 4.0
 
 Please read [Release Details](https://github.com/bogdanRada/capistrano_multiconfig_parallel/releases) if you are upgrading. We break backward compatibility between large ticks but you can expect it to be specified at release notes.
 
