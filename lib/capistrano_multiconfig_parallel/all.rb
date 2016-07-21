@@ -2,10 +2,10 @@ require 'rubygems'
 require 'bundler'
 require 'bundler/setup'
 
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/hash/keys'
-require 'active_support/core_ext/module/delegation'
-require 'active_support/concern'
+# require 'active_support/core_ext/object/blank'
+# require 'active_support/core_ext/hash/keys'
+# require 'active_support/core_ext/module/delegation'
+# require 'active_support/concern'
 
 require_relative './helpers/base_actor_helper'
 require 'celluloid/pmap'
@@ -33,7 +33,7 @@ require 'io/console'
 # fix error with not files that can not be found
  Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 
-%w(helpers classes celluloid).each do |folder_name|
+%w(core_ext helpers classes celluloid).each do |folder_name|
   Gem.find_files("capistrano_multiconfig_parallel/#{folder_name}/**/*.rb").each { |path| require path }
 end
 
