@@ -82,7 +82,7 @@ module CapistranoMulticonfigParallel
       @application = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[1]
       @stage = custom_command? ? nil : @top_level_tasks.first.split(':').reverse[0]
       @stage = @stage.present? ? @stage : @default_stage
-      @name, @args = parse_task_string(@top_level_tasks.second)
+      @name, @args = parse_task_string(@top_level_tasks[1])
     end
 
     def collect_command_line_tasks(args) # :nodoc:

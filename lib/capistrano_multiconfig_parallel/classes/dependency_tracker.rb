@@ -25,7 +25,8 @@ module CapistranoMulticonfigParallel
       return [[], {}] if configuration.application_dependencies.blank? || application.blank?
       applications = get_applications_to_deploy(action, [application.camelcase])
       applications = applications.present? ? applications : []
-      app_options = applications.find { |hash| hash['app'] == application }.try(:dup)
+      app_options = applications.find { |hash| hash['app'] == application }
+      app_options = app_options.present? ? app_options.dup : app_options
       applications.delete_if { |hash| hash['app'] == application }
       [applications, (app_options || {})]
     end
