@@ -50,7 +50,7 @@ Requirements
 6.	[colorize >= 0.7](https://github.com/fazibear/colorize)
 7.	[eventmachine >= 1.0.3](https://github.com/eventmachine/eventmachine)
 8.	[right_popen >= 1.1.3](https://github.com/rightscale/right_popen)
-9.	[ActiveSuport >= 5.0](https://rubygems.org/gems/activesupport)
+9.	[ActiveSuport >= 4.0](https://rubygems.org/gems/activesupport)
 10.	[configliere >= 0.4](https://github.com/infochimps-platform/configliere)
 11.	[inquirer >= 0.2](https://github.com/arlimus/inquirer.rb)
 12.	[devnull >= 0.1](https://github.com/arlimus/inquirer.rb)
