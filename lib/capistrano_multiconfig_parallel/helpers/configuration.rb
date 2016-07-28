@@ -47,6 +47,7 @@ module CapistranoMulticonfigParallel
         config_file_path = @fetched_config.config_dir.present? ? File.join(@fetched_config.config_dir, 'multi_cap.yml') : nil
       end
       config_file = File.expand_path(config_file_path || File.join(detect_root.to_s, 'config', 'multi_cap.yml'))
+      @fetched_config.config_dir = File.dirname(config_file)
       @fetched_config.log_dir = config_file_path.present? ? File.dirname(config_file) : File.dirname(File.dirname(config_file))
       @fetched_config.read config_file if File.file?(config_file)
     end

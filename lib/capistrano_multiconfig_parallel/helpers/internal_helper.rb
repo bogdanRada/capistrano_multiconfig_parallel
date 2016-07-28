@@ -117,9 +117,12 @@ module CapistranoMulticonfigParallel
       pathnames.present? && pathnames.is_a?(Array) ? pathnames.compact : pathnames
     end
 
+    def try_detect_file_in_dir(filename = 'multi_cap.yml', dirs = ['config'])
+      root = dirs.is_a?(Array) && dirs.present? ? Pathname.new(File.join(FileUtils.pwd, *dirs)) : pwd_parent_dir
+      try_detect_file(filename, root)
+    end
 
-    def try_detect_file(filename = 'capfile')
-      root = pwd_parent_dir
+    def try_detect_file(filename = 'capfile', root = pwd_parent_dir )
       root = root.parent until find_file_in_directory(root, filename)
       pathname_is_root?(root) ? nil : root
     end

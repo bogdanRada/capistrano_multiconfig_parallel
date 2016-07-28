@@ -73,8 +73,14 @@ module CapistranoMulticonfigParallel
       raise_invalid_job_config
     end
 
-    def raise_invalid_job_config
-      puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
+    def raise_invalid_job_config(path = nil)
+      if independent_deploy?(path)
+          puts 'Invalid execution, please call something such as `multi_cap app_name:production deploy`, where production is a stage you have defined and the "app_name" is a name that you defined in your multi_cap.yml file'.red
+      elsif application_supports_multi_apps?
+        puts 'Invalid execution, please call something such as `multi_cap app_name:production deploy`, where production is a stage you have defined and the "app_name" is name that you have defined in your application'.red
+      else
+        puts 'Invalid execution, please call something such as `multi_cap production deploy`, where production is a stage you have defined'.red
+      end
       exit(false)
     end
 
@@ -236,7 +242,10 @@ module CapistranoMulticonfigParallel
 
     def prepare_job(options)
       options = options.stringify_keys
-      return raise_invalid_job_config if !job_stage_valid?(options)
+      app = options.fetch('app', '')
+      path = job_path(options) rescue nil
+    #  raise [app, @stage_apps, job_stage(options) , stages(job_path(options))].inspect
+      return raise_invalid_job_config(path) if (app.present? && !@stage_apps.include?(app)) || !job_stage_valid?(options)
       app = options.fetch('app', '')
       box = options['env_options'][boxes_key]
       message = box.present? ? "BOX #{box}:" : "stage #{options['stage']}:"
@@ -253,10 +262,6 @@ module CapistranoMulticonfigParallel
       path:  job_path(options)
 
       ))
-      raise "Please make sure you have a Gemfile in the project root directory #{job.job_path}" unless job.job_gemfile.present?
-      if job.find_capfile.blank?
-        raise "Please make sure you have a Capfile in the project root directory #{job.job_path}"
-      end
 
       if configuration.check_app_bundler_dependencies.to_s.downcase == 'true' && job.job_gemfile.present?
         if !@checked_job_paths.include?(job.job_path)
@@ -283,7 +288,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_stage(options)
-      multi_apps?(job_path(options)) && options.fetch('app', nil).present? ? "#{options['app']}:#{options['stage']}" : "#{options['stage']}"
+      options['stage']
     end
 
 

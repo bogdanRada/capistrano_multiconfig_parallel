@@ -5,24 +5,43 @@ module CapistranoMulticonfigParallel
   module_function
 
     def stages(path = nil)
-      path.blank? && independent_deploy? ? fetch_stages_from_file : fetch_stages_app(path)
+      stages = path.present? ? fetch_stages_app(path) : []
+      if path.blank?
+        root =  detect_root rescue nil
+        if root.present?
+          stages = stages.concat(fetch_stages_app(nil))
+        end
+      end
+      stages
     end
 
     def multi_apps?(path = nil)
-      path.blank? && independent_deploy? ? true : stages(path).find { |stage| stage.include?(':') }.present?
+      independent_deploy?(path) ? true : stages(path).find { |stage| stage.include?(':') }.present?
     end
 
-    def fetch_stages_from_file
+    def application_supports_multi_apps?(path = nil)
+      fetch_stages_app(path).find { |stage| stage.include?(':') }.present?
+    end
+
+    def fetch_apps_from_file
       configuration.application_dependencies.map { |hash| hash[:app] }
     end
 
     def app_names_from_stages
-      independent_deploy? ? fetch_stages_from_file : stages.map { |stage| stage.split(':').reverse[1] }.uniq
+      independent_deploy? ? fetch_apps_from_file : stages.map { |stage| stage.split(':').reverse[1] }.uniq
     end
 
-    def independent_deploy?
-      app_with_no_path = configuration.application_dependencies.find { |hash| hash[:path].blank? }
-      configuration.config_dir.present? && app_with_no_path.blank? ? true : false
+    def configuration_has_valid_path?(hash)
+       hash[:path].present? && File.directory?(hash[:path])
+    end
+
+    def fetch_paths_from_file
+      configuration.application_dependencies.select { |hash| configuration_has_valid_path?(hash) }.map{ |hash| hash[:path] }
+    end
+
+    def independent_deploy?(path = nil)
+      app_with_path = configuration.application_dependencies.find { |hash| configuration_has_valid_path?(hash).present? }
+      configuration.config_dir.present? && app_with_path.present? && (path.nil? || (path.present? && fetch_paths_from_file.include?(path))) ? true : false
     end
 
     def fetch_stages_app(path)

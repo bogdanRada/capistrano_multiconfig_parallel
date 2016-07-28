@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'configliere', '~> 0.4', '>=0.4'
   s.add_runtime_dependency 'inquirer', '~> 0.2', '>= 0.2'
   s.add_runtime_dependency 'devnull','~> 0.1', '>= 0.1'
-  s.add_runtime_dependency 'capistrano_sentinel',  '>= 0.0', '>= 0.0.17'
+  s.add_runtime_dependency 'capistrano_sentinel',  '>= 0.0', '>= 0.0.18'
   s.add_runtime_dependency 'powerbar', '~> 1.0', '>= 1.0.17'
 
   s.add_development_dependency 'rake', '>= 10.4', '>= 10.4'

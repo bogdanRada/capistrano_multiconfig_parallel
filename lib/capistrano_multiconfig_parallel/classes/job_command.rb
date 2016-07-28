@@ -34,6 +34,8 @@ module CapistranoMulticonfigParallel
 
     def find_capfile(custom_path = job_path)
       @capfile_path ||= find_file_by_names(custom_path, 'capfile').first
+      raise "Please make sure you have a Capfile in the project root directory #{custom_path}".red if @capfile_path.blank?
+      @capfile_path
     end
 
     def capfile_name
@@ -45,11 +47,15 @@ module CapistranoMulticonfigParallel
     end
 
     def job_gemfile
-      File.join(job_path, 'Gemfile')
+      @job_gemfile ||=File.join(job_path, 'Gemfile')
+      raise "Please make sure you have a Gemfile in the project root directory #{job_path}".red unless File.exists?(@job_gemfile)
+      @job_gemfile
     end
 
     def job_gemfile_lock
-      File.join(job_path, 'Gemfile.lock')
+      @job_gemfile_lock ||= "#{job_gemfile}.lock"
+      raise "Please make sure you have a Gemfile.lock in the project root directory #{job_path}".reds unless File.exists?(@job_gemfile_lock)
+      @job_gemfile_lock
     end
 
     def job_gem_version(gem_name)
@@ -93,7 +99,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_stage
-      multi_apps?(job_path) && app.present? ? "#{app}:#{stage}" : "#{stage}"
+      app.present? && application_supports_multi_apps?(job_path) ? "#{app}:#{stage}" : "#{stage}"
     end
 
     def capistrano_action
@@ -293,7 +299,7 @@ module CapistranoMulticonfigParallel
           CMD
           f.write(cmd)
         end
-        FileUtils.copy(File.join(job_path, 'Gemfile.lock'), "#{job_gemfile_multi}.lock")
+        FileUtils.copy(job_gemfile_lock, "#{job_gemfile_multi}.lock")
       end
     end
 

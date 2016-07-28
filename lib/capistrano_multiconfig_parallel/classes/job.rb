@@ -16,9 +16,6 @@ module CapistranoMulticonfigParallel
       @options = options.stringify_keys
       @application = application
       @manager = @application.manager
-    end
-
-    def gitflow
       @gitflow ||= command.gitflow_enabled?
     end
 
@@ -125,6 +122,7 @@ module CapistranoMulticonfigParallel
 
     def setup_additional_env_variables(value)
       value["#{env_variable}"] = id
+      #value["capistrano_version"] = job_capistrano_version
     end
 
     def finished?

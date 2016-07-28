@@ -24,7 +24,7 @@ module CapistranoMulticonfigParallel
             application.start
           end
         ensure
-          application.jobs_restore_application_state
+          application.jobs_restore_application_state if application.present?
         end
       end
     end
