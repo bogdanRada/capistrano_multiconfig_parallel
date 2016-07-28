@@ -28,7 +28,10 @@ module CapistranoMulticonfigParallel
     end
 
     def app_names_from_stages
-      independent_deploy? ? fetch_apps_from_file : stages.map { |stage| stage.split(':').reverse[1] }.uniq
+       app_names = fetch_apps_from_file
+       new_apps = stages.map { |stage| stage.split(':').reverse[1] }.compact.uniq
+       app_names.concat(new_apps)
+       app_names
     end
 
     def configuration_has_valid_path?(hash)
