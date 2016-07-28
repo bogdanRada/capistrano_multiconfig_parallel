@@ -29,8 +29,8 @@ module CapistranoMulticonfigParallel
 
     def app_names_from_stages
        app_names = fetch_apps_from_file
-       new_apps = stages.map { |stage| stage.split(':').reverse[1] }.compact.uniq
-       app_names.concat(new_apps)
+       new_apps = stages.map { |stage| stage.split(':').reverse[1] }.compact
+       app_names.concat(new_apps).uniq
        app_names
     end
 
