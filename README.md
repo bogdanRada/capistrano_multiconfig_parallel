@@ -17,6 +17,9 @@ IMPORTANT! The whole reason for this gem was for using [Caphub](https://github.c
 
 CAUTION!! PLEASE READ CAREFULLY!! Capistrano is not thread-safe. However in order to work around this problem, each of the task is executing inside a thread that spawns a new process in order to run capistrano tasks The thread monitors the process. This works well, however if the tasks you are executing is working with files, you might get into deadlocks because multiple proceses try to access same resource. Instead of using files , please consider using StringIO instead.
 
+NEW Improvements in version 2.3.0
+-------------------------------------------------------------------------------------
+- added more validations and refactored the stages helper in order to properly detect independent deploys
 
 NEW Improvements in version 2.2.0
 -------------------------------------------------------------------------------------
