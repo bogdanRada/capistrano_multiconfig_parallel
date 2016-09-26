@@ -108,10 +108,11 @@ You will need to have [MRI >= 2.2](http://www.ruby-lang.org) when you install in
 Or if you need to use [MRI > 2.0 and < 2.2](http://www.ruby-lang.org) you can use this command:
 
 ```ruby
+  gem install capistrano_multiconfig_parallel # This will fail due to activesupport dependency, but next command will fix it
   gem install capistrano_multiconfig_parallel:2.1.1 activesupport:4.0.0
 ```
 
-You can replace the activesupport dependency with any version greater than 4.0 ( Please check this issue though first for this case: [Rubygems installation of multiple gems doesn't install dependencies](https://github.com/rubygems/rubygems/issues/1672) . I would suggest to use until that issue is resolved the first scenario.
+You can replace the activesupport dependency with any version greater than 4.0  . I would suggest to use Ruby > 2.2.2 though.
 
 For [MRI > 2.0 and < 2.2](http://www.ruby-lang.org) you can use though this workaround. Create a Gemfile on your sytem and add this line of code:
 
@@ -119,12 +120,10 @@ For [MRI > 2.0 and < 2.2](http://www.ruby-lang.org) you can use though this work
 
  gem 'capistrano_multiconfig_parallel'
 
- if RUBY_VERSION >= "2.2.0"
-   gem 'activesupport', '>= 4.0', '>= 4.0'
- else
+ if RUBY_VERSION < "2.2.0"
    gem 'activesupport', '>= 4.0', '< 5.0'
  end
-
+ 
 ```
 
 And use `bundle exec multi_cap` from that directory when running the executable.
