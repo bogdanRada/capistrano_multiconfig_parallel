@@ -1,4 +1,5 @@
 
+# frozen_string_literal: true
 require_relative '../helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # class used to display the progress of each worker on terminal screen using a table
@@ -39,11 +40,11 @@ module CapistranoMulticonfigParallel
       subscribe(CapistranoMulticonfigParallel::TerminalTable.topic, :notify_time_change)
     end
 
-    def notify_time_change(_channel, message)
+    def notify_time_change(_channel, _message)
       table = Terminal::Table.new(title: 'Deployment Status Table', headings: default_heaadings)
       jobs = setup_table_jobs(table)
-      @cursor.erase_screen if @notifications.to_i.zero? && @job_manager.checked_job_paths.size > 0 && jobs.find{|job_id, job| job.bundler_check_status.present? }.present?
-      @notifications=@notifications+1
+      @cursor.erase_screen if @notifications.to_i.zero? && @job_manager.checked_job_paths.size.positive? && jobs.find { |_job_id, job| job.bundler_check_status.present? }.present?
+      @notifications += 1
       display_table_on_terminal(table, jobs)
       signal_complete
     end
@@ -62,11 +63,11 @@ module CapistranoMulticonfigParallel
     def display_table_on_terminal(table, jobs)
       table_size = fetch_table_size(jobs)
       @position, @terminal_rows, @screen_erased = @cursor.display_on_screen(
-      "#{table}",
+        table.to_s,
       @options.merge(
-      position: @position,
-      table_size: table_size,
-      screen_erased: @screen_erased
+        position: @position,
+        table_size: table_size,
+        screen_erased: @screen_erased
       )
       )
       print_errors
@@ -96,8 +97,8 @@ module CapistranoMulticonfigParallel
     end
 
     def signal_complete
-      if managers_alive? && @manager.all_workers_finished? && workers_terminated.instance_variable_get("@waiters").blank?
-        condition.signal('completed') if condition.instance_variable_get("@waiters").present?
+      if managers_alive? && @manager.all_workers_finished? && workers_terminated.instance_variable_get('@waiters').blank?
+        condition.signal('completed') if condition.instance_variable_get('@waiters').present?
       elsif !managers_alive?
         terminate
       end

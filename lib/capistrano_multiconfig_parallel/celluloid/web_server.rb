@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class used to start the web server for websockets

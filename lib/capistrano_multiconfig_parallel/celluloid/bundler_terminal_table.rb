@@ -1,6 +1,6 @@
+# frozen_string_literal: true
 module CapistranoMulticonfigParallel
   class BundlerTerminalTable < CapistranoMulticonfigParallel::TerminalTable
-
     def self.topic
       'bundler_terminal'
     end
@@ -24,15 +24,13 @@ module CapistranoMulticonfigParallel
       (job_rows + 2)**2
     end
 
-
     def setup_table_jobs(table)
       jobs = managers_alive? ? @job_manager.bundler_workers_store.dup : []
-      jobs.each do |job, bundler_worker|
+      jobs.each do |job, _bundler_worker|
         table.add_row(job.bundler_check_terminal_row)
         table.add_separator if jobs.keys.last != job
       end
       jobs
     end
-
   end
 end

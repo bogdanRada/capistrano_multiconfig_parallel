@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # class used to fetch cursor position before displaying terminal table
@@ -6,12 +7,10 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     def display_on_screen(string, options = {})
-      begin
-        options = options.is_a?(Hash) ? options.stringify_keys : {}
-        handle_string_display(string, options)
-      rescue => ex
-        rescue_error(ex, 'stderr')
-      end
+      options = options.is_a?(Hash) ? options.stringify_keys : {}
+      handle_string_display(string, options)
+    rescue => ex
+      rescue_error(ex, 'stderr')
     end
 
     def move_to_home!(row = 0, column = 1)

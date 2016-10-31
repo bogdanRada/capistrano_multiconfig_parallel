@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'rubygems'
 require 'bundler'
 require 'bundler/setup'
@@ -20,7 +21,7 @@ require 'terminal-table'
 require 'configliere'
 require 'devnull'
 require 'inquirer'
-require "capistrano_sentinel"
+require 'capistrano_sentinel'
 require 'powerbar'
 
 require 'etc'
@@ -32,8 +33,8 @@ require 'stringio'
 require 'io/console'
 require 'forwardable'
 
-# fix error with not files that can not be found
- Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
+# fix error with files that can not be found
+Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 
 require_relative './helpers/base_actor_helper'
 

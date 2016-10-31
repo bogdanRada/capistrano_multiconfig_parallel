@@ -1,8 +1,8 @@
+# frozen_string_literal: true
 require_relative './runner_status'
 module CapistranoMulticonfigParallel
   # class that is used to execute the capistrano tasks and it is invoked by the celluloid worker
   class BundlerStatus < CapistranoMulticonfigParallel::RunnerStatus
-
     def on_read_stdout(data)
       show_bundler_progress(data)
       super(data)
@@ -23,6 +23,5 @@ module CapistranoMulticonfigParallel
         @actor.show_bundler_progress(data)
       end
     end
-
   end
 end

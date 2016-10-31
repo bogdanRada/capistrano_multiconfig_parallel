@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative './celluloid_worker'
 require_relative './process_runner'
 require_relative '../classes/bundler_status'
@@ -5,15 +6,7 @@ module CapistranoMulticonfigParallel
   class BundlerWorker
     include CapistranoMulticonfigParallel::BaseActorHelper
 
-    attr_reader *[
-      :job,
-      :job_id,
-      :runner_status,
-      :log_prefix,
-      :checked_bundler_deps,
-      :total_dependencies,
-      :show_bundler
-    ]
+    attr_reader :job, :job_id, :runner_status, :log_prefix, :checked_bundler_deps, :total_dependencies, :show_bundler
 
     def work(job)
       @job = job
@@ -36,15 +29,15 @@ module CapistranoMulticonfigParallel
           40
         end
         @progress_bar.settings.tty.finite.template.main = \
-        "${<msg>} ${<bar> } ${<percent>%}" # + "${<rate>/s} ${<elapsed>}${ ETA: <eta>}"
-        @progress_bar.settings.tty.finite.template.padchar = "#{@progress_bar.settings.tty.finite.template.padchar}"
-        @progress_bar.settings.tty.finite.template.barchar = "#{@progress_bar.settings.tty.finite.template.barchar}"
-        @progress_bar.settings.tty.finite.template.exit = "\e[?25h\e[0mFINISHED"  # clean up after us
+          '${<msg>} ${<bar> } ${<percent>%}' # + "${<rate>/s} ${<elapsed>}${ ETA: <eta>}"
+        @progress_bar.settings.tty.finite.template.padchar = @progress_bar.settings.tty.finite.template.padchar.to_s
+        @progress_bar.settings.tty.finite.template.barchar = @progress_bar.settings.tty.finite.template.barchar.to_s
+        @progress_bar.settings.tty.finite.template.exit = "\e[?25h\e[0mFINISHED" # clean up after us
         @progress_bar.settings.tty.finite.template.close = "\e[?25h\e[0mFINISHED \n" # clean up after us
-        @progress_bar.settings.tty.finite.output = Proc.new{ |data|
-          if data.present? && data.include?("Error") || data.include?("Installing")
-            @job.bundler_check_status = data.include?("Error") ? data.to_s.red : data.to_s.green
-            send_msg(CapistranoMulticonfigParallel::BundlerTerminalTable.topic, type: 'event', data: data.to_s.uncolorize )
+        @progress_bar.settings.tty.finite.output = proc { |data|
+          if data.present? && data.include?('Error') || data.include?('Installing')
+            @job.bundler_check_status = data.include?('Error') ? data.to_s.red : data.to_s.green
+            send_msg(CapistranoMulticonfigParallel::BundlerTerminalTable.topic, type: 'event', data: data.to_s.uncolorize)
           end
         }
         @progress_bar
@@ -59,16 +52,16 @@ module CapistranoMulticonfigParallel
     end
 
     def show_bundler_progress(data)
-      @show_bundler = false if  data.to_s.include?("The Gemfile's dependencies are satisfied") || data.to_s.include?("Bundle complete")
-      gem_spec = bundler_dependencies.find{|spec| data.include?(spec.name) }
-      if data.include?("Error") && @show_bundler == true && gem_spec.present?
+      @show_bundler = false if  data.to_s.include?("The Gemfile's dependencies are satisfied") || data.to_s.include?('Bundle complete')
+      gem_spec = bundler_dependencies.find { |spec| data.include?(spec.name) }
+      if data.include?('Error') && @show_bundler == true && gem_spec.present?
         @checked_bundler_deps << [gem_spec.name]
-        progress_bar.show(:msg => "Error installing #{gem_spec.name} (#{@checked_bundler_deps.size} from #{@total_dependencies.to_i} deps)", :done => @checked_bundler_deps.size, :total => @total_dependencies.to_i)
+        progress_bar.show(msg: "Error installing #{gem_spec.name} (#{@checked_bundler_deps.size} from #{@total_dependencies.to_i} deps)", done: @checked_bundler_deps.size, total: @total_dependencies.to_i)
         error_message = "Bundler worker #{@job_id} task  failed for #{gem_spec.inspect}"
         raise(CapistranoMulticonfigParallel::TaskFailed.new(error_message), error_message)
-      elsif  @show_bundler == true && gem_spec.present?
+      elsif @show_bundler == true && gem_spec.present?
         @checked_bundler_deps << [gem_spec.name]
-        progress_bar.show(:msg => "Installing #{gem_spec.name} (#{@checked_bundler_deps.size} from #{@total_dependencies.to_i} deps)", :done => @checked_bundler_deps.size, :total => @total_dependencies.to_i)
+        progress_bar.show(msg: "Installing #{gem_spec.name} (#{@checked_bundler_deps.size} from #{@total_dependencies.to_i} deps)", done: @checked_bundler_deps.size, total: @total_dependencies.to_i)
       elsif @show_bundler == false
         progress_bar.close if defined?(@progress_bar)
       end
@@ -89,8 +82,8 @@ module CapistranoMulticonfigParallel
       @runner_status = runner_status
       @exit_status = exit_status
       progress_bar.close if defined?(@progress_bar)
-        log_to_file("bundler worker #{@job_id} notifuy finished with #{exit_status.inspect}")
-      if exit_status.to_i == 0
+      log_to_file("bundler worker #{@job_id} notifuy finished with #{exit_status.inspect}")
+      if exit_status.to_i.zero?
         @job.application.add_job_to_list_of_jobs(@job)
       else
         error_message = "Bundler worker #{@job_id} task  failed with exit status #{exit_status.inspect}"
@@ -103,6 +96,5 @@ module CapistranoMulticonfigParallel
       log_to_file("worker #{@job_id} triest to send to #{channel} #{message}")
       publish channel, message
     end
-
   end
 end

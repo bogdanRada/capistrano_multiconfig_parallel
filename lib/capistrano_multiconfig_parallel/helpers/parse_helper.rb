@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module CapistranoMulticonfigParallel
   # module used for parsing numbers, strings , arrays and hashes
   module ParseHelper

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../helpers/base_actor_helper'
 require_relative '../classes/child_process_status'
 require_relative './state_machine'
@@ -20,13 +21,12 @@ module CapistranoMulticonfigParallel
   class CelluloidWorker
     include CapistranoMulticonfigParallel::BaseActorHelper
 
-
     ATTRIBUTE_LIST = [
       :job, :manager, :job_id, :app_name, :env_name, :action_name, :env_options, :machine, :socket_connection, :task_argv,
       :rake_tasks, :current_task_number, # tracking tasks
       :successfull_subscription, :subscription_channel, :publisher_channel, # for subscriptions and publishing events
       :job_termination_condition, :invocation_chain, :filename, :worker_log, :exit_status, :old_job
-    ]
+    ].freeze
 
     attr_reader *CapistranoMulticonfigParallel::CelluloidWorker::ATTRIBUTE_LIST
     attr_accessor *CapistranoMulticonfigParallel::CelluloidWorker::ATTRIBUTE_LIST
@@ -48,9 +48,8 @@ module CapistranoMulticonfigParallel
       manager.register_worker_for_job(job, Actor.current)
     end
 
-
     def worker_state
-      if job.status.to_s.downcase != 'dead' && Actor.current.alive?
+      if !job.status.to_s.casecmp('dead').zero? && Actor.current.alive?
         @machine.state.to_s.green
       else
         job.status = 'dead'
@@ -130,17 +129,16 @@ module CapistranoMulticonfigParallel
         publish_rake_event(message.merge('action' => 'stdin', 'result' => result, 'client_action' => 'stdin'))
       elsif message_from_bundler?(message)
 
-        #gem_messsage = job.gem_specs.find{|spec| message['task'].include?(spec.name) }
+        # gem_messsage = job.gem_specs.find{|spec| message['task'].include?(spec.name) }
         # if gem_messsage.present?
         #     async.update_machine_state("insta")
         # else
         async.update_machine_state(message['task'])
-        #end
+        # end
       else
         log_to_file(message, job_id: @job_id)
       end
     end
-
 
     def executed_task?(task)
       rake_tasks.present? && rake_tasks.index(task.to_s).present?
@@ -181,16 +179,15 @@ module CapistranoMulticonfigParallel
     def finish_worker(exit_status)
       log_to_file("worker #{job_id} tries to terminate with exit_status #{exit_status}")
       @manager.mark_completed_remaining_tasks(@job) if Actor.current.alive?
-      update_machine_state('FINISHED') if exit_status == 0
+      update_machine_state('FINISHED') if exit_status.zero?
       @manager.workers_terminated.signal('completed') if !@job.marked_for_dispatching_new_job? && @manager.present? && @manager.alive? && @manager.all_workers_finished?
     end
 
-
     def notify_finished(exit_status, _runner_status)
-      @job.mark_for_dispatching_new_job if exit_status != 0
+      @job.mark_for_dispatching_new_job if exit_status.nonzero?
       @job.exit_status = exit_status
       finish_worker(exit_status)
-      return if exit_status == 0
+      return if exit_status.zero?
       error_message = "worker #{@job_id} task  failed with exit status #{exit_status.inspect}  "
       raise(CapistranoMulticonfigParallel::TaskFailed.new(error_message), error_message)
     end
@@ -204,6 +201,5 @@ module CapistranoMulticonfigParallel
     # rescue
     #   "#<#{self.class}(#{Actor.current.mailbox.address.inspect}) dead>"
     # end
-
   end
 end

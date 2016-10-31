@@ -1,7 +1,8 @@
+# frozen_string_literal: true
 module CapistranoMulticonfigParallel
   # helper used to determine gem versions
   module GemHelper
-    module_function
+  module_function
 
     def find_loaded_gem(name, property = nil)
       gem_spec = Gem.loaded_specs.values.find { |repo| repo.name == name }
@@ -35,6 +36,5 @@ module CapistranoMulticonfigParallel
       version = get_parsed_version(version)
       get_parsed_version(gem_version).send(options.fetch('operator', '<='), version)
     end
-
   end
 end

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'fileutils'
 require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
@@ -16,8 +17,8 @@ module CapistranoMulticonfigParallel
     end
 
     def lockfile_parser
-      if File.exists?(job_gemfile) && File.exists?(job_gemfile_lock)
-        @lockfile_parser ||= Bundler::LockfileParser.new(Bundler.read_file("#{job_gemfile_lock}"))
+      if File.exist?(job_gemfile) && File.exist?(job_gemfile_lock)
+        @lockfile_parser ||= Bundler::LockfileParser.new(Bundler.read_file(job_gemfile_lock.to_s))
       else
         raise "please install the gems separately for this application #{job_path} and re-try again!"
       end
@@ -28,9 +29,8 @@ module CapistranoMulticonfigParallel
     end
 
     def fetch_bundler_worker_command
-      get_command_script(fetch_bundler_check_command, "bundler")
+      get_command_script(fetch_bundler_check_command, 'bundler')
     end
-
 
     def find_capfile(custom_path = job_path)
       @capfile_path ||= find_file_by_names(custom_path, 'capfile').first
@@ -47,19 +47,19 @@ module CapistranoMulticonfigParallel
     end
 
     def job_gemfile
-      @job_gemfile ||=File.join(job_path, 'Gemfile')
-      raise "Please make sure you have a Gemfile in the project root directory #{job_path}".red unless File.exists?(@job_gemfile)
+      @job_gemfile ||= File.join(job_path, 'Gemfile')
+      raise "Please make sure you have a Gemfile in the project root directory #{job_path}".red unless File.exist?(@job_gemfile)
       @job_gemfile
     end
 
     def job_gemfile_lock
       @job_gemfile_lock ||= "#{job_gemfile}.lock"
-      raise "Please make sure you have a Gemfile.lock in the project root directory #{job_path}".reds unless File.exists?(@job_gemfile_lock)
+      raise "Please make sure you have a Gemfile.lock in the project root directory #{job_path}".reds unless File.exist?(@job_gemfile_lock)
       @job_gemfile_lock
     end
 
     def job_gem_version(gem_name)
-      gem_spec = gem_specs.find {|spec| spec.name == gem_name}
+      gem_spec = gem_specs.find { |spec| spec.name == gem_name }
       gem_spec.present? ? gem_spec.version.to_s : nil
     end
 
@@ -71,14 +71,13 @@ module CapistranoMulticonfigParallel
       "BUNDLE_GEMFILE=#{gemfile}"
     end
 
-
     def gitflow_enabled?
-      gitflow_version = job_gem_version("capistrano-gitflow")
+      gitflow_version = job_gem_version('capistrano-gitflow')
       gitflow_version.present? ? true : false
     end
 
     def capistrano_sentinel_name
-      "capistrano_sentinel"
+      'capistrano_sentinel'
     end
 
     def capistrano_sentinel_available?
@@ -95,11 +94,11 @@ module CapistranoMulticonfigParallel
     end
 
     def job_stage_for_terminal
-      app.present? ? "#{app}:#{stage}" : "#{stage}"
+      app.present? ? "#{app}:#{stage}" : stage.to_s
     end
 
     def job_stage
-      app.present? && application_supports_multi_apps?(job_path) ? "#{app}:#{stage}" : "#{stage}"
+      app.present? && application_supports_multi_apps?(job_path) ? "#{app}:#{stage}" : stage.to_s
     end
 
     def capistrano_action
@@ -131,7 +130,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_capistrano_version
-      @job_capistrano_version ||= job_gem_version("capistrano")
+      @job_capistrano_version ||= job_gem_version('capistrano')
     end
 
     def legacy_capistrano_version?
@@ -139,7 +138,7 @@ module CapistranoMulticonfigParallel
     end
 
     def legacy_capistrano
-      @legacy_capistrano  ||= legacy_capistrano_version? ? true : false
+      @legacy_capistrano ||= legacy_capistrano_version? ? true : false
     end
 
     def capistrano_sentinel_needs_updating?
@@ -177,7 +176,7 @@ module CapistranoMulticonfigParallel
     end
 
     def create_job_tempfile_command(output)
-      @tempfile = Tempfile.new(["multi_cap_#{job.id}_command_", ".rb"], encoding: 'utf-8')
+      @tempfile = Tempfile.new(["multi_cap_#{job.id}_command_", '.rb'], encoding: 'utf-8')
       @tempfile.write(output)
       ObjectSpace.undefine_finalizer(@tempfile) # force garbage collector not to remove automatically the file
       @tempfile.close
@@ -192,7 +191,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_rvmrc_enabled?
-      File.exists?(job_rvmrc_file)
+      File.exist?(job_rvmrc_file)
     end
 
     def rvm_enabled_for_job?
@@ -219,7 +218,7 @@ module CapistranoMulticonfigParallel
     def get_command_script(command, action = nil)
       command = rvm_bash_prefix(command)
       command = command.inspect
-      command_text =<<-CMD
+      command_text = <<-CMD
       require 'rubygems'
       require 'bundler'
       Bundler.with_clean_env {
@@ -232,14 +231,13 @@ module CapistranoMulticonfigParallel
         log_to_worker("JOB #{@job_id}  created Tempfile #{@tempfile.path} with contents #{File.read(@tempfile.path)}", action)
         "ruby #{@tempfile.path}"
       else
-        final_command=<<-CMD
+        final_command = <<-CMD
         cd #{job_path} && bundle exec ruby -e "#{command_text}"
         CMD
         log_to_worker("JOB #{@job_id}  prepared command #{final_command}", action)
         final_command
       end
     end
-
 
     def fetch_deploy_command
       prepare_application_for_deployment
@@ -254,7 +252,6 @@ module CapistranoMulticonfigParallel
       get_command_script(command)
     end
 
-
     def job_capfile
       File.join(job_path, capfile_name.to_s)
     end
@@ -264,21 +261,21 @@ module CapistranoMulticonfigParallel
     end
 
     def job_gemfile_multi
-      File.join(job_path, "Gemfile.multi_cap")
+      File.join(job_path, 'Gemfile.multi_cap')
     end
 
     def prepare_application_for_deployment
       unless capistrano_sentinel_needs_updating?
         raise "Please consider upgrading the gem #{capistrano_sentinel_name} to version #{loaded_capistrano_sentinel_version} from #{job_capistrano_sentinel_version} in #{job_path} "
       end
-      config = @job.application.patched_job_paths.find{|hash| hash[:path] == job_path}
+      config = @job.application.patched_job_paths.find { |hash| hash[:path] == job_path }
       if config.present?
         @job_final_gemfile = config[:gemfile]
         @job_final_capfile = config[:capfile]
       else
         check_capistrano_sentinel_availability
         prepare_capfile
-        @job.application.patched_job_paths << {path: job_path, gemfile: @job_final_gemfile, capfile: @job_final_capfile}
+        @job.application.patched_job_paths << { path: job_path, gemfile: @job_final_gemfile, capfile: @job_final_capfile }
       end
     end
 
@@ -288,10 +285,10 @@ module CapistranoMulticonfigParallel
       if capistrano_sentinel_available?
         @job_final_gemfile = job_gemfile
       else
-        FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
+        FileUtils.rm_rf(job_gemfile_multi) if File.exist?(job_gemfile_multi)
         FileUtils.touch(job_gemfile_multi)
         File.open(job_gemfile_multi, 'w') do |f|
-          cmd=<<-CMD
+          cmd = <<-CMD
           source "https://rubygems.org" do
             gem "#{capistrano_sentinel_name}", '#{find_loaded_gem_property(capistrano_sentinel_name)}'
           end
@@ -310,7 +307,7 @@ module CapistranoMulticonfigParallel
       elsif capfile_valid.blank? && capistrano_sentinel_available?
         @job_final_capfile = job_capfile
         File.open(job_capfile, 'a+') do |f|
-          cmd=<<-CMD
+          cmd = <<-CMD
           require "#{capistrano_sentinel_name}"
           CMD
           f.write(cmd)
@@ -319,7 +316,7 @@ module CapistranoMulticonfigParallel
         @job_final_capfile = job_capfile_multi
         FileUtils.copy(job_capfile, job_capfile_multi)
         File.open(job_capfile_multi, 'a+') do |f|
-          cmd=<<-CMD
+          cmd = <<-CMD
           require "#{capistrano_sentinel_name}"
           CMD
           f.write(cmd)
@@ -327,11 +324,10 @@ module CapistranoMulticonfigParallel
       end
     end
 
-
     def rollback_changes_to_application
-      FileUtils.rm_rf(job_gemfile_multi) if File.exists?(job_gemfile_multi)
-      FileUtils.rm_rf("#{job_gemfile_multi}.lock") if File.exists?("#{job_gemfile_multi}.lock")
-      FileUtils.rm_rf(job_capfile_multi) if  File.exists?(job_capfile_multi)
+      FileUtils.rm_rf(job_gemfile_multi) if File.exist?(job_gemfile_multi)
+      FileUtils.rm_rf("#{job_gemfile_multi}.lock") if File.exist?("#{job_gemfile_multi}.lock")
+      FileUtils.rm_rf(job_capfile_multi) if File.exist?(job_capfile_multi)
       FileUtils.rm_rf(@tempfile.path) if defined?(@tempfile) && @tempfile
     end
 
@@ -342,10 +338,10 @@ module CapistranoMulticonfigParallel
       execute_standard_deploy('deploy:rollback') if action.blank? && @name == 'deploy'
     end
 
-    private
+  private
 
     def run_shell_command(command)
-      Kernel.system("#{command}")
+      Kernel.system(command.to_s)
     end
   end
 end

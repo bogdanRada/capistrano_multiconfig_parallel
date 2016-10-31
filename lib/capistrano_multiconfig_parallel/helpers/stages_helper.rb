@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module CapistranoMulticonfigParallel
   # module used to fetch the stages (code taken from https://github.com/railsware/capistrano-multiconfig)
   # but refactored to be able to detect stages from multiple paths
@@ -7,7 +8,11 @@ module CapistranoMulticonfigParallel
     def stages(path = nil)
       stages = path.present? ? fetch_stages_app(path) : []
       if path.blank?
-        root =  detect_root rescue nil
+        root = begin
+                  detect_root
+                rescue
+                  nil
+                end
         if root.present?
           stages = stages.concat(fetch_stages_app(nil))
         end
@@ -28,18 +33,18 @@ module CapistranoMulticonfigParallel
     end
 
     def app_names_from_stages
-       app_names = fetch_apps_from_file
-       new_apps = stages.map { |stage| stage.split(':').reverse[1] }.compact
-       app_names.concat(new_apps).uniq
-       app_names
+      app_names = fetch_apps_from_file
+      new_apps = stages.map { |stage| stage.split(':').reverse[1] }.compact
+      app_names.concat(new_apps).uniq
+      app_names
     end
 
     def configuration_has_valid_path?(hash)
-       hash[:path].present? && File.directory?(hash[:path])
+      hash[:path].present? && File.directory?(hash[:path])
     end
 
     def fetch_paths_from_file
-      configuration.application_dependencies.select { |hash| configuration_has_valid_path?(hash) }.map{ |hash| hash[:path] }
+      configuration.application_dependencies.select { |hash| configuration_has_valid_path?(hash) }.map { |hash| hash[:path] }
     end
 
     def independent_deploy?(path = nil)

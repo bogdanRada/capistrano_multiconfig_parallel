@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # Returns the version of the currently loaded gem as a <tt>Gem::Version</tt>
 module CapistranoMulticonfigParallel
   def self.gem_version
@@ -6,7 +7,6 @@ module CapistranoMulticonfigParallel
 
   # module used for generating the version
   module VERSION
-
     MAJOR = 2
     MINOR = 3
     TINY = 5

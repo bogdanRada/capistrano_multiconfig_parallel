@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module CoreHelper
@@ -14,7 +15,7 @@ module CapistranoMulticonfigParallel
     end
 
     def app_debug_enabled?
-      configuration.multi_debug.to_s.downcase == 'true'
+      configuration.multi_debug.to_s.casecmp('true').zero?
     end
 
     def show_warning(message)
@@ -40,10 +41,10 @@ module CapistranoMulticonfigParallel
       return nil
     end
 
-    def force_confirmation(&block)
+    def force_confirmation
       `stty -raw echo`
       check_terminal_tty
-      result = block.call
+      result = yield
       `stty -raw echo`
       result
     end
@@ -123,7 +124,7 @@ module CapistranoMulticonfigParallel
 
     def websocket_config
       create_log_file(websocket_server_config.fetch('log_file_path', nil)) if debug_websocket?
-      websocket_server_config.merge('enable_debug' =>  debug_websocket?)
+      websocket_server_config.merge('enable_debug' => debug_websocket?)
     end
 
     def execute_with_rescue(output = nil)

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative './helpers/base_actor_helper'
 module CapistranoMulticonfigParallel
   # finds app dependencies, shows menu and delegates jobs to celluloid manager
@@ -5,20 +6,20 @@ module CapistranoMulticonfigParallel
     include CapistranoMulticonfigParallel::ApplicationHelper
 
     attr_reader :stage_apps,
-      :top_level_tasks,
-      :jobs,
-      :condition,
-      :manager,
-      :dependency_tracker,
-      :application,
-      :stage,
-      :name,
-      :args,
-      :argv,
-      :default_stage,
-      :patched_job_paths,
-      :bundler_workers_store,
-      :checked_job_paths
+                :top_level_tasks,
+                :jobs,
+                :condition,
+                :manager,
+                :dependency_tracker,
+                :application,
+                :stage,
+                :name,
+                :args,
+                :argv,
+                :default_stage,
+                :patched_job_paths,
+                :bundler_workers_store,
+                :checked_job_paths
 
     attr_writer :patched_job_paths
 
@@ -69,13 +70,13 @@ module CapistranoMulticonfigParallel
     end
 
     def verify_valid_data
-      return if  @top_level_tasks != ['default']
+      return if @top_level_tasks != ['default']
       raise_invalid_job_config
     end
 
     def raise_invalid_job_config(path = nil)
       if independent_deploy?(path)
-          puts 'Invalid execution, please call something such as `multi_cap app_name:production deploy`, where production is a stage you have defined and the "app_name" is a name that you defined in your multi_cap.yml file'.red
+        puts 'Invalid execution, please call something such as `multi_cap app_name:production deploy`, where production is a stage you have defined and the "app_name" is a name that you defined in your multi_cap.yml file'.red
       elsif application_supports_multi_apps?
         puts 'Invalid execution, please call something such as `multi_cap app_name:production deploy`, where production is a stage you have defined and the "app_name" is name that you have defined in your application'.red
       else
@@ -131,7 +132,7 @@ module CapistranoMulticonfigParallel
 
     def process_jobs
       return unless @jobs.present?
-      if configuration.multi_secvential.to_s.downcase == 'true'
+      if configuration.multi_secvential.to_s.casecmp('true').zero?
         @jobs.each(&:execute_standard_deploy)
       else
         run_async_jobs
@@ -170,7 +171,7 @@ module CapistranoMulticonfigParallel
     end
 
     def get_app_additional_env_options(app, app_message)
-      app_name = (app.is_a?(Hash) && app[:app].present?) ? app[:app].camelcase : app
+      app_name = app.is_a?(Hash) && app[:app].present? ? app[:app].camelcase : app
       app_name = app_name.present? ? app_name : 'current application'
       message = "Please write additional ENV options for #{app_name} for #{app_message}"
       app_additional_env_options = ask_confirm(message, nil)
@@ -187,7 +188,7 @@ module CapistranoMulticonfigParallel
       else
         collect_jobs(options)
       end
-      if configuration.check_app_bundler_dependencies.to_s.downcase == 'true'
+      if configuration.check_app_bundler_dependencies.to_s.casecmp('true').zero?
         loop do
           log_to_file("Trying to sleep until all budler workes are done (#{@jobs.size} and #{@bundler_workers_store.size})")
           break if @jobs.size == @bundler_workers_store.size
@@ -229,11 +230,11 @@ module CapistranoMulticonfigParallel
     end
 
     def wait_jobs_termination
-      return if configuration.multi_secvential.to_s.downcase == 'true'
+      return if configuration.multi_secvential.to_s.casecmp('true').zero?
       result = @condition.wait
       return unless result.present?
       @manager.terminate
-      #terminate
+      # terminate
     end
 
     def add_job_to_list_of_jobs(job)
@@ -243,8 +244,12 @@ module CapistranoMulticonfigParallel
     def prepare_job(options)
       options = options.stringify_keys
       app = options.fetch('app', '')
-      path = job_path(options) rescue nil
-    #  raise [app, @stage_apps, job_stage(options) , stages(job_path(options))].inspect
+      path = begin
+               job_path(options)
+             rescue
+               nil
+             end
+      #  raise [app, @stage_apps, job_stage(options) , stages(job_path(options))].inspect
       return raise_invalid_job_config(path) if (app.present? && !@stage_apps.include?(app)) || !job_stage_valid?(options)
       app = options.fetch('app', '')
       box = options['env_options'][boxes_key]
@@ -257,21 +262,20 @@ module CapistranoMulticonfigParallel
       job_env_options = custom_command? ? env_options.except(action_key) : env_options
 
       job = CapistranoMulticonfigParallel::Job.new(self, options.merge(
-      action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
-      env_options: job_env_options,
-      path:  job_path(options)
+                                                           action: custom_command? && env_options[action_key].present? ? env_options[action_key] : options['action'],
+                                                           env_options: job_env_options,
+                                                           path:  job_path(options)
 
       ))
 
-      if configuration.check_app_bundler_dependencies.to_s.downcase == 'true' && job.job_gemfile.present?
-        if !@checked_job_paths.include?(job.job_path)
+      if configuration.check_app_bundler_dependencies.to_s.casecmp('true').zero? && job.job_gemfile.present?
+        unless @checked_job_paths.include?(job.job_path)
           @checked_job_paths << job.job_path
           @manager.bundler_workers.work(job) # make sure we have installed the dependencies first for this application
         end
       else
         add_job_to_list_of_jobs(job)
       end
-
     end
 
     def job_can_tag_staging?(job)
@@ -279,7 +283,7 @@ module CapistranoMulticonfigParallel
     end
 
     def job_path(options)
-      path = options["path"].present? ? options["path"] : nil
+      path = options['path'].present? ? options['path'] : nil
       path.present? && File.directory?(path) ? path : detect_root
     end
 
@@ -290,7 +294,6 @@ module CapistranoMulticonfigParallel
     def job_stage(options)
       options['stage']
     end
-
 
     def prepare_options(options)
       options = options.stringify_keys
@@ -318,10 +321,9 @@ module CapistranoMulticonfigParallel
         prepare_job(options)
       end
     end
+
     def jobs_restore_application_state
-      @jobs.each do |job|
-        job.rollback_changes_to_application
-      end
+      @jobs.each(&:rollback_changes_to_application)
     end
   end
 end

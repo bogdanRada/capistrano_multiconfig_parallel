@@ -1,13 +1,12 @@
+# frozen_string_literal: true
 require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
-  # base actor used for compatibility between celluloid versions
   module BaseActorHelper
-
+      # base actor used for compatibility between celluloid versions
     module ClassMethods
       class << self
         include CapistranoMulticonfigParallel::ApplicationHelper
         attr_reader :config
-
 
         def config
           {
@@ -32,27 +31,25 @@ module CapistranoMulticonfigParallel
         end
       end
     end
-
+      # base actor used for compatibility between celluloid versions
     module InstanceMethods
-      
       [
-        :version_less_than_seventeen?,
+        :version_less_than_seventeen?
       ].each do |method_name|
         define_method(method_name) do
           CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods.send(method_name)
         end
       end
 
-      def setup_actor_supervision_details(class_name, options)
+      def setup_actor_supervision_details(_class_name, options)
         arguments = (options[:args].is_a?(Array) ? options[:args] : [options[:args]]).compact
         if version_less_than_seventeen?
           [options[:actor_name], options[:type], *arguments]
         else
-          #supervises_opts = options[:supervises].present? ? { supervises: options[:supervises] } : {}
+          # supervises_opts = options[:supervises].present? ? { supervises: options[:supervises] } : {}
           { as: options[:actor_name], type: options[:type], args: arguments, size: options.fetch(:size, nil) }
         end
       end
-
 
       def setup_actor_supervision(class_name, options)
         if version_less_than_seventeen?
@@ -77,11 +74,10 @@ module CapistranoMulticonfigParallel
           # config = Celluloid::Supervision::Configuration.new
           # config.define setup_actor_supervision_details(class_name, options)
           options = setup_actor_supervision_details(class_name, options)
-          class_name.pool *[options[:type], options.except(:type)]
+          class_name.pool options[:type], options.except(:type)
         end
       end
     end
-
 
     def self.included(base)
       base.send(:include, Celluloid)
@@ -90,7 +86,6 @@ module CapistranoMulticonfigParallel
       base.send(:include, CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods.config['logger_class'])
       base.send(:include, CapistranoMulticonfigParallel::BaseActorHelper::InstanceMethods)
     end
-
   end
 end
 

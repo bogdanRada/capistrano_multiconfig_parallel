@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   # methods used for the interactive menu where are listed all aplications
@@ -77,7 +78,7 @@ module CapistranoMulticonfigParallel
     end
 
     def check_number_selected(num)
-      check_numeric(num) && (num > 0 && num <= @applications.size)
+      check_numeric(num) && (num.positive? && num <= @applications.size)
     end
 
     def show_option_selected(num)

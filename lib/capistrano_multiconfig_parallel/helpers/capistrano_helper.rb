@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module CapistranoMulticonfigParallel
   # helper methods used for capistrano actions
   module CapistranoHelper

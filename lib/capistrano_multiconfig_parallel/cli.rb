@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative './all'
 module CapistranoMulticonfigParallel
   # this is the class that will be invoked from terminal , and willl use the invoke task as the primary function.
@@ -18,14 +19,12 @@ module CapistranoMulticonfigParallel
       end
 
       def run_the_application
-        begin
-          application = CapistranoMulticonfigParallel::Application.new
-          execute_with_rescue('stderr') do
-            application.start
-          end
-        ensure
-          application.jobs_restore_application_state if application.present?
+        application = CapistranoMulticonfigParallel::Application.new
+        execute_with_rescue('stderr') do
+          application.start
         end
+      ensure
+        application.jobs_restore_application_state if application.present?
       end
     end
   end

@@ -1,20 +1,24 @@
+# frozen_string_literal: true
 module CapistranoMulticonfigParallel
   # internal helpers for logging mostly
   module InternalHelper
-    module_function
+  module_function
 
-  def get_current_gem_name
-      searcher = if Gem::Specification.respond_to? :find
+    def gem_specification_searcher
+      if Gem::Specification.respond_to?(:find)
         # ruby 2.0
         Gem::Specification
       elsif Gem.respond_to? :searcher
         # ruby 1.8/1.9
         Gem.searcher.init_gemspecs
       end
-      spec = unless searcher.nil?
-        searcher.find do |spec|
-          File.fnmatch(File.join(spec.full_gem_path,'*'), __FILE__)
-        end
+    end
+
+    def fetch_current_gem_name
+      searcher = gem_specification_searcher
+      return if searcher.nil?
+      spec = searcher.find do |specification|
+        File.fnmatch(File.join(specification.full_gem_path, '*'), __FILE__)
       end
       spec.name if spec.present?
     end
@@ -25,7 +29,7 @@ module CapistranoMulticonfigParallel
     end
 
     def internal_config_directory
-     File.join(root.to_s, get_current_gem_name, 'configuration')
+      File.join(root.to_s, fetch_current_gem_name, 'configuration')
     end
 
     def internal_config_file
@@ -67,7 +71,7 @@ module CapistranoMulticonfigParallel
 
     def setup_default_configuration_types(hash)
       hash.each_with_object({}) do |(key, value), memo|
-        memo[key] = (key == 'type') ? find_config_type(value) : value
+        memo[key] = key == 'type' ? find_config_type(value) : value
         memo
       end
     end
@@ -102,7 +106,7 @@ module CapistranoMulticonfigParallel
     end
 
     def check_file(file, filename)
-      file.file? && file.basename.to_s.downcase == filename.to_s.downcase
+      file.file? && file.basename.to_s.casecmp(filename.to_s.downcase).zero?
     end
 
     def find_file_in_directory(root, filename)
@@ -111,7 +115,7 @@ module CapistranoMulticonfigParallel
 
     def find_file_by_names(custom_path = detect_root, names = ['capfile'])
       names = names.is_a?(Array) ? names : [names]
-      pathnames = names.collect do |name|
+      pathnames = names.map do |name|
         Pathname.new(custom_path).children.find { |file| check_file(file, name) }
       end
       pathnames.present? && pathnames.is_a?(Array) ? pathnames.compact : pathnames
@@ -122,7 +126,7 @@ module CapistranoMulticonfigParallel
       try_detect_file(filename, root)
     end
 
-    def try_detect_file(filename = 'capfile', root = pwd_parent_dir )
+    def try_detect_file(filename = 'capfile', root = pwd_parent_dir)
       root = root.parent until find_file_in_directory(root, filename)
       pathname_is_root?(root) ? nil : root
     end

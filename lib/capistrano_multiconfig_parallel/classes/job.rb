@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative '../helpers/application_helper'
 require_relative './job_command'
 module CapistranoMulticonfigParallel
@@ -10,7 +11,6 @@ module CapistranoMulticonfigParallel
     attr_writer :status, :exit_status,  :bundler_status, :new_jobs_dispatched, :will_dispatch_new_job, :bundler_check_status
 
     def_delegators :@manager, :stderr_buffer
-
 
     def initialize(application, options)
       @options = options.stringify_keys
@@ -60,7 +60,7 @@ module CapistranoMulticonfigParallel
       [
         { value: id.to_s },
         { value: wrap_string(File.basename(job.job_path)) },
-        { value: "bundle check || bundle install" },
+        { value: 'bundle check || bundle install' },
         { value: bundler_check_status.to_s }
       ]
     end
@@ -69,7 +69,7 @@ module CapistranoMulticonfigParallel
       [
         { value: id.to_s },
         { value: wrap_string(job_stage_for_terminal) },
-        { value: "Preparing app...setting up gems" },
+        { value: 'Preparing app...setting up gems' },
         { value: terminal_env_variables.map { |str| wrap_string(str) }.join("\n") },
         { value: wrap_string(status.to_s.green) }
       ]
@@ -109,7 +109,7 @@ module CapistranoMulticonfigParallel
       { name: 'bundler_status', default: nil },
       { name: 'bundler_check_status', default: nil },
       { name: 'new_jobs_dispatched', default: [] },
-      { name: 'will_dispatch_new_job', default: nil },
+      { name: 'will_dispatch_new_job', default: nil }
     ].each do |hash|
       define_method hash[:name] do
         value = @options.fetch(hash[:name], hash[:default])
@@ -119,10 +119,9 @@ module CapistranoMulticonfigParallel
       end
     end
 
-
     def setup_additional_env_variables(value)
-      value["#{env_variable}"] = id
-      #value["capistrano_version"] = job_capistrano_version
+      value[env_variable.to_s] = id
+      # value["capistrano_version"] = job_capistrano_version
     end
 
     def finished?
@@ -158,11 +157,11 @@ module CapistranoMulticonfigParallel
     end
 
     def dead?
-      status.present? && status.to_s.downcase == 'dead'
+      status.present? && status.to_s.casecmp('dead').zero?
     end
 
     def worker_died?
-      dead? || worker == nil || worker.dead?
+      dead? || worker.nil? || worker.dead?
     end
 
     def work_done?
@@ -192,6 +191,5 @@ module CapistranoMulticonfigParallel
     def respond_to_missing?(method_name, include_private = false)
       command.public_methods.include?(method_name) || super
     end
-
   end
 end

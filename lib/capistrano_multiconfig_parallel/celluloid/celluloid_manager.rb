@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative './celluloid_worker'
 require_relative './terminal_table'
 require_relative './web_server'
@@ -14,7 +15,7 @@ module CapistranoMulticonfigParallel
     def initialize(job_manager)
       @job_manager = job_manager
       @registration_complete = false
-      return if configuration.multi_secvential.to_s.downcase == 'true'
+      return if configuration.multi_secvential.to_s.casecmp('true').zero?
       # start SupervisionGroup
       @worker_supervisor = setup_supervision_group
 
@@ -22,7 +23,7 @@ module CapistranoMulticonfigParallel
       @mutex = Mutex.new
       # http://rubydoc.info/gems/celluloid/Celluloid/SupervisionGroup/Member
       @workers = setup_pool_of_actor(@worker_supervisor, actor_name: :workers, type: CapistranoMulticonfigParallel::CelluloidWorker, size: 10)
-      #@workers = Celluloid::Actor[:workers].pool
+      # @workers = Celluloid::Actor[:workers].pool
       Actor.current.link @workers
       setup_actor_supervision(@worker_supervisor, actor_name: :terminal_server, type: CapistranoMulticonfigParallel::TerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
       setup_actor_supervision(@worker_supervisor, actor_name: :web_server, type: CapistranoMulticonfigParallel::WebServer, args: websocket_config)
@@ -39,7 +40,7 @@ module CapistranoMulticonfigParallel
     end
 
     def start_bundler_supervision_if_needed
-      return if configuration.check_app_bundler_dependencies.to_s.downcase != 'true'
+      return unless configuration.check_app_bundler_dependencies.to_s.casecmp('true').zero?
       @bundler_workers = setup_pool_of_actor(@worker_supervisor, actor_name: :bundler_workers, type: CapistranoMulticonfigParallel::BundlerWorker, size: 10)
       Actor.current.link @bundler_workers
       setup_actor_supervision(@worker_supervisor, actor_name: :bundler_terminal_server, type: CapistranoMulticonfigParallel::BundlerTerminalTable, args: [Actor.current, @job_manager, configuration.fetch(:terminal, {})])
@@ -47,7 +48,7 @@ module CapistranoMulticonfigParallel
 
     # call to send an actor
     # a job
-    def delegate_job(job, old_job = "")
+    def delegate_job(job, old_job = '')
       @jobs[job.id] = job
       # debug(@jobs)
       # start work and send it to the background
@@ -67,7 +68,7 @@ module CapistranoMulticonfigParallel
     end
 
     def all_workers_finished?
-      @jobs.all? { |_job_id, job| job.work_done?   }
+      @jobs.all? { |_job_id, job| job.work_done? }
     end
 
     def process_jobs
@@ -188,10 +189,9 @@ module CapistranoMulticonfigParallel
         worker = get_worker_for_job(job_id)
         if worker.alive?
           worker.publish_rake_event('approved' => 'yes',
-          'action' => 'invoke',
-          'job_id' => job.id,
-          'task' => task
-          )
+                                    'action' => 'invoke',
+                                    'job_id' => job.id,
+                                    'task' => task)
         end
       end
     end
@@ -210,7 +210,7 @@ module CapistranoMulticonfigParallel
 
     def can_tag_staging?
       @job_manager.can_tag_staging? && @job_manager.tag_staging_exists? &&
-      @jobs.find { |_job_id, job| job.stage == 'production' }.blank?
+        @jobs.find { |_job_id, job| job.stage == 'production' }.blank?
     end
 
     def dispatch_new_job(job, options = {})
@@ -243,7 +243,7 @@ module CapistranoMulticonfigParallel
       mailbox = worker.mailbox
       log_to_file("worker_died: worker job #{job.inspect} with mailbox #{mailbox.inspect} and #{mailbox.address.inspect} died  for reason:  #{reason}")
       return true if job.blank? || job.rolling_back? || job.action != 'deploy'
-      #job.rollback_changes_to_application
+      # job.rollback_changes_to_application
       @worker_to_job.delete(mailbox.address)
       log_to_file("RESTARTING: worker job #{job.inspect} with mailbox #{mailbox.inspect} and #{mailbox.address.inspect} died  for reason:  #{reason}")
 

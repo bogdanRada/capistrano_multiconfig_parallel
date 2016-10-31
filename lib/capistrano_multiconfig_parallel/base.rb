@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # base module that has the statis methods that this gem is using
 module CapistranoMulticonfigParallel
   GITFLOW_TAG_STAGING_TASK = 'gitflow:tag_staging'
@@ -5,7 +6,6 @@ module CapistranoMulticonfigParallel
   GITFLOW_VERIFY_UPTODATE_TASK = 'gitflow:verify_up_to_date'
 
   class TaskFailed < StandardError; end
-
 
   class << self
     attr_accessor :logger, :original_args, :config, :config_keys
@@ -39,14 +39,13 @@ module CapistranoMulticonfigParallel
       multi_fetch_argv((original_args || ARGV).dup)
     end
 
-    # def capistrano_version
-    #   find_loaded_gem_property('capistrano', 'version')
-    # end
-    #
-    # def capistrano_version_2?
-    #   capistrano_version.blank? ? false : verify_gem_version(capistrano_version, '3.0', operator: '<')
-    # end
-
+  # def capistrano_version
+  #   find_loaded_gem_property('capistrano', 'version')
+  # end
+  #
+  # def capistrano_version_2?
+  #   capistrano_version.blank? ? false : verify_gem_version(capistrano_version, '3.0', operator: '<')
+  # end
 
   private
 
@@ -61,7 +60,7 @@ module CapistranoMulticonfigParallel
     end
 
     def enable_file_logging
-      if configuration.multi_debug.to_s.downcase == 'true'
+      if configuration.multi_debug.to_s.casecmp('true').zero?
         enable_main_log_file
         self.logger = ::Logger.new(main_log_file)
       else

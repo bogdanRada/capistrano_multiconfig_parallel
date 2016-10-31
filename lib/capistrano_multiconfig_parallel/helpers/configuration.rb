@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative './core_helper'
 require_relative './internal_helper'
 require_relative './parse_helper'
@@ -39,9 +40,9 @@ module CapistranoMulticonfigParallel
     def read_config_file
       return if CapistranoMulticonfigParallel.original_args.present? && CapistranoMulticonfigParallel.original_args.include?('--help')
       user = Etc.getlogin
-      config_file_path = File.join(Dir.home(user), "multi_cap.yml")
-      if File.exists?(config_file_path)
-        @fetched_config.config_dir  = File.dirname(config_file_path)
+      config_file_path = File.join(Dir.home(user), 'multi_cap.yml')
+      if File.exist?(config_file_path)
+        @fetched_config.config_dir = File.dirname(config_file_path)
       else
         @fetched_config.config_dir = @fetched_config.config_dir.present? ? File.expand_path(@fetched_config.config_dir) : try_detect_file('multi_cap.yml')
         config_file_path = @fetched_config.config_dir.present? ? File.join(@fetched_config.config_dir, 'multi_cap.yml') : nil
@@ -60,18 +61,14 @@ module CapistranoMulticonfigParallel
     end
 
     def check_array_of_hash(value, props)
-      value.find do|hash|
+      value.find do |hash|
         check_hash_set(hash, props)
       end
     end
 
-    def check_boolean(prop)
-      value = get_prop_config(prop)
-      if %w(true false).include?(value.to_s.downcase)
-        true
-      else
-        raise ArgumentError, "the property `#{prop}` must be boolean"
-      end
+    def check_boolean(prop, value)
+      return true if  %w(true false).include?(value.to_s.downcase)
+      raise ArgumentError, "the property `#{prop}` must be boolean"
     end
 
     def configuration_valid?
@@ -79,22 +76,20 @@ module CapistranoMulticonfigParallel
     end
 
     def check_boolean_props(props)
-      props.each do |prop|
-        @check_config[prop] = get_prop_config(prop) if check_boolean(prop)
+      properties_check(props) do |prop, value|
+       check_boolean(prop, value)
       end
     end
 
     def check_array_props(props)
-      props.each do |prop|
-        value = get_prop_config(prop)
-        @check_config[prop] = value if value_is_array?(value) && verify_array_of_strings(value)
+        properties_check(props) do |prop, value|
+       value_is_array?(value) && verify_array_of_strings(value)
       end
     end
 
     def check_string_props(props)
-      props.each do |prop|
-        value = get_prop_config(prop)
-        @check_config[prop] = value if value.is_a?(String)
+      properties_check(props) do |prop, value|
+         value.is_a?(String)
       end
     end
 
@@ -107,9 +102,18 @@ module CapistranoMulticonfigParallel
     end
 
     def check_directories(props)
+      properties_check(props) do |prop, value|
+        value.present? && File.directory?(value)
+      end
+    end
+
+
+    def properties_check(props)
+      raise "Please provide a block for property checking" unless block_given?
       props.each do |prop|
         value = get_prop_config(prop)
-        @check_config[prop] = value if value.present? && File.directory?(value)
+        bool = yield(prop, value)
+        @check_config[prop] = value if bool == true
       end
     end
 

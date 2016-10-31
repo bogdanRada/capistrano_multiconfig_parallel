@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require_relative './interactive_menu'
 require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
@@ -91,19 +92,19 @@ module CapistranoMulticonfigParallel
     end
 
     def show_frameworks_used(applications_to_deploy, all_frameworks, action)
-      return [] if applications_to_deploy.blank? || applications_to_deploy.size < 1
+      return [] if applications_to_deploy.blank? || applications_to_deploy.empty?
       puts 'The following frameworks will be used:'
       app_names = []
-      if all_frameworks.present?
-        app_names = applications_to_deploy.map { |app| app['app'].camelcase }
-      else
-        app_names = applications_to_deploy.map { |app| application_dependencies.find { |hash| hash['app'] == app['app'] }['app'].camelcase }
-      end
+      app_names = if all_frameworks.present?
+                    applications_to_deploy.map { |app| app['app'].camelcase }
+                  else
+                    applications_to_deploy.map { |app| application_dependencies.find { |hash| hash['app'] == app['app'] }['app'].camelcase }
+                  end
       print_frameworks_used(app_names, applications_to_deploy, action)
     end
 
     def print_frameworks_used(app_names, applications_to_deploy, action)
-      app_names.each { |app| puts "#{app}" }
+      app_names.each { |app| puts app.to_s }
       apps_deploy_confirmation = ask_confirm("Are you sure you want to #{action} these apps?", 'Y/N')
       if action_confirmed?(apps_deploy_confirmation)
         return applications_to_deploy

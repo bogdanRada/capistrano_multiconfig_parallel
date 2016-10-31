@@ -1,0 +1,70 @@
+  task_confirmations:
+    - gitflow:calculate_tag
+  apply_stage_confirmation:
+    - webdev
+  multi_debug:
+    true
+  websocket_server:
+    use_redis: true
+    enable_debug: false
+  terminal:
+    clear_screen: false
+  application_dependencies:
+    - app: 'ghcp-api'
+      priority: 1
+      dependencies: []
+      path: '/home/raul/workspace/ecommerce/ghcp-api'
+    - app: 'xtrafast-shared'
+      priority: 2
+      path: '/home/raul/workspace/ecommerce/shared'
+      dependencies:
+        - ghcp-api
+    - app: 'xtrafast-ix'
+      priority: 3
+      path: '/home/raul/workspace/ecommerce/websites_xtra/websites/xtrafast-ix'
+      dependencies:
+        - ghcp-api
+        - xtrafast-shared
+    - app: 'xtrafast-he'
+      priority: 3
+      path: '/home/raul/workspace/ecommerce/websites_xtra/websites/xtrafast-he'
+      dependencies:
+        - 'ghcp-api'
+        - 'xtrafast-shared'
+    - app: 'ixwebsites'
+      path: '/home/raul/workspace/ecommerce/websites_xtra/websites/directory'
+      priority: 4
+      dependencies:
+        - 'ghcp-api'
+        - 'xtrafast-shared'
+        - 'xtrafast-ix'
+        - 'xtrafast-he'
+    - app: ghcp-web
+      path: '/home/raul/workspace/ecommerce/ghcp-web'
+      priority: 2
+      dependencies:
+        - ghcp-api
+    - app: 'managecp2'
+      priority: 6
+      path: '/home/raul/workspace/ecommerce/managecp2'
+      dependencies:
+        - 'ghcp-api'
+        - 'ghcp-web'
+    - app: 'gdriveautobackup'
+      path: '/home/raul/workspace/ecommerce/brada_projects/GDriveAutoBackup'
+      priority: 6
+      dependencies: []
+    - app: 'ecommerce'
+      priority: 6
+      path: '/home/raul/workspace/ecommerce/georgescu_ecommerce'
+      dependencies:
+        - 'ghcp-api'
+    - app: 'cloudbyix'
+      priority: 6
+      path: '/home/raul/workspace/ecommerce/cloudix'
+      dependencies:
+        - 'ghcp-api'
+    - app: 'livechat'
+      priority: 7
+      dependencies: []
+      path: '/home/raul/workspace/ecommerce/ecommerce-livechat'

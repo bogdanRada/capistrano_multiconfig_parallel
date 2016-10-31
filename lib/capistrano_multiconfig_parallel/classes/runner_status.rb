@@ -1,47 +1,29 @@
+# frozen_string_literal: true
 require_relative '../helpers/application_helper'
 module CapistranoMulticonfigParallel
   class RunnerStatus
     include CapistranoMulticonfigParallel::ApplicationHelper
 
-    ATTRIBUTE_LIST = [
-      :job,
-      :process_runner,
-      :command,
-      :options,
-      :actor,
-      :job_id,
-      :output_text,
-      :error_text,
-      :exit_status,
-      :did_timeout,
-      :callback,
-      :pid,
-      :force_yield,
-      :expect_timeout,
-      :expect_size_limit,
-      :async_exception,
-      :process
-    ]
+    ATTRIBUTE_LIST = %i(job process_runner command options actor job_id output_text error_text exit_status did_timeout callback pid force_yield expect_timeout expect_size_limit async_exception process).freeze
 
     attr_reader *CapistranoMulticonfigParallel::RunnerStatus::ATTRIBUTE_LIST
     attr_accessor *CapistranoMulticonfigParallel::RunnerStatus::ATTRIBUTE_LIST
 
-    def initialize(process_runner, job, command, options={})
+    def initialize(process_runner, job, command, options = {})
       options = options.is_a?(Hash) ? options : {}
       @job = job
       @process_runner = process_runner
-      @command     = command
-      @options = {:repeats=>1, :force_yield=>nil, :timeout=>nil, :expect_timeout=>false}.merge(options)
+      @command = command
+      @options = { repeats: 1, force_yield: nil, timeout: nil, expect_timeout: false }.merge(options)
       @options = @options.symbolize_keys
 
       @actor = @options.fetch(:actor, nil)
       @job_id = @job.id
       @process_runner = process_runner
 
-
-      @output_text = ""
-      @error_text  = ""
-      @exit_status      = nil
+      @output_text = ''
+      @error_text  = ''
+      @exit_status = nil
       @did_timeout = false
       @callback    = @options[:callback].present? ? @options[:callback] : nil
       @pid         = nil
@@ -67,22 +49,20 @@ module CapistranoMulticonfigParallel
       @pid ||= pid
     end
 
-
     def on_input_stdin(data)
-      log_to_worker(data, "stdin")
+      log_to_worker(data, 'stdin')
       @output_text << data
     end
 
     def on_read_stdout(data)
-      log_to_worker(data, "stdout")
+      log_to_worker(data, 'stdout')
       @output_text << data
     end
 
     def on_read_stderr(data)
-      log_to_worker(data, "stderr")
+      log_to_worker(data, 'stderr')
       @error_text << data
     end
-
 
     def on_timeout
       log_to_worker "Child process for worker #{@job_id} on_timeout  disconnected"
@@ -112,7 +92,6 @@ module CapistranoMulticonfigParallel
       @process ||= process
     end
 
-
     def inspect
       to_s
     end
@@ -123,11 +102,10 @@ module CapistranoMulticonfigParallel
 
     def to_json
       hash = {}
-      CapistranoMulticonfigParallel::RunnerStatus::ATTRIBUTE_LIST.delete_if{|a| [:process_runner].include?(a) }.each do |key|
+      CapistranoMulticonfigParallel::RunnerStatus::ATTRIBUTE_LIST.delete_if { |a| [:process_runner].include?(a) }.each do |key|
         hash[key] = send(key).inspect
       end
       hash
     end
-
   end
 end

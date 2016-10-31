@@ -3,14 +3,19 @@ AllCops:
     - capistrano_multiconfig_parallel.gemspec
     - bin/**/*
     - Guardfile
-    - vendor/**/*
+    - vendor/**/**
+    - examples/**/**
+    - spec/**/*
+    - Gemfile
     - Rakefile
 
+  TargetRubyVersion: 2.3
+
 ClassLength:
-  Max: 900
-  
+  Max: 500
+
 ModuleLength:
-  Max: 900
+  Max: 500
 
 Documentation:
   Enabled: true

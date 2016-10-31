@@ -1,11 +1,11 @@
+# frozen_string_literal: true
 require_relative './runner_status'
 module CapistranoMulticonfigParallel
   # class that is used to execute the capistrano tasks and it is invoked by the celluloid worker
   class ChildProcessStatus < CapistranoMulticonfigParallel::RunnerStatus
-
     attr_accessor :show_bundler
 
-    def initialize(process_runner, job, command, options={})
+    def initialize(process_runner, job, command, options = {})
       super(process_runner, job, command, options)
       @show_bundler = true
     end
@@ -24,8 +24,8 @@ module CapistranoMulticonfigParallel
     end
 
     def on_read_stdout(data)
-      @show_bundler = false if  data.to_s.include?("The Gemfile's dependencies are satisfied") || data.to_s.include?("Bundle complete")
-      @actor.async.update_machine_state(truncate(data, 40), :bundler => true) if @show_bundler == true && data.strip.present? && data.strip != '.'
+      @show_bundler = false if data.to_s.include?("The Gemfile's dependencies are satisfied") || data.to_s.include?('Bundle complete')
+      @actor.async.update_machine_state(truncate(data, 40), bundler: true) if @show_bundler == true && data.strip.present? && data.strip != '.'
       io_callback('stdout', data)
     end
 

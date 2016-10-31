@@ -5,3 +5,15 @@ TooManyInstanceVariables:
   enabled: false
 TooManyMethods:
   enabled: false
+UtilityFunction:
+  enabled: false
+ManualDispatch:
+  enabled: false
+InstanceVariableAssumption:
+  enabled: false
+ClassVariable:
+  enabled: false
+exclude_paths:
+ - examples/**/**
+ - spec/**/**
+ 
