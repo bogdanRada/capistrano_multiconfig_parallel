@@ -8,7 +8,7 @@ module CapistranoMulticonfigParallel
   module VERSION
 
     MAJOR = 2
-    MINOR = 4
+    MINOR = 5
     TINY = 0
     PRE = nil
 

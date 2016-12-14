@@ -21,9 +21,10 @@ module CapistranoMulticonfigParallel
       :checked_job_paths
 
     attr_writer :patched_job_paths
-
+    
     def initialize
-      Celluloid.boot unless Celluloid.running?
+      celluloid_running = Celluloid.running? rescue false
+      Celluloid.boot unless celluloid_running
       CapistranoMulticonfigParallel.enable_logging
       @stage_apps = multi_apps? ? app_names_from_stages : []
       collect_command_line_tasks(CapistranoMulticonfigParallel.original_args)
