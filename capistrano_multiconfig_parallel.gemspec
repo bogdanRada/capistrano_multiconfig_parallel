@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'celluloid', '>= 0.16', '>= 0.16'
   s.add_runtime_dependency 'celluloid-pmap', '~> 0.2', '>= 0.2.2'
-  s.add_runtime_dependency 'celluloid_pubsub', '~> 1.1', '>= 1.1.0'
+  s.add_runtime_dependency 'celluloid_pubsub', '~> 1.1', '>= 1.1.1'
   s.add_runtime_dependency 'composable_state_machine', '~> 1.0', '>= 1.0.2'
   s.add_runtime_dependency 'terminal-table', '~> 1.7', '>= 1.7.3'
   s.add_runtime_dependency 'colorize', '~>  0.8', '>= 0.8.1'
@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'configliere', '~> 0.4', '>=0.4'
   s.add_runtime_dependency 'inquirer', '~> 0.2', '>= 0.2'
   s.add_runtime_dependency 'devnull','~> 0.1', '>= 0.1'
-  s.add_runtime_dependency 'capistrano_sentinel',  '~> 0.2', '>= 0.2.0'
+  s.add_runtime_dependency 'capistrano_sentinel',  '~> 0.2', '>= 0.2.1'
   s.add_runtime_dependency 'powerbar', '~> 1.0', '>= 1.0.17'
 
   s.add_development_dependency 'rake', '~> 12.0', '>= 12.0'
@@ -41,7 +41,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'coveralls', '~> 0.8', '>= 0.8'
 
   s.add_development_dependency 'yard', '~> 0.8', '>= 0.8.7'
-  s.add_development_dependency 'redcarpet', '~> 3.3', '>= 3.3'
+  s.add_development_dependency 'redcarpet', '~> 3.4', '>= 3.4'
   s.add_development_dependency 'github-markup', '~> 1.4', '>= 1.4'
   s.add_development_dependency 'inch', '~> 0.7', '>= 0.7'
 end
