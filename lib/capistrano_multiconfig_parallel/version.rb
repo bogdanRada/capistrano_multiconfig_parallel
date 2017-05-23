@@ -8,8 +8,8 @@ module CapistranoMulticonfigParallel
   module VERSION
 
     MAJOR = 2
-    MINOR = 6
-    TINY = 2
+    MINOR = 7
+    TINY = 0
     PRE = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
