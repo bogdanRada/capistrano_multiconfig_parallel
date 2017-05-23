@@ -80,7 +80,7 @@ module CapistranoMulticonfigParallel
 
       def wrap_string(string, options = {})
         options.stringify_keys!
-        string.scan(/.{#{options.fetch('length', 35)}}|.+/).map(&:strip).join(options.fetch('character', $INPUT_RECORD_SEPARATOR))
+        string.scan(/.{#{options.fetch('length', 36)}}|.+/).map(&:strip).join(options.fetch('character', $INPUT_RECORD_SEPARATOR))
       end
 
       def percent_of(index, total)
