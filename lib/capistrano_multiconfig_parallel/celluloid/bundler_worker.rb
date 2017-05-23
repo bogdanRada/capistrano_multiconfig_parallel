@@ -33,7 +33,7 @@ module CapistranoMulticonfigParallel
       else
         @progress_bar ||= PowerBar.new
         @progress_bar.define_singleton_method :terminal_width do
-          40
+          36
         end
         @progress_bar.settings.tty.finite.template.main = \
         "${<msg>} ${<bar> } ${<percent>%}" # + "${<rate>/s} ${<elapsed>}${ ETA: <eta>}"
