@@ -51,7 +51,7 @@ module CapistranoMulticonfigParallel
           { value: wrap_string(job_stage_for_terminal) },
           { value: wrap_string(capistrano_action) },
           { value: terminal_env_variables.map { |str| wrap_string(str) }.join("\n") },
-          { value: wrap_string(worker_state) }
+          { value: wrap_coloured_string(*worker_state) }
         ]
       end
     end
@@ -61,7 +61,7 @@ module CapistranoMulticonfigParallel
         { value: wrap_string(id.to_s) },
         { value: wrap_string(File.basename(job.job_path)) },
         { value: wrap_string("bundle check || bundle install") },
-        { value: wrap_string(bundler_check_status.to_s) }
+        { value: wrap_coloured_string(bundler_check_status.to_s,  color: bundler_check_status_colour) }
       ]
     end
 
@@ -71,7 +71,7 @@ module CapistranoMulticonfigParallel
         { value: wrap_string(job_stage_for_terminal) },
         { value: wrap_string("Setting up gems..") },
         { value: terminal_env_variables.map { |str| wrap_string(str) }.join("\n") },
-        { value: wrap_string(status.to_s.green) }
+        { value: wrap_coloured_string(status.to_s, color: :green) }
       ]
     end
 
@@ -89,8 +89,12 @@ module CapistranoMulticonfigParallel
 
     def worker_state
       worker_obj = worker
-      default = status.to_s.upcase.red
-      worker_died? ? default : worker_obj.worker_state
+      default = status.to_s.upcase
+      if worker_died?
+        [default, color: :red]
+      else
+        [worker_obj.worker_state, color: worker.state_colour]
+      end
     end
 
     def id
@@ -108,6 +112,7 @@ module CapistranoMulticonfigParallel
       { name: 'exit_status', default: nil },
       { name: 'bundler_status', default: nil },
       { name: 'bundler_check_status', default: nil },
+      { name: 'bundler_check_status_colour', default: :green },
       { name: 'new_jobs_dispatched', default: [] },
       { name: 'will_dispatch_new_job', default: nil },
     ].each do |hash|

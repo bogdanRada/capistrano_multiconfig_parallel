@@ -7,6 +7,8 @@ require_relative './capistrano_helper'
 module CapistranoMulticonfigParallel
   # class that holds the options that are configurable for this gem
   module ApplicationHelper
+    DEFAULT_TEXT_LENGTH = 22
+
     include CapistranoMulticonfigParallel::InternalHelper
     include CapistranoMulticonfigParallel::CoreHelper
     include CapistranoMulticonfigParallel::ParseHelper
@@ -78,9 +80,20 @@ module CapistranoMulticonfigParallel
         [args.select(&:present?), options]
       end
 
-      def wrap_string(string, options = {})
+      def internal_wrap_string(string, options = {})
         options.stringify_keys!
-        string.scan(/.{#{options.fetch('length', 36)}}|.+/).map(&:strip).join(options.fetch('character', $INPUT_RECORD_SEPARATOR))
+        string.scan(/.{#{options.fetch('length', CapistranoMulticonfigParallel::ApplicationHelper::DEFAULT_TEXT_LENGTH)}}|.+/).map(&:strip)
+      end
+
+      def wrap_string(string, options = {})
+        internal_wrap_string(string, options).join(options.fetch('character', $INPUT_RECORD_SEPARATOR))
+      end
+
+      def wrap_coloured_string(string, options = {})
+        new_array = internal_wrap_string(string, options).collect do |str|
+          str.colorize(options["color"].to_s.to_sym)
+        end
+        new_array.join(options.fetch('character', $INPUT_RECORD_SEPARATOR))
       end
 
       def percent_of(index, total)

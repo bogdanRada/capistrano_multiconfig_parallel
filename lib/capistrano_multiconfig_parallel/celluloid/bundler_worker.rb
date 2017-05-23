@@ -33,7 +33,7 @@ module CapistranoMulticonfigParallel
       else
         @progress_bar ||= PowerBar.new
         @progress_bar.define_singleton_method :terminal_width do
-          36
+          CapistranoMulticonfigParallel::ApplicationHelper::DEFAULT_TEXT_LENGTH
         end
         @progress_bar.settings.tty.finite.template.main = \
         "${<msg>} ${<bar> } ${<percent>%}" # + "${<rate>/s} ${<elapsed>}${ ETA: <eta>}"
@@ -43,7 +43,8 @@ module CapistranoMulticonfigParallel
         @progress_bar.settings.tty.finite.template.close = "\e[?25h\e[0mFINISHED \n" # clean up after us
         @progress_bar.settings.tty.finite.output = Proc.new{ |data|
           if data.present? && data.include?("Error") || data.include?("Installing")
-            @job.bundler_check_status = data.include?("Error") ? data.to_s.red : data.to_s.green
+            @job.bundler_check_status_colour = data.include?("Error") ? :red : :green
+            @job.bundler_check_status = data.to_s
             send_msg(CapistranoMulticonfigParallel::BundlerTerminalTable.topic, type: 'event', data: data.to_s.uncolorize )
           end
         }

@@ -25,7 +25,7 @@ module CapistranoMulticonfigParallel
 
     def on_read_stdout(data)
       @show_bundler = false if  data.to_s.include?("The Gemfile's dependencies are satisfied") || data.to_s.include?("Bundle complete")
-      @actor.async.update_machine_state(truncate(data, 36), :bundler => true) if @show_bundler == true && data.strip.present? && data.strip != '.'
+      @actor.async.update_machine_state(truncate(data, CapistranoMulticonfigParallel::ApplicationHelper::DEFAULT_TEXT_LENGTH), :bundler => true) if @show_bundler == true && data.strip.present? && data.strip != '.'
       io_callback('stdout', data)
     end
 

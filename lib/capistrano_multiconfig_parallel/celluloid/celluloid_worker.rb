@@ -51,10 +51,18 @@ module CapistranoMulticonfigParallel
 
     def worker_state
       if job.status.to_s.downcase != 'dead' && Actor.current.alive?
-        @machine.state.to_s.green
+        @machine.state.to_s
       else
         job.status = 'dead'
-        job.status.upcase.red
+        job.status.upcase
+      end
+    end
+
+    def state_colour
+      if job.status.to_s.downcase != 'dead' && Actor.current.alive?
+        return :green
+      else
+        return :red
       end
     end
 

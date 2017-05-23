@@ -34,7 +34,7 @@ require 'forwardable'
 require 'English'
 
 # fix error with not files that can not be found
- Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
+Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
 
 require_relative './helpers/base_actor_helper'
 
@@ -45,5 +45,3 @@ end
 %w(version base application).each do |filename|
   Gem.find_files("capistrano_multiconfig_parallel/#{filename}.rb").each { |path| require path }
 end
-
-Terminal::Table::Style.defaults = {:width => 140}
