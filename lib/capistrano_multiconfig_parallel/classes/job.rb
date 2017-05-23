@@ -47,7 +47,7 @@ module CapistranoMulticonfigParallel
         bundler_terminal_row
       else
         [
-          { value: id.to_s },
+          { value: wrap_string(id.to_s) },
           { value: wrap_string(job_stage_for_terminal) },
           { value: wrap_string(capistrano_action) },
           { value: terminal_env_variables.map { |str| wrap_string(str) }.join("\n") },
@@ -58,18 +58,18 @@ module CapistranoMulticonfigParallel
 
     def bundler_check_terminal_row
       [
-        { value: id.to_s },
+        { value: wrap_string(id.to_s) },
         { value: wrap_string(File.basename(job.job_path)) },
-        { value: "bundle check || bundle install" },
+        { value: wrap_string("bundle check || bundle install") },
         { value: wrap_string(bundler_check_status.to_s) }
       ]
     end
-    
+
     def bundler_terminal_row
       [
-        { value: id.to_s },
+        { value: wrap_string(id.to_s) },
         { value: wrap_string(job_stage_for_terminal) },
-        { value: "Setting up gems.." },
+        { value: wrap_string("Setting up gems..") },
         { value: terminal_env_variables.map { |str| wrap_string(str) }.join("\n") },
         { value: wrap_string(status.to_s.green) }
       ]

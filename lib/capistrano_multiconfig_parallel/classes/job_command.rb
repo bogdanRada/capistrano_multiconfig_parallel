@@ -54,7 +54,7 @@ module CapistranoMulticonfigParallel
 
     def job_gemfile_lock
       @job_gemfile_lock ||= "#{job_gemfile}.lock"
-      raise "Please make sure you have a Gemfile.lock in the project root directory #{job_path}".reds unless File.exists?(@job_gemfile_lock)
+      raise "Please make sure you have a Gemfile.lock in the project root directory #{job_path}".red unless File.exists?(@job_gemfile_lock)
       @job_gemfile_lock
     end
 
