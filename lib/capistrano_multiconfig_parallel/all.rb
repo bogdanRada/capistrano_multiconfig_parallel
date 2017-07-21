@@ -32,6 +32,7 @@ require 'stringio'
 require 'io/console'
 require 'forwardable'
 require 'English'
+require 'tempfile'
 
 # fix error with not files that can not be found
 Gem.find_files('composable_state_machine/**/*.rb').each { |path| require path }
