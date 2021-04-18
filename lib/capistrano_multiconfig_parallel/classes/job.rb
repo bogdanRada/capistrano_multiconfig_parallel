@@ -167,7 +167,7 @@ module CapistranoMulticonfigParallel
     end
 
     def worker_died?
-      dead? || worker == nil || worker.dead?
+      dead? || worker == nil || !worker.alive?
     end
 
     def work_done?
