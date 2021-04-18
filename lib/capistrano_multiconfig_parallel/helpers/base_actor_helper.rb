@@ -15,6 +15,15 @@ module CapistranoMulticonfigParallel
           }
         end
 
+        def boot_up
+          celluloid_running = begin
+                                Celluloid.running?
+                              rescue StandardError
+                                false
+                              end
+          Celluloid.boot unless celluloid_running
+        end
+
         def celluloid_logger_class
           if version_less_than_seventeen?
             Celluloid::Logger
@@ -29,6 +38,10 @@ module CapistranoMulticonfigParallel
 
         def version_less_than_seventeen?
           verify_gem_version(celluloid_version, '0.17', operator: '<')
+        end
+
+        def version_less_than_eigthteen?
+          verify_gem_version(celluloid_version, '0.18', operator: '<')
         end
       end
     end
@@ -95,7 +108,16 @@ module CapistranoMulticonfigParallel
 end
 
 if CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods.version_less_than_seventeen?
+  require 'celluloid'
   require 'celluloid/autostart'
-else
+elsif CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods.version_less_than_eigthteen?
   require 'celluloid/current'
+  CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods.boot_up
+  require 'celluloid'
+else
+  require 'celluloid'
+  require 'celluloid/pool'
+  require 'celluloid/fsm'
+  require 'celluloid/supervision'
+  CapistranoMulticonfigParallel::BaseActorHelper::ClassMethods.boot_up
 end

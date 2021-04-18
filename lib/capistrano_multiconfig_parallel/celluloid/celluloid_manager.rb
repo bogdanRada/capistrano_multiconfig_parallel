@@ -89,12 +89,11 @@ module CapistranoMulticonfigParallel
     end
 
     def check_workers_done?
-      Thread.new do
-        loop do
-          if Actor.current.alive? && all_workers_finished?
-            @workers_terminated.signal('completed')
-            break
-          end
+      after(1) do
+        if Actor.current.alive? && all_workers_finished?
+          @workers_terminated.signal('completed')
+        else
+          check_workers_done?
         end
       end
     end
@@ -187,10 +186,11 @@ module CapistranoMulticonfigParallel
       @jobs.pmap do |job_id, job|
         worker = get_worker_for_job(job_id)
         if worker.alive?
-          worker.publish_rake_event('approved' => 'yes',
-          'action' => 'invoke',
-          'job_id' => job.id,
-          'task' => task
+          worker.publish_rake_event(
+            'approved' => 'yes',
+            'action' => 'invoke',
+            'job_id' => job.id,
+            'task' => task
           )
         end
       end
@@ -210,7 +210,7 @@ module CapistranoMulticonfigParallel
 
     def can_tag_staging?
       @job_manager.can_tag_staging? && @job_manager.tag_staging_exists? &&
-      @jobs.find { |_job_id, job| job.stage == 'production' }.blank?
+        @jobs.find { |_job_id, job| job.stage == 'production' }.blank?
     end
 
     def dispatch_new_job(job, options = {})

@@ -1,3 +1,4 @@
+require_relative './terminal_table'
 module CapistranoMulticonfigParallel
   class BundlerTerminalTable < CapistranoMulticonfigParallel::TerminalTable
 
